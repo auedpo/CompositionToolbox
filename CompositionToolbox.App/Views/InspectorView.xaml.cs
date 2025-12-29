@@ -7,7 +7,7 @@ using CompositionToolbox.App.ViewModels;
 
 namespace CompositionToolbox.App.Views
 {
-    public partial class InspectorView : UserControl
+    public partial class InspectorView : System.Windows.Controls.UserControl
     {
         private InspectorViewModel? _vm;
         private InspectorNotationWindow? _notationWindow;
@@ -107,7 +107,7 @@ namespace CompositionToolbox.App.Views
             _vm.IsEditingLabel = false;
         }
 
-        private void LabelEdit_KeyDown(object sender, KeyEventArgs e)
+        private void LabelEdit_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (_vm == null) return;
             if (e.Key == Key.Enter)
@@ -126,7 +126,7 @@ namespace CompositionToolbox.App.Views
 
         private void LabelEdit_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (sender is TextBox box && box.IsVisible)
+            if (sender is System.Windows.Controls.TextBox box && box.IsVisible)
             {
                 box.Focus();
                 box.SelectAll();

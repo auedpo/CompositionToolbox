@@ -52,3 +52,5 @@ C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Ap
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\PresetPickerDialog.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\InspectorNotationWindow.g.cs
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\InspectorNotationWindow.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\PitchListCatalogWindow.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\PitchListCatalogWindow.g.cs

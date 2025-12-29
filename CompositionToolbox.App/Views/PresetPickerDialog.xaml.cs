@@ -90,7 +90,7 @@ namespace CompositionToolbox.App.Views
             RenderNotation();
         }
 
-        private void SearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void SearchBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (_vm == null) return;
             if (e.Key == Key.Down)

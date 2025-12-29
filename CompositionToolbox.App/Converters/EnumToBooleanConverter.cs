@@ -16,14 +16,14 @@ namespace CompositionToolbox.App.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (parameter == null) return Binding.DoNothing;
+            if (parameter == null) return System.Windows.Data.Binding.DoNothing;
             if (value is true)
             {
                 var parameterString = parameter.ToString();
-                if (parameterString == null) return Binding.DoNothing;
+                if (parameterString == null) return System.Windows.Data.Binding.DoNothing;
                 return Enum.Parse(targetType, parameterString);
             }
-            return Binding.DoNothing;
+            return System.Windows.Data.Binding.DoNothing;
         }
     }
 }

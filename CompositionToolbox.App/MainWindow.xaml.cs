@@ -1,8 +1,12 @@
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Threading;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
+using CompositionToolbox.App.Stores;
 using CompositionToolbox.App.ViewModels;
 using CompositionToolbox.App.Views;
 
@@ -15,18 +19,26 @@ namespace CompositionToolbox.App
         private InitializationView? _initView;
         private SettingsWindow? _settingsWindow;
         private PresetPickerDialog? _presetPickerDialog;
+        private Views.PitchListCatalogWindow? _pitchListCatalogWindow;
         private readonly System.Windows.Controls.Grid _workspaceGrid = new();
         private readonly SettingsService _settingsService;
         private readonly AppSettings _appSettings;
+        private readonly ProjectService _projectService;
+        private bool _transformLogSelectionHooked;
 
         public MainWindow()
         {
             InitializeComponent();
             _settingsService = new SettingsService();
             _appSettings = _settingsService.Load();
-            DataContext = new MainViewModel(_settingsService, _appSettings);
+            var projectPath = EnsureProjectFolder();
+            _projectService = new ProjectService(projectPath);
+            var store = new CompositeStore();
+            store.Load(_projectService.LoadOrCreate());
+            DataContext = new MainViewModel(_settingsService, _appSettings, store, _projectService);
             _vm = (MainViewModel)DataContext;
             _vm.PresetPickerRequested += (_, _) => OpenPresetPicker();
+            _vm.PitchListCatalogRequested += (_, _) => OpenPitchListCatalog();
             _vm.RealizationConfigChanged += (_, _) =>
             {
                 UpdateNotation();
@@ -36,7 +48,7 @@ namespace CompositionToolbox.App
                     presetVm.RefreshRealization();
                 }
             };
-            if (Application.Current is App app)
+            if (System.Windows.Application.Current is App app)
             {
                 app.InitializeServices(_settingsService, _appSettings);
             }
@@ -60,10 +72,17 @@ namespace CompositionToolbox.App
             // Subscribe once to preview changes to update notation
             _vm.Initialization.PropertyChanged += Initialization_PropertyChanged;
             _vm.PropertyChanged += MainViewModel_PropertyChanged;
+            _vm.Store.CurrentLogEntries.CollectionChanged += (_, _) =>
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                    DispatcherPriority.Loaded,
+                    new Action(() =>
+                    {
+                        if (TransformLogList.Items.Count == 0) return;
+                        if (TransformLogList.SelectedIndex >= 0) return;
+                        TransformLogList.SelectedIndex = TransformLogList.Items.Count - 1;
+                        TransformLogList.ScrollIntoView(TransformLogList.SelectedItem);
+                    }));
             UpdateNotation();
-
-            // mark Initialization button as active visually
-            SetActiveLensButton(InitializationButton);
         }
 
         private void Initialization_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -114,10 +133,50 @@ namespace CompositionToolbox.App
                 midiNotes: midi);
         }
 
-        private void Initialization_Click(object sender, RoutedEventArgs e)
+        private void LensSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ShowLens(_initView);
-            SetActiveLensButton(InitializationButton);
+            if (LensSelectorList.SelectedItem is ListBoxItem item)
+            {
+                var tag = item.Tag?.ToString();
+                if (string.Equals(tag, "Initialization", StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowLens(_initView);
+                }
+            }
+        }
+
+        private void TransformLog_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TransformLogList.SelectedItem != null)
+            {
+                TransformLogList.ScrollIntoView(TransformLogList.SelectedItem);
+            }
+        }
+
+        private void TransformLogList_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (TransformLogList.Items.Count == 0) return;
+            if (TransformLogList.SelectedIndex >= 0) return;
+            TransformLogList.SelectedIndex = TransformLogList.Items.Count - 1;
+            TransformLogList.ScrollIntoView(TransformLogList.SelectedItem);
+            if (_transformLogSelectionHooked) return;
+            _transformLogSelectionHooked = true;
+            TransformLogList.ItemContainerGenerator.StatusChanged += TransformLogList_ItemContainerGeneratorStatusChanged;
+        }
+
+        private void TransformLogList_ItemContainerGeneratorStatusChanged(object? sender, EventArgs e)
+        {
+            if (TransformLogList.ItemContainerGenerator.Status != System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
+            {
+                return;
+            }
+            if (TransformLogList.Items.Count == 0) return;
+            var desired = _vm.SelectedLogEntry ?? TransformLogList.Items[TransformLogList.Items.Count - 1];
+            if (!ReferenceEquals(TransformLogList.SelectedItem, desired))
+            {
+                TransformLogList.SelectedItem = desired;
+                TransformLogList.ScrollIntoView(desired);
+            }
         }
 
         private void Settings_Click(object sender, RoutedEventArgs e)
@@ -167,26 +226,21 @@ namespace CompositionToolbox.App
             _presetPickerDialog.ShowDialog();
         }
 
-        private void ShowLens(System.Windows.Controls.UserControl? lens)
+        private void OpenPitchListCatalog()
         {
-            if (lens == null) return;
-            if (System.Windows.LogicalTreeHelper.GetParent(lens) is System.Windows.Controls.Panel prevPanel)
+            if (_pitchListCatalogWindow != null)
             {
-                prevPanel.Children.Remove(lens);
+                _pitchListCatalogWindow.Activate();
+                return;
             }
-            if (_notation != null && System.Windows.LogicalTreeHelper.GetParent(_notation) is System.Windows.Controls.Panel notationParent && notationParent != _workspaceGrid)
+
+            _pitchListCatalogWindow = new Views.PitchListCatalogWindow
             {
-                notationParent.Children.Remove(_notation);
-            }
-            _workspaceGrid.Children.Clear();
-            System.Windows.Controls.Grid.SetRow(lens, 0);
-            _workspaceGrid.Children.Add(lens);
-            if (_notation != null)
-            {
-                System.Windows.Controls.Grid.SetRow(_notation, 1);
-                _workspaceGrid.Children.Add(_notation);
-            }
-            WorkspaceHost.Content = _workspaceGrid;
+                Owner = this,
+                DataContext = new PitchListCatalogViewModel(_vm.PresetCatalog, _vm.PresetState)
+            };
+            _pitchListCatalogWindow.Closed += (_, _) => _pitchListCatalogWindow = null;
+            _pitchListCatalogWindow.Show();
         }
 
         private void ApplyWindowSettings()
@@ -210,7 +264,8 @@ namespace CompositionToolbox.App
             {
                 InspectorColumn.Width = new System.Windows.GridLength(_appSettings.InspectorPanelWidth);
             }
-            UiPersistenceHelper.ApplyColumnWidth(LensesColumn, _appSettings, "Main.Lenses");
+            UiPersistenceHelper.ApplyColumnWidth(CompositesColumn, _appSettings, "Main.Composites");
+            UiPersistenceHelper.ApplyColumnWidth(LensSelectorColumn, _appSettings, "Main.LensSelector");
             UiPersistenceHelper.ApplyColumnWidth(TransformLogColumn, _appSettings, "Main.TransformLog");
             UiPersistenceHelper.ApplyColumnWidth(InspectorColumn, _appSettings, "Main.Inspector", _appSettings.InspectorPanelWidth);
         }
@@ -225,6 +280,7 @@ namespace CompositionToolbox.App
             {
                 _settingsWindow.Close();
             }
+            _projectService.Save(_vm.Store.ToProjectData());
             UiPersistenceHelper.SaveWindowPlacement(this, _appSettings, "Main");
             _appSettings.WindowWidth = Width;
             _appSettings.WindowHeight = Height;
@@ -232,27 +288,56 @@ namespace CompositionToolbox.App
             _appSettings.WindowTop = Top;
             _appSettings.WindowState = WindowState.ToString();
             _appSettings.InspectorPanelWidth = InspectorColumn.ActualWidth;
-            UiPersistenceHelper.SaveColumnWidth(LensesColumn, _appSettings, "Main.Lenses");
+            UiPersistenceHelper.SaveColumnWidth(CompositesColumn, _appSettings, "Main.Composites");
+            UiPersistenceHelper.SaveColumnWidth(LensSelectorColumn, _appSettings, "Main.LensSelector");
             UiPersistenceHelper.SaveColumnWidth(TransformLogColumn, _appSettings, "Main.TransformLog");
             UiPersistenceHelper.SaveColumnWidth(InspectorColumn, _appSettings, "Main.Inspector");
             _settingsService.Save(_appSettings);
         }
 
-        private void SetActiveLensButton(System.Windows.Controls.Button? active)
+        private void ShowLens(System.Windows.Controls.UserControl? lens)
         {
-            // reset all lens buttons
-            InitializationButton.Background = System.Windows.SystemColors.ControlBrush;
-            SetButton.Background = System.Windows.SystemColors.ControlBrush;
-            OrderButton.Background = System.Windows.SystemColors.ControlBrush;
-            IntervalsButton.Background = System.Windows.SystemColors.ControlBrush;
-            SymmetryButton.Background = System.Windows.SystemColors.ControlBrush;
-            MatrixButton.Background = System.Windows.SystemColors.ControlBrush;
-            ComposeButton.Background = System.Windows.SystemColors.ControlBrush;
-
-            if (active != null)
+            if (lens == null) return;
+            if (System.Windows.LogicalTreeHelper.GetParent(lens) is System.Windows.Controls.Panel prevPanel)
             {
-                active.Background = System.Windows.SystemColors.HighlightBrush;
+                prevPanel.Children.Remove(lens);
             }
+            if (_notation != null && System.Windows.LogicalTreeHelper.GetParent(_notation) is System.Windows.Controls.Panel notationParent && notationParent != _workspaceGrid)
+            {
+                notationParent.Children.Remove(_notation);
+            }
+            _workspaceGrid.Children.Clear();
+            System.Windows.Controls.Grid.SetRow(lens, 0);
+            _workspaceGrid.Children.Add(lens);
+            if (_notation != null)
+            {
+                System.Windows.Controls.Grid.SetRow(_notation, 1);
+                _workspaceGrid.Children.Add(_notation);
+            }
+            WorkspaceHost.Content = _workspaceGrid;
+        }
+
+        private string EnsureProjectFolder()
+        {
+            if (!string.IsNullOrWhiteSpace(_appSettings.ProjectPath) && Directory.Exists(_appSettings.ProjectPath))
+            {
+                return _appSettings.ProjectPath;
+            }
+
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Select a project folder for Composition Toolbox",
+                UseDescriptionForTitle = true,
+                ShowNewFolderButton = true
+            };
+            var result = dialog.ShowDialog();
+            var selected = result == System.Windows.Forms.DialogResult.OK && Directory.Exists(dialog.SelectedPath)
+                ? dialog.SelectedPath
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Composition Toolbox Project");
+
+            _appSettings.ProjectPath = selected;
+            _settingsService.Save(_appSettings);
+            return selected;
         }
     }
 }

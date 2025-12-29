@@ -6,11 +6,11 @@
     <UserControl.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
     </UserControl.Resources>
-    <Border Background="#252526">
+    <Border>
         <StackPanel Margin="8">
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <TextBlock Text="{Binding Badge}" Foreground="White" FontWeight="Bold" Margin="0,0,8,0" />
-                <TextBlock Text="{Binding PrimaryDisplay}" Foreground="LightGray" FontWeight="Bold"
+                <TextBlock Text="{Binding Badge}" FontWeight="Bold" Margin="0,0,8,0" />
+                <TextBlock Text="{Binding PrimaryDisplay}" FontWeight="Bold"
                            FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
             </StackPanel>
 
@@ -19,8 +19,8 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Label:" Foreground="LightGray" Margin="0,0,6,0" />
-                <TextBlock Grid.Column="1" Text="{Binding PrimaryDisplayLabel}" Foreground="LightGray"
+                <TextBlock Grid.Column="0" Text="Label:" Margin="0,0,6,0" />
+                <TextBlock Grid.Column="1" Text="{Binding PrimaryDisplayLabel}"
                            TextTrimming="CharacterEllipsis" MouseLeftButtonDown="LabelDisplay_MouseLeftButtonDown">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -36,7 +36,7 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                <TextBlock Grid.Column="1" Text="(double-click to add)" Foreground="#8A8A8A"
+                <TextBlock Grid.Column="1" Text="(double-click to add)"
                            FontStyle="Italic" MouseLeftButtonDown="LabelDisplay_MouseLeftButtonDown">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -54,9 +54,6 @@
                 </TextBlock>
                 <TextBox Grid.Column="1"
                          Text="{Binding LabelEdit, UpdateSourceTrigger=PropertyChanged}"
-                         Foreground="White"
-                         Background="#1F1F1F"
-                         BorderBrush="#333"
                          Padding="4,2"
                          IsVisibleChanged="LabelEdit_IsVisibleChanged"
                          LostKeyboardFocus="LabelEdit_LostKeyboardFocus"
@@ -74,9 +71,9 @@
                 </TextBox>
             </Grid>
 
-            <TextBlock Text="{Binding FromLine}" Foreground="LightGray" FontSize="11" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding FromLine}" FontSize="11" TextWrapping="Wrap" />
 
-            <Border Background="#1F1F1F" Padding="6" Margin="0,8,0,8">
+            <Border Padding="6" Margin="0,8,0,8">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <RadioButton Content="Chord"
@@ -98,7 +95,7 @@
                     <CheckBox Content="Use override for this node" IsChecked="{Binding UseSessionOverride}" />
 
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="PC0 ref:" Width="70" Foreground="LightGray" />
+                        <TextBlock Text="PC0 ref:" Width="70" />
                         <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding OverridePc0NoteIndex}"
                                   IsEnabled="{Binding UseSessionOverride}" />
                         <ComboBox Width="60" Margin="6,0,0,0" ItemsSource="{Binding Octaves}"
@@ -108,12 +105,12 @@
                     <CheckBox Content="Use ambitus" Margin="0,6,0,0"
                               IsChecked="{Binding OverrideUseAmbitus}" IsEnabled="{Binding UseSessionOverride}" />
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="Low:" Width="40" Foreground="LightGray" />
+                        <TextBlock Text="Low:" Width="40" />
                         <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding OverrideAmbitusLowNoteIndex}"
                                   IsEnabled="{Binding UseSessionOverride}" />
                         <ComboBox Width="60" Margin="6,0,0,0" ItemsSource="{Binding Octaves}"
                                   SelectedItem="{Binding OverrideAmbitusLowOctave}" IsEnabled="{Binding UseSessionOverride}" />
-                        <TextBlock Text="High:" Width="45" Margin="10,0,0,0" Foreground="LightGray" />
+                        <TextBlock Text="High:" Width="45" Margin="10,0,0,0" />
                         <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding OverrideAmbitusHighNoteIndex}"
                                   IsEnabled="{Binding UseSessionOverride}" />
                         <ComboBox Width="60" Margin="6,0,0,0" ItemsSource="{Binding Octaves}"
@@ -121,13 +118,13 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="Unwrap:" Width="70" Foreground="LightGray" />
+                        <TextBlock Text="Unwrap:" Width="70" />
                         <ComboBox Width="160" ItemsSource="{Binding OrderedUnwrapModes}"
                                   SelectedItem="{Binding OverrideOrderedUnwrapMode}" IsEnabled="{Binding UseSessionOverride}" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="Voicing:" Width="70" Foreground="LightGray" />
+                        <TextBlock Text="Voicing:" Width="70" />
                         <ComboBox Width="160" ItemsSource="{Binding ChordVoicingModes}"
                                   SelectedItem="{Binding OverrideChordVoicingMode}" IsEnabled="{Binding UseSessionOverride}" />
                     </StackPanel>
@@ -135,16 +132,16 @@
             </Expander>
 
             <StackPanel Visibility="{Binding IsOrdered, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
-                <TextBlock Text="{Binding SequenceDisplay}" Foreground="LightGray"
+                <TextBlock Text="{Binding SequenceDisplay}"
                            FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding LengthDisplay}" Foreground="LightGray" />
-                <TextBlock Text="{Binding UniqueCountDisplay}" Foreground="LightGray" />
+                <TextBlock Text="{Binding LengthDisplay}" />
+                <TextBlock Text="{Binding UniqueCountDisplay}" />
             </StackPanel>
 
             <StackPanel Visibility="{Binding IsPcSet, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Set projection (sorted unique pcs):" Foreground="White"
+                <TextBlock Text="Set projection (sorted unique pcs):"
                            ToolTip="Unordered projection of the node's pitch content." />
-                <TextBlock Text="{Binding SetProjectionDisplay}" Foreground="LightGray"
+                <TextBlock Text="{Binding SetProjectionDisplay}" 
                            FontFamily="Consolas,Cascadia Mono,Courier New" Margin="0,2,0,4" TextWrapping="Wrap" />
                 <Button Content="{Binding CommitUnorderedLabel}" Command="{Binding CommitUnorderedCommand}"
                         IsEnabled="{Binding CanCommitUnordered}" Margin="0,0,0,8" />
@@ -155,8 +152,8 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="NF (from set):" Foreground="White" Margin="0,0,6,0" />
-                    <TextBlock Grid.Column="1" Text="{Binding NormalFormDisplay}" Foreground="LightGray"
+                    <TextBlock Grid.Column="0" Text="NF (from set):" Margin="0,0,6,0" />
+                    <TextBlock Grid.Column="1" Text="{Binding NormalFormDisplay}"
                                FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
                     <Button Grid.Column="2" Content="Commit NF node" Command="{Binding CommitNormalFormCommand}"
                             IsEnabled="{Binding CanCommitNormalForm}" Margin="8,0,0,0" />
@@ -168,21 +165,21 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="PF (from set):" Foreground="White" Margin="0,0,6,0" />
-                    <TextBlock Grid.Column="1" Text="{Binding PrimeFormDisplay}" Foreground="LightGray"
+                    <TextBlock Grid.Column="0" Text="PF (from set):" Margin="0,0,6,0" />
+                    <TextBlock Grid.Column="1" Text="{Binding PrimeFormDisplay}"
                                FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
                     <Button Grid.Column="2" Content="Commit PF node" Command="{Binding CommitPrimeFormCommand}"
                             IsEnabled="{Binding CanCommitPrimeForm}" Margin="8,0,0,0" />
                 </Grid>
 
-                <Border Background="#1F1F1F" Padding="6">
+                <Border Padding="6">
                     <StackPanel>
-                        <TextBlock Text="Pitch-class content" Foreground="White" FontWeight="Bold" Margin="0,0,0,4" />
-                        <TextBlock Text="{Binding CardinalityDisplay}" Foreground="LightGray" />
-                        <TextBlock Text="{Binding LinearSpanDisplay}" Foreground="LightGray" />
-                        <TextBlock Text="{Binding IntervalVectorDisplay}" Foreground="LightGray"
+                        <TextBlock Text="Pitch-class content" FontWeight="Bold" Margin="0,0,0,4" />
+                        <TextBlock Text="{Binding CardinalityDisplay}" />
+                        <TextBlock Text="{Binding LinearSpanDisplay}" />
+                        <TextBlock Text="{Binding IntervalVectorDisplay}"
                                    FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding OisDisplay}" Foreground="LightGray"
+                        <TextBlock Text="{Binding OisDisplay}"
                                    FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>

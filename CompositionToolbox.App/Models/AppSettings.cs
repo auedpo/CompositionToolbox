@@ -26,6 +26,7 @@ namespace CompositionToolbox.App.Models
         public Dictionary<string, WindowPlacementSettings> WindowPlacements { get; set; } = new Dictionary<string, WindowPlacementSettings>();
         public int SelectedMidiDeviceIndex { get; set; } = -1;
         public AccidentalRule AccidentalRule { get; set; } = AccidentalRule.NoteAware;
+        public string? ProjectPath { get; set; }
 
         public int Pc0RefMidi { get; set; } = 60;
         public bool UseAmbitus { get; set; } = true;

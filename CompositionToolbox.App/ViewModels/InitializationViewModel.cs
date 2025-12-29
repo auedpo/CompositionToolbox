@@ -13,7 +13,7 @@ namespace CompositionToolbox.App.ViewModels
 {
     public class InitializationViewModel : ObservableObject
     {
-        private readonly TransformLogStore _store;
+        private readonly CompositeStore _store;
         private readonly Func<int> _getModulus;
         private readonly MidiService _midiService;
         private readonly PresetCatalogService _presetCatalog;
@@ -62,8 +62,8 @@ namespace CompositionToolbox.App.ViewModels
             set => SetProperty(ref _preview, value);
         }
 
-        private PitchNode? _previewNode;
-        public PitchNode? PreviewNode
+        private AtomicNode? _previewNode;
+        public AtomicNode? PreviewNode
         {
             get => _previewNode;
             private set => SetProperty(ref _previewNode, value);
@@ -111,6 +111,8 @@ namespace CompositionToolbox.App.ViewModels
             set => SetProperty(ref _permutationPreview, value);
         }
 
+        public string CreateTrace { get; private set; } = string.Empty;
+
         public enum OrderedOption { AsEntered, SortedAscending, UniquePreserveOrder, RandomPermutation, RandomRotation }
         public enum UnorderedOption { NormalOrder, PrimeForm }
 
@@ -140,7 +142,7 @@ namespace CompositionToolbox.App.ViewModels
             }
         }
 
-        public IRelayCommand CreateStartingObjectCommand { get; }
+        public IRelayCommand CreatePitchListCommand { get; }
         public IRelayCommand RandomizePcCommand { get; }
         public IRelayCommand RandomizeSeedCommand { get; }
         public IRelayCommand RandomizeRotationCommand { get; }
@@ -155,7 +157,7 @@ namespace CompositionToolbox.App.ViewModels
         public bool HasRecents => RecentPresets.Count > 0;
 
         public InitializationViewModel(
-            TransformLogStore store,
+            CompositeStore store,
             Func<int> getModulus,
             MidiService midiService,
             PresetCatalogService presetCatalog,
@@ -168,7 +170,7 @@ namespace CompositionToolbox.App.ViewModels
             _presetCatalog = presetCatalog;
             _presetState = presetState;
             _getRealizationConfig = getRealizationConfig;
-            CreateStartingObjectCommand = new RelayCommand(CreateStartingObject);
+            CreatePitchListCommand = new RelayCommand(CreatePitchListFromPreview);
             RandomizePcCommand = new RelayCommand(RandomizePc);
             RandomizeSeedCommand = new RelayCommand(RandomizeSeed);
             RandomizeRotationCommand = new RelayCommand(RandomizeRotation);
@@ -237,7 +239,7 @@ namespace CompositionToolbox.App.ViewModels
             NormalOrderPreview = unordered.Length == 0 ? string.Empty : $"[{string.Join(' ', Models.MusicUtils.ComputeNormalOrder(unordered, modulus))}]";
             PrimeFormPreview = Models.MusicUtils.ComputePrimeForm(unordered, modulus) is var pf && pf.Length > 0 ? $"({string.Join(' ', pf)})" : string.Empty;
 
-            PreviewNode = new PitchNode
+            PreviewNode = new AtomicNode
             {
                 Modulus = modulus,
                 Mode = IsOrdered ? PcMode.Ordered : PcMode.Unordered,
@@ -382,65 +384,30 @@ namespace CompositionToolbox.App.ViewModels
             Array.Copy(pcs, 0, rotated, pcs.Length - offset, offset);
             return rotated;
         }
-        private void CreateStartingObject()
+
+        private void CreatePitchListFromPreview()
         {
-            var pcs = ParseInput(InputText, _getModulus());
-            var modulus = _getModulus();
-
-            int[] ordered;
-            int[] unordered = Models.MusicUtils.NormalizeUnordered(pcs, modulus);
-
-            if (!IsOrdered)
+            UpdatePreview();
+            if (PreviewNode == null)
             {
-                // unordered node: normalized set; apply selected unordered option to the representative ordered array
-                switch (SelectedUnorderedOption)
-                {
-                    case UnorderedOption.NormalOrder:
-                        ordered = Models.MusicUtils.ComputeNormalOrder(unordered, modulus);
-                        break;
-                    case UnorderedOption.PrimeForm:
-                        ordered = Models.MusicUtils.ComputePrimeForm(unordered, modulus);
-                        break;
-                    default:
-                        ordered = unordered;
-                        break;
-                }
-            }
-            else
-            {
-                switch (SelectedOrderedOption)
-                {
-                    case OrderedOption.AsEntered:
-                        ordered = pcs; // as entered, keep duplicates
-                        break;
-                    case OrderedOption.SortedAscending:
-                        ordered = pcs.OrderBy(x => x).ToArray();
-                        break;
-                    case OrderedOption.UniquePreserveOrder:
-                        ordered = pcs.Where((x, idx) => pcs.Take(idx).All(y => y != x)).ToArray();
-                        break;
-                    case OrderedOption.RandomPermutation:
-                        var seedToUse = string.IsNullOrWhiteSpace(Seed) ? Models.MusicUtils.GenerateRandomBase62(8) : Seed;
-                        var unique = pcs.Distinct().ToArray();
-                        var perm = Models.MusicUtils.ApplyPermutation(unique, seedToUse);
-                        ordered = perm;
-                        break;
-                    case OrderedOption.RandomRotation:
-                        ordered = ApplyRotation(pcs, EnsureRotationSeed());
-                        break;
-                    default:
-                        ordered = pcs;
-                        break;
-                }
+                return;
             }
 
-            var node = new PitchNode
+            var ordered = PreviewNode.Ordered?.ToArray() ?? Array.Empty<int>();
+            var unordered = PreviewNode.Unordered?.ToArray() ?? Array.Empty<int>();
+            if (ordered.Length == 0 && unordered.Length == 0)
             {
-                Modulus = modulus,
-                Mode = IsOrdered ? PcMode.Ordered : PcMode.Unordered,
+                return;
+            }
+
+            var node = new AtomicNode
+            {
+                Modulus = PreviewNode.Modulus,
+                Mode = PreviewNode.Mode,
                 Ordered = ordered,
                 Unordered = unordered,
                 Label = "Input",
+                ValueType = AtomicValueType.PitchList,
                 OpFromPrev = new OpDescriptor
                 {
                     OpType = "INPUT",
@@ -449,7 +416,23 @@ namespace CompositionToolbox.App.ViewModels
                     SourceNodeId = null
                 }
             };
-            _store.AppendAndSelect(node);
+
+            _store.Nodes.Add(node);
+            var prevState = _store.SelectedState;
+            var compositeId = _store.SelectedComposite?.CompositeId ?? Guid.NewGuid();
+            var nextState = new CompositeState
+            {
+                CompositeId = compositeId,
+                PitchRef = node.NodeId,
+                RhythmRef = prevState?.RhythmRef,
+                RegisterRef = prevState?.RegisterRef,
+                InstrumentRef = prevState?.InstrumentRef,
+                VoicingRef = prevState?.VoicingRef,
+                EventsRef = prevState?.EventsRef,
+                ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
+            };
+
+            _store.TransformState("Input", null, nextState);
         }
 
         private void RefreshPresetLists()

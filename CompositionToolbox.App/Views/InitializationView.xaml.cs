@@ -5,7 +5,7 @@ using CompositionToolbox.App.ViewModels;
 
 namespace CompositionToolbox.App.Views
 {
-    public partial class InitializationView : UserControl
+    public partial class InitializationView : System.Windows.Controls.UserControl
     {
         public InitializationView()
         {
@@ -14,7 +14,7 @@ namespace CompositionToolbox.App.Views
 
         private void RandomPermutationRadio_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is RadioButton { IsChecked: true } && DataContext is InitializationViewModel vm)
+            if (sender is System.Windows.Controls.RadioButton { IsChecked: true } && DataContext is InitializationViewModel vm)
             {
                 if (vm.RandomizeSeedCommand.CanExecute(null))
                 {
@@ -26,7 +26,7 @@ namespace CompositionToolbox.App.Views
 
         private void RandomRotationRadio_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is RadioButton { IsChecked: true } && DataContext is InitializationViewModel vm)
+            if (sender is System.Windows.Controls.RadioButton { IsChecked: true } && DataContext is InitializationViewModel vm)
             {
                 if (vm.RandomizeRotationCommand.CanExecute(null))
                 {

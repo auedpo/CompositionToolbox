@@ -9,9 +9,9 @@ using System.Windows.Controls;
 
 namespace CompositionToolbox.App.Views
 {
-    public partial class NotationView : UserControl
+    public partial class NotationView : System.Windows.Controls.UserControl
     {
-        private PitchNode? _pendingNode;
+        private AtomicNode? _pendingNode;
         private AccidentalRule _pendingAccidentalRule;
         private string _pendingRenderMode = "line";
         private double? _pendingWidth;
@@ -45,7 +45,7 @@ namespace CompositionToolbox.App.Views
         }
 
         public async void RenderNode(
-            PitchNode? node,
+            AtomicNode? node,
             AccidentalRule accidentalRule,
             string renderMode = "line",
             double? width = null,

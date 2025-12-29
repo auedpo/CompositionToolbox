@@ -5,6 +5,14 @@ using System.ComponentModel;
 namespace CompositionToolbox.App.Models
 {
     public enum PcMode { Ordered, Unordered }
+    public enum AtomicValueType
+    {
+        PitchList,
+        RhythmPattern,
+        VoicingList,
+        RegisterPattern,
+        NoteEventSeq
+    }
 
     public class OpDescriptor
     {
@@ -28,11 +36,18 @@ namespace CompositionToolbox.App.Models
         }
     }
 
-    public class PitchNode : INotifyPropertyChanged
+    public class AtomicNode : INotifyPropertyChanged
     {
         private string _label = string.Empty;
 
         public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid NodeId
+        {
+            get => Id;
+            set => Id = value;
+        }
+        public AtomicValueType ValueType { get; set; } = AtomicValueType.PitchList;
+        public string? ValueJson { get; set; }
         public int Modulus { get; set; }
         public PcMode Mode { get; set; }
         public int[] Ordered { get; set; } = Array.Empty<int>();

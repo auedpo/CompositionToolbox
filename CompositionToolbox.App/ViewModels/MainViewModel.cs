@@ -7,12 +7,15 @@ using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text.Json;
+using System.Windows;
+using Microsoft.VisualBasic;
 
 namespace CompositionToolbox.App.ViewModels
 {
     public class MainViewModel : ObservableObject
     {
-        public TransformLogStore Store { get; }
+        public CompositeStore Store { get; }
         public ObservableCollection<int> Moduli { get; } = new ObservableCollection<int> { 12, 19 };
         public ObservableCollection<string> NoteNames { get; } = new ObservableCollection<string>
         {
@@ -46,6 +49,7 @@ namespace CompositionToolbox.App.ViewModels
                     _midiService.OpenDevice(value);
                     _appSettings.SelectedMidiDeviceIndex = value;
                     _settingsService.Save(_appSettings);
+                    TestMidiCommand?.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -58,6 +62,7 @@ namespace CompositionToolbox.App.ViewModels
         private readonly MidiService _midiService;
         private readonly SettingsService _settingsService;
         private readonly AppSettings _appSettings;
+        private readonly ProjectService _projectService;
         private AccidentalRule _selectedAccidentalRule;
         private int _pc0NoteIndex;
         private int _pc0Octave;
@@ -69,25 +74,90 @@ namespace CompositionToolbox.App.ViewModels
         private OrderedUnwrapMode _orderedUnwrapMode;
         private ChordVoicingMode _chordVoicingMode;
         private NotationPreference _defaultNotationMode;
+        private CompositeTransformLogEntry? _selectedLogEntry;
+        private string _logDetailsAfter = "Refs after: -";
+        private string _logDetailsBefore = "Refs before: -";
+        private string _logDetailsOpParams = "Op params: -";
+        private string _logDetailsMeta = "Meta: -";
+        private readonly Dictionary<Guid, Guid> _lastSelectedLogEntryByComposite = new();
 
-        public MainViewModel(SettingsService settingsService, AppSettings appSettings)
+        public MainViewModel(SettingsService settingsService, AppSettings appSettings, CompositeStore store, ProjectService projectService)
         {
             _settingsService = settingsService;
             _appSettings = appSettings;
-            Store = new TransformLogStore();
+            Store = store;
+            _projectService = projectService;
             _midiService = new MidiService();
             PresetCatalog = new PresetCatalogService();
             PresetState = new PresetStateService();
             _selectedAccidentalRule = _appSettings.AccidentalRule;
             LoadRealizationSettings();
             RefreshMidiDevices();
-            PlayCommand = new RelayCommand(async () => await PlayAsync(), () => Store.SelectedNode != null);
+            PlayCommand = new RelayCommand(async () => await PlayAsync(), () => Store.SelectedState?.PitchRef != null);
+            TestMidiCommand = new RelayCommand(async () => await TestMidiAsync(), () => SelectedMidiDeviceIndex >= 0);
             OpenPresetPickerCommand = new RelayCommand(() => PresetPickerRequested?.Invoke(this, EventArgs.Empty));
+            OpenPitchListCatalogCommand = new RelayCommand(() => PitchListCatalogRequested?.Invoke(this, EventArgs.Empty));
+            NewCompositeCommand = new RelayCommand(CreateComposite);
+            DuplicateCompositeCommand = new RelayCommand(DuplicateComposite, () => Store.SelectedComposite != null);
+            RenameCompositeCommand = new RelayCommand(RenameComposite, () => Store.SelectedComposite != null);
+            DeleteCompositeCommand = new RelayCommand(DeleteComposite, () => Store.SelectedComposite != null && Store.Composites.Count > 1);
+            CopySnapshotCommand = new RelayCommand(CopySelectedSnapshot, () => SelectedLogEntry != null);
+
             Store.PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName == nameof(Store.SelectedNode))
+                if (e.PropertyName == nameof(Store.SelectedState))
                 {
                     PlayCommand.NotifyCanExecuteChanged();
+                    if (Store.SelectedState != null)
+                    {
+                        var match = Store.CurrentLogEntries.FirstOrDefault(entry => entry.NewStateId == Store.SelectedState.StateId);
+                        if (match != null && !ReferenceEquals(SelectedLogEntry, match))
+                        {
+                            SelectedLogEntry = match;
+                        }
+                    }
+                }
+                else if (e.PropertyName == nameof(Store.LastTransformEntry))
+                {
+                    var entry = Store.LastTransformEntry;
+                    if (entry == null) return;
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
+                    {
+                        if (Store.CurrentLogEntries.Contains(entry))
+                        {
+                            SelectedLogEntry = entry;
+                        }
+                    });
+                }
+                else if (e.PropertyName == nameof(Store.SelectedComposite))
+                {
+                    SelectedLogEntry = GetCompositeSelectedLogEntry();
+                    DuplicateCompositeCommand.NotifyCanExecuteChanged();
+                    RenameCompositeCommand.NotifyCanExecuteChanged();
+                    DeleteCompositeCommand.NotifyCanExecuteChanged();
+                }
+            };
+            Store.Composites.CollectionChanged += (_, _) =>
+            {
+                DuplicateCompositeCommand.NotifyCanExecuteChanged();
+                RenameCompositeCommand.NotifyCanExecuteChanged();
+                DeleteCompositeCommand.NotifyCanExecuteChanged();
+            };
+            Store.CurrentLogEntries.CollectionChanged += (_, e) =>
+            {
+                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+                {
+                    SelectedLogEntry = Store.CurrentLogEntries.LastOrDefault();
+                    return;
+                }
+                if (e.NewItems != null && e.NewItems.Count > 0)
+                {
+                    SelectedLogEntry = e.NewItems[^1] as CompositeTransformLogEntry;
+                    return;
+                }
+                if (SelectedLogEntry == null)
+                {
+                    SelectedLogEntry = Store.CurrentLogEntries.LastOrDefault();
                 }
             };
 
@@ -99,11 +169,20 @@ namespace CompositionToolbox.App.ViewModels
             Inspector.SelectedNotationMode = _defaultNotationMode == NotationPreference.Sequence
                 ? InspectorNotationMode.Sequence
                 : InspectorNotationMode.Chord;
+            SelectedLogEntry = GetCompositeSelectedLogEntry();
         }
 
         public IRelayCommand PlayCommand { get; }
+        public IRelayCommand TestMidiCommand { get; }
         public IRelayCommand OpenPresetPickerCommand { get; }
+        public IRelayCommand OpenPitchListCatalogCommand { get; }
+        public IRelayCommand NewCompositeCommand { get; }
+        public IRelayCommand DuplicateCompositeCommand { get; }
+        public IRelayCommand RenameCompositeCommand { get; }
+        public IRelayCommand DeleteCompositeCommand { get; }
+        public IRelayCommand CopySnapshotCommand { get; }
         public event EventHandler? PresetPickerRequested;
+        public event EventHandler? PitchListCatalogRequested;
 
         public AccidentalRule SelectedAccidentalRule
         {
@@ -243,11 +322,67 @@ namespace CompositionToolbox.App.ViewModels
             }
         }
 
+        public CompositeTransformLogEntry? SelectedLogEntry
+        {
+            get => _selectedLogEntry;
+            set
+            {
+                if (SetProperty(ref _selectedLogEntry, value))
+                {
+                    if (value != null)
+                    {
+                        var compositeId = value.CompositeId;
+                        _lastSelectedLogEntryByComposite[compositeId] = value.EntryId;
+                    }
+                    UpdateLogDetails();
+                    if (value != null && value.NewStateId != Guid.Empty)
+                    {
+                        var state = Store.States.FirstOrDefault(s => s.StateId == value.NewStateId);
+                        if (state != null)
+                        {
+                            Store.SelectedState = state;
+                            if (Store.SelectedComposite != null)
+                            {
+                                Store.SelectedComposite.CurrentStateId = state.StateId;
+                            }
+                        }
+                    }
+                    CopySnapshotCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
+
+        public string LogDetailsAfter
+        {
+            get => _logDetailsAfter;
+            private set => SetProperty(ref _logDetailsAfter, value);
+        }
+
+        public string LogDetailsBefore
+        {
+            get => _logDetailsBefore;
+            private set => SetProperty(ref _logDetailsBefore, value);
+        }
+
+        public string LogDetailsOpParams
+        {
+            get => _logDetailsOpParams;
+            private set => SetProperty(ref _logDetailsOpParams, value);
+        }
+
+        public string LogDetailsMeta
+        {
+            get => _logDetailsMeta;
+            private set => SetProperty(ref _logDetailsMeta, value);
+        }
+
         private async Task PlayAsync()
         {
-            var node = Store.SelectedNode;
-            if (node != null)
+            var state = Store.SelectedState;
+            if (state?.PitchRef != null)
             {
+                var node = Store.Nodes.FirstOrDefault(n => n.NodeId == state.PitchRef.Value);
+                if (node == null) return;
                 var config = GetRealizationConfig();
                 var midi = MusicUtils.RealizePcs(
                     node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered,
@@ -265,6 +400,20 @@ namespace CompositionToolbox.App.ViewModels
                     await _midiService.PlayMidiSequence(midi);
                 }
             }
+        }
+
+        private async Task TestMidiAsync()
+        {
+            if (!_midiService.IsOpen)
+            {
+                System.Windows.MessageBox.Show(
+                    "No MIDI output device is open. Select a device and try again.",
+                    "MIDI Output",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+            await _midiService.TestOutput();
         }
 
         public MidiService MidiService => _midiService;
@@ -344,6 +493,244 @@ namespace CompositionToolbox.App.ViewModels
                 ChordVoicingMode = _appSettings.ChordVoicingMode,
                 DefaultNotationMode = _appSettings.DefaultNotationMode
             };
+        }
+
+        private void UpdateLogDetails()
+        {
+            var entry = SelectedLogEntry;
+            if (entry == null)
+            {
+                LogDetailsAfter = "Refs after: -";
+                LogDetailsBefore = "Refs before: -";
+                LogDetailsOpParams = "Op params: -";
+                LogDetailsMeta = "Meta: -";
+                return;
+            }
+
+            var after = Store.States.FirstOrDefault(s => s.StateId == entry.NewStateId);
+            var before = entry.PrevStateId.HasValue
+                ? Store.States.FirstOrDefault(s => s.StateId == entry.PrevStateId.Value)
+                : null;
+
+            LogDetailsAfter = $"Refs after (NewState):\n{FormatStateSnapshot(after)}";
+            LogDetailsBefore = before == null
+                ? "Refs before (PrevState): -"
+                : $"Refs before (PrevState):\n{FormatStateSnapshot(before)}";
+
+            LogDetailsOpParams = entry.OpParams == null || entry.OpParams.Count == 0
+                ? "Op params: -"
+                : $"Op params:\n{JsonSerializer.Serialize(entry.OpParams, new JsonSerializerOptions { WriteIndented = true })}";
+
+            LogDetailsMeta = $"Meta:\nEntryId: {entry.EntryId}\nCompositeId: {entry.CompositeId}\nPrevStateId: {entry.PrevStateId?.ToString() ?? "-"}\nNewStateId: {entry.NewStateId}";
+        }
+
+        private CompositeTransformLogEntry? GetCompositeSelectedLogEntry()
+        {
+            var composite = Store.SelectedComposite;
+            if (composite == null)
+            {
+                return Store.CurrentLogEntries.LastOrDefault();
+            }
+            if (_lastSelectedLogEntryByComposite.TryGetValue(composite.CompositeId, out var entryId))
+            {
+                var entry = Store.CurrentLogEntries.FirstOrDefault(e => e.EntryId == entryId);
+                if (entry != null)
+                {
+                    return entry;
+                }
+            }
+            return Store.CurrentLogEntries.LastOrDefault();
+        }
+
+        private string FormatStateSnapshot(CompositeState? state)
+        {
+            if (state == null) return "-";
+            return string.Join(Environment.NewLine, new[]
+            {
+                FormatRefLine("PitchRef", state.PitchRef),
+                FormatRefLine("RhythmRef", state.RhythmRef),
+                FormatRefLine("RegisterRef", state.RegisterRef),
+                FormatRefLine("InstrumentRef", state.InstrumentRef),
+                FormatRefLine("VoicingRef", state.VoicingRef),
+                FormatRefLine("EventsRef", state.EventsRef)
+            });
+        }
+
+        private string FormatRefLine(string slot, Guid? nodeId)
+        {
+            if (!nodeId.HasValue) return $"{slot}: -";
+            var node = Store.Nodes.FirstOrDefault(n => n.NodeId == nodeId.Value);
+            var prefix = slot switch
+            {
+                "PitchRef" => "P",
+                "RhythmRef" => "R",
+                "RegisterRef" => "G",
+                "InstrumentRef" => "I",
+                "VoicingRef" => "V",
+                "EventsRef" => "E",
+                _ => "N"
+            };
+            var shortId = nodeId.Value.ToString("N")[..6];
+            if (node == null) return $"{slot}: {prefix}{shortId}";
+
+            var label = string.IsNullOrWhiteSpace(node.Label) ? string.Empty : $" {node.Label}";
+            if (node.ValueType == AtomicValueType.PitchList)
+            {
+                var pcs = node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered;
+                var body = node.Mode == PcMode.Ordered
+                    ? $"({string.Join(' ', pcs)})"
+                    : $"[{string.Join(' ', pcs)}]";
+                return $"{slot}: {prefix}{shortId} (PitchList: {body}{label})";
+            }
+
+            return $"{slot}: {prefix}{shortId} ({node.ValueType}{label})";
+        }
+
+        private void CopySelectedSnapshot()
+        {
+            if (SelectedLogEntry == null) return;
+            var snapshot = string.Join(Environment.NewLine + Environment.NewLine, new[]
+            {
+                $"Op: {SelectedLogEntry.Op}",
+                LogDetailsAfter,
+                LogDetailsBefore,
+                LogDetailsOpParams
+            });
+            System.Windows.Clipboard.SetText(snapshot);
+        }
+
+        private void CreateComposite()
+        {
+            var name = Interaction.InputBox("Composite name:", "New Composite", "Untitled");
+            if (string.IsNullOrWhiteSpace(name)) return;
+            var composite = new Composite { Title = name.Trim() };
+            var state = new CompositeState { CompositeId = composite.CompositeId };
+            composite.CurrentStateId = state.StateId;
+            Store.Composites.Add(composite);
+            Store.States.Add(state);
+            Store.SelectedComposite = composite;
+            Store.SelectedState = state;
+        }
+
+        private void DuplicateComposite()
+        {
+            if (Store.SelectedComposite == null) return;
+            var sourceComposite = Store.SelectedComposite;
+            var sourceState = Store.GetCurrentState(sourceComposite);
+            var name = Interaction.InputBox("Composite name:", "Duplicate Composite", $"{sourceComposite.Title} Copy");
+            if (string.IsNullOrWhiteSpace(name)) return;
+
+            var composite = new Composite { Title = name.Trim() };
+            var statesToCopy = Store.States
+                .Where(s => s.CompositeId == sourceComposite.CompositeId)
+                .OrderBy(s => s.CreatedAt)
+                .ToList();
+            var stateIdMap = new Dictionary<Guid, Guid>();
+            foreach (var state in statesToCopy)
+            {
+                var newState = new CompositeState
+                {
+                    StateId = Guid.NewGuid(),
+                    CompositeId = composite.CompositeId,
+                    CreatedAt = state.CreatedAt,
+                    PitchRef = state.PitchRef,
+                    RhythmRef = state.RhythmRef,
+                    RegisterRef = state.RegisterRef,
+                    InstrumentRef = state.InstrumentRef,
+                    VoicingRef = state.VoicingRef,
+                    EventsRef = state.EventsRef,
+                    ActivePreview = state.ActivePreview,
+                    Label = state.Label
+                };
+                stateIdMap[state.StateId] = newState.StateId;
+                Store.States.Add(newState);
+            }
+
+            var logEntries = Store.LogEntries
+                .Where(e => e.CompositeId == sourceComposite.CompositeId)
+                .OrderBy(e => e.CreatedAt)
+                .ToList();
+            foreach (var entry in logEntries)
+            {
+                if (!stateIdMap.TryGetValue(entry.NewStateId, out var newStateId))
+                {
+                    continue;
+                }
+                var newEntry = new CompositeTransformLogEntry
+                {
+                    EntryId = Guid.NewGuid(),
+                    CompositeId = composite.CompositeId,
+                    PrevStateId = entry.PrevStateId.HasValue && stateIdMap.TryGetValue(entry.PrevStateId.Value, out var prevStateId)
+                        ? prevStateId
+                        : null,
+                    NewStateId = newStateId,
+                    CreatedAt = entry.CreatedAt,
+                    Op = entry.Op,
+                    OpParams = entry.OpParams == null ? null : new Dictionary<string, object>(entry.OpParams),
+                    Patch = new CompositeRefPatch
+                    {
+                        Changes = entry.Patch.Changes
+                            .Select(change => new CompositeRefChange
+                            {
+                                Slot = change.Slot,
+                                OldRef = change.OldRef,
+                                NewRef = change.NewRef
+                            })
+                            .ToList()
+                    }
+                };
+                Store.LogEntries.Add(newEntry);
+            }
+
+            if (sourceComposite.CurrentStateId.HasValue && stateIdMap.TryGetValue(sourceComposite.CurrentStateId.Value, out var mappedCurrent))
+            {
+                composite.CurrentStateId = mappedCurrent;
+            }
+            else if (sourceState?.StateId is Guid fallbackStateId && stateIdMap.TryGetValue(fallbackStateId, out var mappedFallback))
+            {
+                composite.CurrentStateId = mappedFallback;
+            }
+            else
+            {
+                composite.CurrentStateId = stateIdMap.Values.LastOrDefault();
+            }
+
+            Store.Composites.Add(composite);
+            Store.SelectedComposite = composite;
+            Store.SelectedState = composite.CurrentStateId.HasValue
+                ? Store.States.FirstOrDefault(s => s.StateId == composite.CurrentStateId.Value)
+                : Store.GetCurrentState(composite);
+        }
+
+        private void RenameComposite()
+        {
+            if (Store.SelectedComposite == null) return;
+            var current = Store.SelectedComposite.Title;
+            var name = Interaction.InputBox("Composite name:", "Rename Composite", current);
+            if (string.IsNullOrWhiteSpace(name)) return;
+            var selected = Store.SelectedComposite;
+            if (selected == null) return;
+            selected.Title = name.Trim();
+            OnPropertyChanged(nameof(Store.Composites));
+        }
+
+        private void DeleteComposite()
+        {
+            if (Store.SelectedComposite == null || Store.Composites.Count <= 1) return;
+            var composite = Store.SelectedComposite;
+            var result = System.Windows.MessageBox.Show(
+                $"Delete composite \"{composite.Title}\"?",
+                "Delete Composite",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            if (result != MessageBoxResult.Yes) return;
+
+            var statesToRemove = Store.States.Where(s => s.CompositeId == composite.CompositeId).ToList();
+            var logsToRemove = Store.LogEntries.Where(e => e.CompositeId == composite.CompositeId).ToList();
+            foreach (var log in logsToRemove) Store.LogEntries.Remove(log);
+            foreach (var state in statesToRemove) Store.States.Remove(state);
+            Store.Composites.Remove(composite);
+            Store.SelectedComposite = Store.Composites.FirstOrDefault();
         }
 
         private static int MidiToOctave(int midi)

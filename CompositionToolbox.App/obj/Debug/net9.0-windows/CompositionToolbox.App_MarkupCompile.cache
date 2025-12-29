@@ -1,5 +1,5 @@
 ﻿CompositionToolbox.App
-1.0.0.0
+
 
 winexe
 C#
@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\App.xaml
-7-2105510478
+8-1843915696
 3554582714
-32968061863
-220-614727194
-MainWindow.xaml;Views\InitializationView.xaml;Views\InspectorNotationWindow.xaml;Views\InspectorView.xaml;Views\NotationView.xaml;Views\PresetPickerDialog.xaml;Views\SettingsWindow.xaml;
+3638019629
+221-541485389
+MainWindow.xaml;Views\InitializationView.xaml;Views\InspectorNotationWindow.xaml;Views\InspectorView.xaml;Views\NotationView.xaml;Views\PitchListCatalogWindow.xaml;Views\PresetPickerDialog.xaml;Views\SettingsWindow.xaml;
 
-True
+False
 

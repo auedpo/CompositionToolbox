@@ -8,10 +8,10 @@ namespace CompositionToolbox.App.Stores
     public class TransformLogStore : ObservableObject
     {
         private const string RootOpType = "INPUT";
-        public ObservableCollection<PitchNode> Nodes { get; } = new ObservableCollection<PitchNode>();
+        public ObservableCollection<AtomicNode> Nodes { get; } = new ObservableCollection<AtomicNode>();
 
-        private PitchNode? _selectedNode;
-        public PitchNode? SelectedNode
+        private AtomicNode? _selectedNode;
+        public AtomicNode? SelectedNode
         {
             get => _selectedNode;
             set
@@ -21,16 +21,16 @@ namespace CompositionToolbox.App.Stores
             }
         }
 
-        public event EventHandler<PitchNode?>? SelectedNodeChanged;
+        public event EventHandler<AtomicNode?>? SelectedNodeChanged;
 
-        public void AppendAndSelect(PitchNode node)
+        public void AppendAndSelect(AtomicNode node)
         {
             if (!ValidateProvenance(node)) return;
             Nodes.Add(node);
             SelectedNode = node;
         }
 
-        public bool AppendUnlessNoop(PitchNode candidate)
+        public bool AppendUnlessNoop(AtomicNode candidate)
         {
             if (candidate == null) return false;
             if (!ValidateProvenance(candidate)) return false;
@@ -44,7 +44,7 @@ namespace CompositionToolbox.App.Stores
             return true;
         }
 
-        public void RefreshNode(PitchNode node)
+        public void RefreshNode(AtomicNode node)
         {
             if (node == null) return;
             var index = Nodes.IndexOf(node);
@@ -52,7 +52,7 @@ namespace CompositionToolbox.App.Stores
             Nodes[index] = node;
         }
 
-        private bool ValidateProvenance(PitchNode node)
+        private bool ValidateProvenance(AtomicNode node)
         {
             var op = node.OpFromPrev;
             if (op == null)
@@ -87,7 +87,7 @@ namespace CompositionToolbox.App.Stores
             return true;
         }
 
-        private static bool AreEquivalent(PitchNode current, PitchNode candidate)
+        private static bool AreEquivalent(AtomicNode current, AtomicNode candidate)
         {
             if (current.Mode != candidate.Mode) return false;
             if (current.Modulus != candidate.Modulus) return false;

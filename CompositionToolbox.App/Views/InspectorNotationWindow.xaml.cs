@@ -7,7 +7,7 @@ namespace CompositionToolbox.App.Views
 {
     public partial class InspectorNotationWindow : Window
     {
-        private PitchNode? _node;
+        private AtomicNode? _node;
         private AccidentalRule _rule;
         private string _renderMode = "line";
         private int[]? _midiNotes;
@@ -20,7 +20,7 @@ namespace CompositionToolbox.App.Views
             Closing += InspectorNotationWindow_Closing;
         }
 
-        public void SetNotation(PitchNode node, AccidentalRule rule, string renderMode, int[]? midiNotes = null)
+        public void SetNotation(AtomicNode node, AccidentalRule rule, string renderMode, int[]? midiNotes = null)
         {
             _node = node;
             _rule = rule;
@@ -32,7 +32,7 @@ namespace CompositionToolbox.App.Views
 
         private void InspectorNotationWindow_Loaded(object? sender, RoutedEventArgs e)
         {
-            if (Application.Current is App app && app.AppSettings != null)
+            if (System.Windows.Application.Current is App app && app.AppSettings != null)
             {
                 UiPersistenceHelper.ApplyWindowPlacement(this, app.AppSettings, "InspectorNotation");
             }
@@ -41,7 +41,7 @@ namespace CompositionToolbox.App.Views
 
         private void InspectorNotationWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (Application.Current is App app && app.AppSettings != null && app.SettingsService != null)
+            if (System.Windows.Application.Current is App app && app.AppSettings != null && app.SettingsService != null)
             {
                 UiPersistenceHelper.SaveWindowPlacement(this, app.AppSettings, "InspectorNotation");
                 app.SettingsService.Save(app.AppSettings);
@@ -72,7 +72,7 @@ namespace CompositionToolbox.App.Views
 
         private static RealizationConfig GetRealizationConfig()
         {
-            if (Application.Current is App app && app.AppSettings != null)
+            if (System.Windows.Application.Current is App app && app.AppSettings != null)
             {
                 var settings = app.AppSettings;
                 return new RealizationConfig

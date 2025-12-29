@@ -6,8 +6,6 @@
         Width="960"
         Height="420"
         WindowStartupLocation="CenterOwner"
-        Background="#1E1E1E"
-        Foreground="White"
         FontFamily="Segoe UI">
     <Grid Margin="12">
         <Grid.RowDefinitions>
@@ -15,7 +13,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock x:Name="HeaderText" Foreground="White" FontWeight="Bold" />
+            <TextBlock x:Name="HeaderText" FontWeight="Bold" />
         </StackPanel>
         <views:NotationView x:Name="ExpandedNotation" Grid.Row="1" />
     </Grid>

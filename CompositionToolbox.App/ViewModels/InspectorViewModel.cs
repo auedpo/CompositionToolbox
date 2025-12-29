@@ -20,11 +20,11 @@ namespace CompositionToolbox.App.ViewModels
 
     public class InspectorViewModel : ObservableObject
     {
-        private readonly TransformLogStore _store;
+        private readonly CompositeStore _store;
         private readonly MidiService _midiService;
         private readonly Func<RealizationConfig> _getRealizationConfig;
         private readonly Dictionary<Guid, RealizationConfig> _sessionOverrides = new();
-        private PitchNode? _selectedNode;
+        private AtomicNode? _selectedNode;
         private int[] _setProjection = Array.Empty<int>();
         private InspectorNotationMode _selectedNotationMode = InspectorNotationMode.Chord;
         private AccidentalRule _accidentalRule;
@@ -50,7 +50,7 @@ namespace CompositionToolbox.App.ViewModels
         private bool _canCommitSetOrdering;
         private bool _canCommitNormalForm;
         private bool _canCommitPrimeForm;
-        private PitchNode? _notationNode;
+        private AtomicNode? _notationNode;
         private int[] _notationMidiNotes = Array.Empty<int>();
         private string _notationRenderMode = "chord";
         private bool _useSessionOverride;
@@ -64,8 +64,9 @@ namespace CompositionToolbox.App.ViewModels
         private OrderedUnwrapMode _overrideOrderedUnwrapMode;
         private ChordVoicingMode _overrideChordVoicingMode;
         private bool _loadingOverride;
+        private bool _isPcSet; // whether the selected node is a pitch-class set (unordered or unordered projection)
 
-        public InspectorViewModel(TransformLogStore store, MidiService midiService, Func<RealizationConfig> getRealizationConfig)
+        public InspectorViewModel(CompositeStore store, MidiService midiService, Func<RealizationConfig> getRealizationConfig)
         {
             _store = store;
             _midiService = midiService;
@@ -77,14 +78,22 @@ namespace CompositionToolbox.App.ViewModels
             CommitPrimeFormCommand = new RelayCommand(CommitPrimeForm, () => CanCommitPrimeForm);
             EditLabelCommand = new RelayCommand(BeginEditLabel);
 
-            _store.SelectedNodeChanged += (_, node) => UpdateFromNode(node);
+            _store.PropertyChanged += Store_PropertyChanged;
             _store.Nodes.CollectionChanged += Nodes_CollectionChanged;
-            UpdateFromNode(_store.SelectedNode);
+            UpdateFromState(_store.SelectedState);
+        }
+
+        private void Store_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CompositeStore.SelectedState))
+            {
+                UpdateFromState(_store.SelectedState);
+            }
         }
 
         private void Nodes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            UpdateFromNode(SelectedNode);
+            UpdateFromState(_store.SelectedState);
         }
 
         public IRelayCommand PlayDisplayedCommand { get; }
@@ -106,7 +115,7 @@ namespace CompositionToolbox.App.ViewModels
         public ObservableCollection<ChordVoicingMode> ChordVoicingModes { get; } =
             new ObservableCollection<ChordVoicingMode>(Enum.GetValues<ChordVoicingMode>());
 
-        public PitchNode? SelectedNode
+        public AtomicNode? SelectedNode
         {
             get => _selectedNode;
             private set => SetProperty(ref _selectedNode, value);
@@ -272,7 +281,7 @@ namespace CompositionToolbox.App.ViewModels
             private set => SetProperty(ref _canCommitPrimeForm, value);
         }
 
-        public PitchNode? NotationNode
+        public AtomicNode? NotationNode
         {
             get => _notationNode;
             private set => SetProperty(ref _notationNode, value);
@@ -300,6 +309,12 @@ namespace CompositionToolbox.App.ViewModels
                     UpdateSessionOverride();
                 }
             }
+        }
+
+        public bool IsPcSet
+        {
+            get => _isPcSet;
+            private set => SetProperty(ref _isPcSet, value);
         }
 
         public int OverridePc0NoteIndex
@@ -429,7 +444,19 @@ namespace CompositionToolbox.App.ViewModels
             IsEditingLabel = true;
         }
 
-        private void UpdateFromNode(PitchNode? node)
+        private void UpdateFromState(CompositeState? state)
+        {
+            if (state?.PitchRef == null)
+            {
+                UpdateFromNode(null);
+                return;
+            }
+
+            var node = _store.Nodes.FirstOrDefault(n => n.NodeId == state.PitchRef.Value);
+            UpdateFromNode(node);
+        }
+
+        private void UpdateFromNode(AtomicNode? node)
         {
             SelectedNode = node;
             if (node == null)
@@ -456,6 +483,7 @@ namespace CompositionToolbox.App.ViewModels
                 CanCommitNormalForm = false;
                 CanCommitPrimeForm = false;
                 IsOrdered = false;
+                IsPcSet = false;
                 _loadingOverride = true;
                 UseSessionOverride = false;
                 _loadingOverride = false;
@@ -483,6 +511,9 @@ namespace CompositionToolbox.App.ViewModels
                 : MusicUtils.NormalizeUnordered(node.Unordered, node.Modulus);
 
             SetProjectionDisplay = FormatUnordered(_setProjection);
+
+            // Reveal the set-related UI when the node has pitch-class content (from PitchList)
+            IsPcSet = node.ValueType == AtomicValueType.PitchList && _setProjection.Length > 0;
             var normalForm = MusicUtils.ComputeNormalOrder(_setProjection, node.Modulus);
             var primeForm = MusicUtils.ComputePrimeForm(_setProjection, node.Modulus);
             NormalFormDisplay = FormatOrdered(normalForm);
@@ -534,7 +565,7 @@ namespace CompositionToolbox.App.ViewModels
             int[] displayPcs = GetDisplayPcs(isChord);
             var mode = isChord ? PcMode.Unordered : node.Mode;
 
-            NotationNode = new PitchNode
+            NotationNode = new AtomicNode
             {
                 Modulus = node.Modulus,
                 Mode = mode,
@@ -593,19 +624,20 @@ namespace CompositionToolbox.App.ViewModels
             var node = SelectedNode;
 
             var unordered = _setProjection.ToArray();
-            var candidate = new PitchNode
+            var candidate = new AtomicNode
             {
                 Modulus = node.Modulus,
                 Mode = PcMode.Unordered,
                 Ordered = unordered,
                 Unordered = unordered,
                 Label = node.Label,
+                ValueType = AtomicValueType.PitchList,
                 OpFromPrev = new OpDescriptor
                 {
                     OpType = "FORGET_ORDER",
                     OperationLabel = "Forget order",
                     SourceLens = "Inspector",
-                    SourceNodeId = node.Id,
+                    SourceNodeId = node.NodeId,
                     OpParams = new Dictionary<string, object>
                     {
                         ["derivedFrom"] = "OrderedProjection"
@@ -613,7 +645,7 @@ namespace CompositionToolbox.App.ViewModels
                 }
             };
 
-            _store.AppendUnlessNoop(candidate);
+            AppendPitchNode("Forget order", null, candidate);
         }
 
         private void CommitNormalForm()
@@ -633,19 +665,20 @@ namespace CompositionToolbox.App.ViewModels
             var node = SelectedNode;
             if (node == null) return;
 
-            var candidate = new PitchNode
+            var candidate = new AtomicNode
             {
                 Modulus = node.Modulus,
                 Mode = PcMode.Ordered,
                 Ordered = ordered,
                 Unordered = _setProjection.ToArray(),
                 Label = node.Label,
+                ValueType = AtomicValueType.PitchList,
                 OpFromPrev = new OpDescriptor
                 {
                     OpType = "CHOOSE_ORDERING",
                     OperationLabel = label,
                     SourceLens = "Inspector",
-                    SourceNodeId = node.Id,
+                    SourceNodeId = node.NodeId,
                     OpParams = new Dictionary<string, object>
                     {
                         ["policy"] = policy,
@@ -654,7 +687,7 @@ namespace CompositionToolbox.App.ViewModels
                 }
             };
 
-            _store.AppendUnlessNoop(candidate);
+            AppendPitchNode(label, new Dictionary<string, object> { ["policy"] = policy }, candidate);
         }
 
         private void UpdateCommandStates()
@@ -663,6 +696,25 @@ namespace CompositionToolbox.App.ViewModels
             CommitUnorderedCommand.NotifyCanExecuteChanged();
             CommitNormalFormCommand.NotifyCanExecuteChanged();
             CommitPrimeFormCommand.NotifyCanExecuteChanged();
+        }
+
+        private void AppendPitchNode(string op, Dictionary<string, object>? opParams, AtomicNode node)
+        {
+            _store.Nodes.Add(node);
+            var prevState = _store.SelectedState;
+            var nextState = new CompositeState
+            {
+                CompositeId = _store.SelectedComposite?.CompositeId ?? Guid.NewGuid(),
+                PitchRef = node.NodeId,
+                RhythmRef = prevState?.RhythmRef,
+                RegisterRef = prevState?.RegisterRef,
+                InstrumentRef = prevState?.InstrumentRef,
+                VoicingRef = prevState?.VoicingRef,
+                EventsRef = prevState?.EventsRef,
+                ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto,
+                Label = prevState?.Label
+            };
+            _store.TransformState(op, opParams, nextState);
         }
 
         private bool NodeExists(int modulus, PcMode mode, int[] ordered, int[]? unordered)
@@ -798,15 +850,15 @@ namespace CompositionToolbox.App.ViewModels
 
         private static string FormatCircularOis(int[] set, int modulus)
         {
-            if (set.Length == 0) return "⟨⟩";
-            if (set.Length == 1) return "⟨0⟩";
+            if (set.Length == 0) return "[]";
+            if (set.Length == 1) return "[0]";
             var ois = new int[set.Length];
             for (int i = 0; i < set.Length - 1; i++)
             {
                 ois[i] = (set[i + 1] - set[i] + modulus) % modulus;
             }
             ois[^1] = (set[0] + modulus - set[^1]) % modulus;
-            return $"⟨{string.Join(' ', ois)}⟩";
+            return $"[{string.Join(' ', ois)}]";
         }
     }
 }

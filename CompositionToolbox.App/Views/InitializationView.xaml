@@ -10,12 +10,13 @@
     <UserControl.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
     </UserControl.Resources>
-    <Border Padding="12" Background="#222">
+    <Border Padding="12">
         <StackPanel>
-            <TextBlock Text="Create Starting Object" Foreground="White" FontWeight="Bold" Margin="0,0,0,8" />
-            <TextBlock Text="Enter pc list (space or comma separated):" Foreground="White" />
+            <TextBlock Text="Create Starting Object" FontWeight="Bold" Margin="0,0,0,8" />
+            <TextBlock Text="Enter pc list (space or comma separated):" />
             <Grid Margin="0,4,0,8" HorizontalAlignment="Left">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -27,15 +28,19 @@
                          Grid.Column="0"
                          Width="270"
                          ToolTip="PC list (space or comma separated)" />
-                <Button Content="🎲" Command="{Binding RandomizePcCommand}" Grid.Column="1" Margin="4,0,0,0" />
+                <Button Content="Catalog"
+                        Command="{Binding DataContext.OpenPitchListCatalogCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        Grid.Column="1"
+                        Margin="4,0,0,0" />
+                <Button Content="🎲" Command="{Binding RandomizePcCommand}" Grid.Column="2" Margin="4,0,0,0" />
                 <Button Content="Browse"
                         Command="{Binding DataContext.OpenPresetPickerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                        Grid.Column="2"
+                        Grid.Column="3"
                         Margin="4,0,0,0" />
-                <Button Content="Play" Command="{Binding PlayInputCommand}" Grid.Column="3" Margin="4,0,0,0" />
+                <Button Content="Play" Command="{Binding PlayInputCommand}" Grid.Column="4" Margin="4,0,0,0" />
             </Grid>
 
-            <Expander x:Name="RecentsExpander" Header="Recents &amp; Favorites" IsExpanded="False" Margin="0,0,0,8" Foreground="White">
+            <Expander x:Name="RecentsExpander" Header="Recents &amp; Favorites" IsExpanded="False" Margin="0,0,0,8">
                 <Grid Margin="0,4,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -43,7 +48,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Visibility="{Binding HasFavorites, Converter={StaticResource BoolToVis}}" Margin="0,0,8,0">
-                        <TextBlock Text="Favorites" Foreground="White" FontWeight="Bold" Margin="0,0,0,4" />
+                        <TextBlock Text="Favorites" FontWeight="Bold" Margin="0,0,0,4" />
                         <ItemsControl ItemsSource="{Binding FavoritePresets}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -60,7 +65,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Visibility="{Binding HasRecents, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Recents" Foreground="White" FontWeight="Bold" Margin="0,0,0,4" />
+                        <TextBlock Text="Recents" FontWeight="Bold" Margin="0,0,0,4" />
                         <ItemsControl ItemsSource="{Binding RecentPresets}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -85,7 +90,7 @@
 
             <!-- Ordered options -->
             <StackPanel Orientation="Vertical" Margin="0,0,0,8" Visibility="{Binding IsOrdered, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Ordered options:" Foreground="White" />
+                <TextBlock Text="Ordered options:" />
                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                     <RadioButton Content="As entered" IsChecked="{Binding SelectedOrderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=AsEntered}" GroupName="OrderedOptions" Margin="0,0,8,0" />
                     <RadioButton Content="Sorted ascending" IsChecked="{Binding SelectedOrderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=SortedAscending}" GroupName="OrderedOptions" Margin="0,0,8,0" />
@@ -104,19 +109,22 @@
 
             <!-- Unordered options -->
             <StackPanel Orientation="Vertical" Margin="0,0,0,8" Visibility="{Binding IsUnordered, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Unordered options:" Foreground="White" />
+                <TextBlock Text="Unordered options:" />
                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                     <RadioButton Content="Normal order" IsChecked="{Binding SelectedUnorderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=NormalOrder}" GroupName="UnorderedOptions" Margin="0,0,8,0" />
                     <RadioButton Content="Prime form" IsChecked="{Binding SelectedUnorderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PrimeForm}" GroupName="UnorderedOptions" />
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="Preview:" Foreground="White" />
+                <TextBlock Text="Preview:" />
                 <Button Content="Play" Command="{Binding PlayPreviewCommand}" Margin="8,0,0,0" />
             </StackPanel>
-            <TextBlock Text="{Binding Preview}" FontFamily="Consolas" Foreground="LightGray" Margin="0,4,0,12" />
+            <TextBlock Text="{Binding Preview}" FontFamily="Consolas" Margin="0,4,0,12" />
 
-            <Button Content="Create Starting Object" Command="{Binding CreateStartingObjectCommand}" ToolTip="Adds starting object to the Transform Log" Margin="0,8,0,0" />
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Button Content="Create PitchList" Command="{Binding CreatePitchListCommand}" />
+            </StackPanel>
+            <TextBox Text="{Binding CreateTrace, Mode=OneWay}" FontFamily="Consolas" Margin="0,8,0,0" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" Height="120" />
         </StackPanel>
     </Border>
 </UserControl>

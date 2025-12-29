@@ -31,6 +31,7 @@ namespace CompositionToolbox.App.ViewModels
         }
 
         public string Id => Preset.Id;
+        public string NameDisplay => string.IsNullOrWhiteSpace(Preset.DisplayName) ? Preset.Id : Preset.DisplayName;
         public string PrimeFormDisplay => Preset.PrimeFormDisplay;
         public string PrimeFormPlain => Preset.PrimeFormPlain;
         public string DisplayText => Preset.DisplayText;
@@ -78,7 +79,7 @@ namespace CompositionToolbox.App.ViewModels
         private string _searchQuery = string.Empty;
         private PresetItemViewModel? _selectedPreset;
         private PresetNotationMode _selectedNotationMode = PresetNotationMode.Chord;
-        private PitchNode? _previewNode;
+        private AtomicNode? _previewNode;
         private int[] _previewMidiNotes = Array.Empty<int>();
         private string _notationRenderMode = "chord";
         private AccidentalRule _accidentalRule;
@@ -212,7 +213,7 @@ namespace CompositionToolbox.App.ViewModels
             set => SetProperty(ref _accidentalRule, value);
         }
 
-        public PitchNode? PreviewNode
+        public AtomicNode? PreviewNode
         {
             get => _previewNode;
             private set => SetProperty(ref _previewNode, value);
@@ -335,7 +336,7 @@ namespace CompositionToolbox.App.ViewModels
             var isChord = SelectedNotationMode == PresetNotationMode.Chord;
             NotationRenderMode = isChord ? "chord" : "line";
 
-            PreviewNode = new PitchNode
+            PreviewNode = new AtomicNode
             {
                 Modulus = SelectedPreset.Preset.Modulus,
                 Mode = isChord ? PcMode.Unordered : PcMode.Ordered,

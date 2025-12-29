@@ -3,11 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="clr-namespace:CompositionToolbox.App.Converters"
         Title="Settings" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner"
-        Background="#1E1E1E" Foreground="White" FontFamily="Segoe UI">
+        FontFamily="Segoe UI">
     <Window.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
     </Window.Resources>
-    <Border Padding="12" Background="#1E1E1E">
+    <Border Padding="12">
         <StackPanel>
             <TextBlock Text="Accidentals" FontWeight="Bold" Margin="0,0,0,8" />
             <RadioButton Content="All sharps"

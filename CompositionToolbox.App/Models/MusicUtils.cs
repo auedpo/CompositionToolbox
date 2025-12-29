@@ -26,6 +26,8 @@ namespace CompositionToolbox.App.Models
             int bestSpan = int.MaxValue;
             int[]? bestAdj = null;
             int bestIndex = int.MaxValue;
+            int bestStart = int.MaxValue; // starting pitch-class of the chosen rotation (0..modulus-1)
+            int bestPenult = int.MaxValue; // interval between first and penultimate note (since candidate is transposed to 0, this is candidate[k-2]
 
             for (int i = 0; i < k; i++)
             {
@@ -48,22 +50,56 @@ namespace CompositionToolbox.App.Models
                     bestSpan = span;
                     bestAdj = adj;
                     bestIndex = i;
+                    bestPenult = candidate[k - 2];
+                    bestStart = set[i];
                     continue;
                 }
 
                 if (span > bestSpan || bestAdj == null || best == null) continue;
 
-                var cmp = CompareAdjacentLeftToRight(adj, bestAdj);
-                if (cmp < 0 || (cmp == 0 && i < bestIndex))
+                // Tie on total span: apply tie-break rules per specification
+                // 1) Choose the set with the smaller interval between the first and penultimate notes
+                var penult = candidate[k - 2];
+                // DEBUG HELP: if you are trying to trace why the {0,5,6,7} case chooses the wrong rotation,
+                // you can temporarily uncomment the following diagnostic throw to inspect runtime values.
+                // if (set.Length == 4 && set[0]==0 && set[1]==5 && set[2]==6 && set[3]==7 && i == 1)
+                // {
+                //     throw new Exception($"DEBUG: i={i}, span={span}, penult={penult}, bestPenult={bestPenult}, bestIndex={bestIndex}");
+                // }
+                if (penult < bestPenult)
                 {
                     best = candidate;
                     bestSpan = span;
                     bestAdj = adj;
                     bestIndex = i;
+                    bestPenult = penult;
+                    bestStart = set[i];
+                    continue;
+                }
+                if (penult > bestPenult) continue;
+
+                // 2) If still tied, choose the set that begins on the smaller pitch-class number
+                var startPc = set[i];
+                if (startPc < bestStart || (startPc == bestStart && i < bestIndex))
+                {
+                    best = candidate;
+                    bestSpan = span;
+                    bestAdj = adj;
+                    bestIndex = i;
+                    bestPenult = penult;
+                    bestStart = startPc;
                 }
             }
 
-            return best ?? Array.Empty<int>();
+            // Return the normal-order rotation in the original pitch-class space
+            if (best == null || bestIndex == int.MaxValue) return Array.Empty<int>();
+
+            var rotatedOut = new int[k];
+            for (int j = 0; j < k; j++)
+            {
+                rotatedOut[j] = set[(bestIndex + j) % k];
+            }
+            return rotatedOut;
         }
 
         public static int[] ComputePrimeForm(int[] pcs, int modulus)
@@ -73,12 +109,14 @@ namespace CompositionToolbox.App.Models
             if (set.Length == 1) return new[] { 0 };
 
             var normal = ComputeNormalOrder(set, modulus);
+            var normalTransposed = TransposeToZero(normal, modulus);
 
             var inverted = set.Select(x => NormalizeMod(-x, modulus)).ToArray();
             var normalInv = ComputeNormalOrder(inverted, modulus);
+            var normalInvTransposed = TransposeToZero(normalInv, modulus);
 
-            var cmp = ComparePackedKey(normal, normalInv);
-            return cmp <= 0 ? normal : normalInv;
+            var cmp = ComparePackedKey(normalTransposed, normalInvTransposed);
+            return cmp <= 0 ? normalTransposed : normalInvTransposed;
         }
 
         public static int[] ComputeIntervalVector(int[] pcs, int modulus)

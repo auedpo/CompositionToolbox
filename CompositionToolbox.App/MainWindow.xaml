@@ -22,13 +22,14 @@
         </Grid.RowDefinitions>
 
         <!-- Header Bar -->
-        <DockPanel Grid.Row="0" Background="#1E1E1E" LastChildFill="False" Margin="8">
+        <DockPanel Grid.Row="0" LastChildFill="False" Margin="8">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Left">
-                <TextBlock Foreground="White" VerticalAlignment="Center" Margin="0,0,6,0">Modulus</TextBlock>
+                <TextBlock VerticalAlignment="Center" Margin="0,0,6,0">Modulus</TextBlock>
                 <ComboBox Width="80" ItemsSource="{Binding Moduli}" SelectedItem="{Binding SelectedModulus}" />
 
-                <TextBlock Foreground="White" VerticalAlignment="Center" Margin="12,0,6,0">MIDI Out</TextBlock>
+                <TextBlock VerticalAlignment="Center" Margin="12,0,6,0">MIDI Out</TextBlock>
                 <ComboBox Width="220" ItemsSource="{Binding MidiDevices}" SelectedIndex="{Binding SelectedMidiDeviceIndex}" DisplayMemberPath="Name" />
+                <Button Content="Test MIDI" Command="{Binding TestMidiCommand}" Margin="8,0,0,0" />
 
                 <Button Content="Play" Command="{Binding PlayCommand}" Margin="12,0,0,0" />
                 <Button Content="Settings" Click="Settings_Click" Margin="8,0,0,0" />
@@ -38,64 +39,157 @@
         <!-- Body -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="LensesColumn" Width="180" />
+                <ColumnDefinition x:Name="CompositesColumn" Width="8" />
                 <ColumnDefinition Width="6" />
-                <ColumnDefinition x:Name="TransformLogColumn" Width="260" />
+                <ColumnDefinition x:Name="LensSelectorColumn" Width="8" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition x:Name="TransformLogColumn" Width="8" />
                 <ColumnDefinition Width="6" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="6" />
-                <ColumnDefinition x:Name="InspectorColumn" Width="280" />
+                <ColumnDefinition x:Name="InspectorColumn" Width="8" />
             </Grid.ColumnDefinitions>
 
-            <!-- Left: LensList -->
-            <Border Grid.Column="0" BorderBrush="#2D2D2D" BorderThickness="0,0,1,0" Background="#252526">
+            <!-- Left: Composites -->
+            <Border Grid.Column="0" BorderThickness="0,0,0,0" BorderBrush="{DynamicResource App.DividerBrush}">
                 <StackPanel Margin="8">
-                    <TextBlock Foreground="White" FontWeight="Bold" Margin="0,0,0,8">Lenses</TextBlock>
-                    <Button x:Name="InitializationButton" Content="Initialization" Margin="0,2" Click="Initialization_Click"/>
-                    <Button x:Name="SetButton" Content="Set" Margin="0,2" IsEnabled="False"/>
-                    <Button x:Name="OrderButton" Content="Order" Margin="0,2" IsEnabled="False"/>
-                    <Button x:Name="IntervalsButton" Content="Intervals" Margin="0,2" IsEnabled="False"/>
-                    <Button x:Name="SymmetryButton" Content="Symmetry" Margin="0,2" IsEnabled="False"/>
-                    <Button x:Name="MatrixButton" Content="Matrix" Margin="0,2" IsEnabled="False"/>
-                    <Button x:Name="ComposeButton" Content="Compose" Margin="0,2" IsEnabled="False"/>
+                    <TextBlock FontWeight="Bold" Margin="0,0,0,8">Composites</TextBlock>
+                    <ListBox ItemsSource="{Binding Store.Composites}"
+                             SelectedItem="{Binding Store.SelectedComposite}"
+                             DisplayMemberPath="Title"
+                             Height="420"
+                             Margin="0,0,0,8" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <Button Content="New" Command="{Binding NewCompositeCommand}" Margin="0,0,6,0" />
+                        <Button Content="Duplicate" Command="{Binding DuplicateCompositeCommand}" Margin="0,0,6,0" />
+                        <Button Content="Rename" Command="{Binding RenameCompositeCommand}" Margin="0,0,6,0" />
+                        <Button Content="Delete" Command="{Binding DeleteCompositeCommand}" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
-            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" Background="#2D2D2D" />
+            <GridSplitter Grid.Column="1" Width="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" />
 
-            <!-- Center-left: TransformLog -->
-            <Border Grid.Column="2" BorderBrush="#2D2D2D" BorderThickness="0,0,1,0" Background="#1E1E1E">
+            <!-- Lens Selector -->
+            <Border Grid.Column="2" BorderThickness="0,0,0,0" BorderBrush="{DynamicResource App.DividerBrush}">
                 <StackPanel Margin="8">
-                    <TextBlock Foreground="White" FontWeight="Bold" Margin="0,0,0,8">Transform Log</TextBlock>
-                    <ListBox ItemsSource="{Binding Store.Nodes}" SelectedItem="{Binding Store.SelectedNode}" Height="500">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock FontFamily="Consolas" Foreground="LightGray" TextWrapping="Wrap">
-                                    <TextBlock.Text>
-                                        <MultiBinding Converter="{StaticResource TransformLogEntryConverter}">
-                                            <Binding />
-                                            <Binding Path="Label" />
-                                            <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=ListBox}" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
+                    <TextBlock FontWeight="Bold" Margin="0,0,0,8">Lenses</TextBlock>
+                    <ListBox x:Name="LensSelectorList" SelectionChanged="LensSelector_SelectionChanged">
+                        <ListBoxItem Content="Initialization" Tag="Initialization" IsSelected="True" />
                     </ListBox>
                 </StackPanel>
             </Border>
 
-            <GridSplitter Grid.Column="3" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" Background="#2D2D2D" />
+            <GridSplitter Grid.Column="3" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" />
+
+            <!-- Center-left: TransformLog -->
+            <Border Grid.Column="4" BorderThickness="0,0,0,0" BorderBrush="{DynamicResource App.DividerBrush}">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock FontWeight="Bold" Margin="0,0,0,8">Transform Log</TextBlock>
+                    <Grid Grid.Row="1" Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="70" />
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="40" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Step" Margin="0,0,8,0" />
+                        <TextBlock Grid.Column="1" Text="Time" />
+                        <TextBlock Grid.Column="2" Text="Op" />
+                        <TextBlock Grid.Column="3" Text="Patch" />
+                        <TextBlock Grid.Column="4" HorizontalAlignment="Right" Text="Tags" />
+                    </Grid>
+                    <ListBox x:Name="TransformLogList"
+                             Grid.Row="2"
+                             ItemsSource="{Binding Store.CurrentLogEntries}"
+                             SelectedItem="{Binding SelectedLogEntry}"
+                             Loaded="TransformLogList_Loaded"
+                             SelectionChanged="TransformLog_SelectionChanged"
+                             VirtualizingPanel.IsVirtualizing="False"
+                             ScrollViewer.CanContentScroll="False">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="40" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Margin="0,0,8,0">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="StepIndex">
+                                                <Binding />
+                                                <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="1" Margin="0,0,8,0" Text="{Binding EntryId}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding CreatedAt, StringFormat={}{0:HH:mm:ss}}" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Op}" />
+                                    <TextBlock Grid.Column="4" TextWrapping="Wrap">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="PatchSummary">
+                                                <Binding />
+                                                <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="5" HorizontalAlignment="Right">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="Badges">
+                                                <Binding />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource App.DividerBrush}" Padding="0,8,0,0">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock FontWeight="Bold" DockPanel.Dock="Left">Details</TextBlock>
+                                <Button Content="Copy snapshot" Command="{Binding CopySnapshotCommand}" DockPanel.Dock="Right" />
+                            </DockPanel>
+                            <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock FontFamily="Consolas" TextWrapping="Wrap" Text="{Binding LogDetailsAfter}" Margin="0,4,0,0" />
+                                    <TextBlock FontFamily="Consolas" TextWrapping="Wrap" Text="{Binding LogDetailsBefore}" Margin="0,8,0,0" />
+                                    <TextBlock FontFamily="Consolas" TextWrapping="Wrap" Text="{Binding LogDetailsMeta}" Margin="0,8,0,0" />
+                                    <TextBlock FontFamily="Consolas" TextWrapping="Wrap" Text="{Binding LogDetailsOpParams}" Margin="0,8,0,0" />
+                                </StackPanel>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="5" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" />
 
             <!-- Center: Workspace -->
-            <Border Grid.Column="4">
+            <Border Grid.Column="6">
                 <ContentControl x:Name="WorkspaceHost" Content="" />
             </Border>
 
-            <GridSplitter Grid.Column="5" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" Background="#2D2D2D" />
+            <GridSplitter Grid.Column="7" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" />
 
             <!-- Right: Inspector -->
-            <Border Grid.Column="6" Background="#252526">
+            <Border Grid.Column="8" BorderBrush="#333333" BorderThickness="0,4,0,0">
                 <views:InspectorView DataContext="{Binding Inspector}" />
             </Border>
         </Grid>
