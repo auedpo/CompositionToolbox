@@ -1,0 +1,103 @@
+<Window x:Class="CompositionToolbox.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:CompositionToolbox.App.ViewModels"
+        xmlns:views="clr-namespace:CompositionToolbox.App.Views"
+        xmlns:converters="clr-namespace:CompositionToolbox.App.Converters"
+        Title="Composition Toolbox" Height="720" Width="1100"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <converters:TransformLogEntryConverter x:Key="TransformLogEntryConverter" />
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding OpenPresetPickerCommand}" />
+    </Window.InputBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" MinHeight="56" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header Bar -->
+        <DockPanel Grid.Row="0" Background="#1E1E1E" LastChildFill="False" Margin="8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Left">
+                <TextBlock Foreground="White" VerticalAlignment="Center" Margin="0,0,6,0">Modulus</TextBlock>
+                <ComboBox Width="80" ItemsSource="{Binding Moduli}" SelectedItem="{Binding SelectedModulus}" />
+
+                <TextBlock Foreground="White" VerticalAlignment="Center" Margin="12,0,6,0">MIDI Out</TextBlock>
+                <ComboBox Width="220" ItemsSource="{Binding MidiDevices}" SelectedIndex="{Binding SelectedMidiDeviceIndex}" DisplayMemberPath="Name" />
+
+                <Button Content="Play" Command="{Binding PlayCommand}" Margin="12,0,0,0" />
+                <Button Content="Settings" Click="Settings_Click" Margin="8,0,0,0" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Body -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LensesColumn" Width="180" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition x:Name="TransformLogColumn" Width="260" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition x:Name="InspectorColumn" Width="280" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: LensList -->
+            <Border Grid.Column="0" BorderBrush="#2D2D2D" BorderThickness="0,0,1,0" Background="#252526">
+                <StackPanel Margin="8">
+                    <TextBlock Foreground="White" FontWeight="Bold" Margin="0,0,0,8">Lenses</TextBlock>
+                    <Button x:Name="InitializationButton" Content="Initialization" Margin="0,2" Click="Initialization_Click"/>
+                    <Button x:Name="SetButton" Content="Set" Margin="0,2" IsEnabled="False"/>
+                    <Button x:Name="OrderButton" Content="Order" Margin="0,2" IsEnabled="False"/>
+                    <Button x:Name="IntervalsButton" Content="Intervals" Margin="0,2" IsEnabled="False"/>
+                    <Button x:Name="SymmetryButton" Content="Symmetry" Margin="0,2" IsEnabled="False"/>
+                    <Button x:Name="MatrixButton" Content="Matrix" Margin="0,2" IsEnabled="False"/>
+                    <Button x:Name="ComposeButton" Content="Compose" Margin="0,2" IsEnabled="False"/>
+                </StackPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" Background="#2D2D2D" />
+
+            <!-- Center-left: TransformLog -->
+            <Border Grid.Column="2" BorderBrush="#2D2D2D" BorderThickness="0,0,1,0" Background="#1E1E1E">
+                <StackPanel Margin="8">
+                    <TextBlock Foreground="White" FontWeight="Bold" Margin="0,0,0,8">Transform Log</TextBlock>
+                    <ListBox ItemsSource="{Binding Store.Nodes}" SelectedItem="{Binding Store.SelectedNode}" Height="500">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock FontFamily="Consolas" Foreground="LightGray" TextWrapping="Wrap">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource TransformLogEntryConverter}">
+                                            <Binding />
+                                            <Binding Path="Label" />
+                                            <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="3" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" Background="#2D2D2D" />
+
+            <!-- Center: Workspace -->
+            <Border Grid.Column="4">
+                <ContentControl x:Name="WorkspaceHost" Content="" />
+            </Border>
+
+            <GridSplitter Grid.Column="5" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" Background="#2D2D2D" />
+
+            <!-- Right: Inspector -->
+            <Border Grid.Column="6" Background="#252526">
+                <views:InspectorView DataContext="{Binding Inspector}" />
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

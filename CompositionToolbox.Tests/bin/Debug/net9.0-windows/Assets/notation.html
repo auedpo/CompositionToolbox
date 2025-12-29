@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Notation</title>
+  <script src="vexflow-min.js"></script>
+  <style>
+    body{ margin:0; background:#F5F0E6; color:#111; font-family:Segoe UI; }
+    #score { padding:8px; }
+  </style>
+</head>
+<body>
+  <div id="score"></div>
+
+  <script>
+    if (!window.Vex || !Vex.Flow) {
+      const score = document.getElementById('score');
+      score.textContent = 'VexFlow failed to load.';
+      throw new Error('VexFlow failed to load.');
+    }
+    const VF = Vex.Flow;
+
+    function midiToNoteSpec(midi, preferSharps) {
+      const sharpNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const flatNames = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+      const names = preferSharps ? sharpNames : flatNames;
+      const octave = Math.floor(midi / 12) - 1;
+      const note = names[midi % 12];
+      const base = note[0].toLowerCase();
+      const acc = note.length > 1 ? note.slice(1) : null;
+      return { key: base + "/" + octave, acc };
+    }
+
+    function getDirectionPreference(pcs, i, fallback) {
+      if (i > 0 && pcs[i] !== pcs[i - 1]) return pcs[i] > pcs[i - 1];
+      for (let j = i + 1; j < pcs.length; j++) {
+        if (pcs[j] !== pcs[i]) return pcs[j] > pcs[i];
+      }
+      return fallback !== undefined ? fallback : true;
+    }
+
+    function pcsToMidiNotes(pcs, base=60, rule='noteaware') {
+      const mode = (rule || 'noteaware').toLowerCase();
+      let lastPreference = true;
+      let prevAccidental = null;
+      return pcs.map((pc, i) => {
+        let preferSharps = true;
+        if (mode === 'allsharps') {
+          preferSharps = true;
+        } else if (mode === 'allflats') {
+          preferSharps = false;
+        } else {
+          preferSharps = getDirectionPreference(pcs, i, lastPreference);
+          if (mode === 'noteaware') {
+            if (prevAccidental === '#') preferSharps = true;
+            if (prevAccidental === 'b') preferSharps = false;
+          }
+        }
+
+        const spec = midiToNoteSpec(base + pc, preferSharps);
+        lastPreference = preferSharps;
+        prevAccidental = spec.acc ? spec.acc : null;
+        return spec;
+      });
+    }
+
+    window.renderPcs = function(payload) {
+      try {
+        const obj = payload;
+        const mode = obj.mode;
+        const pcs = obj.pcs || [];
+        const label = obj.label || '';
+        const base = 60; // C4
+        const accidentalRule = obj.accidentalRule || 'noteaware';
+
+        const score = document.getElementById('score');
+        score.innerHTML = '';
+
+        const renderer = new VF.Renderer(score, VF.Renderer.Backends.SVG);
+        renderer.resize(700, 160);
+        const context = renderer.getContext();
+        context.setFillStyle('#111');
+        context.setStrokeStyle('#111');
+        const stave = new VF.Stave(10, 10, 680);
+        stave.addClef('treble').setContext(context).draw();
+
+        const noteSpecs = pcsToMidiNotes(pcs.slice(0,16), base, accidentalRule);
+        if (noteSpecs.length === 0) {
+          // render empty measure
+          return;
+        }
+
+        let notes = [];
+        const renderMode = (obj.renderMode || 'line').toLowerCase();
+        if (renderMode === 'chord') {
+          const chord = new VF.StaveNote({ clef: 'treble', keys: noteSpecs.map(n => n.key), duration: 'w' });
+          noteSpecs.forEach((n, i) => {
+            if (n.acc) {
+              chord.addAccidental(i, new VF.Accidental(n.acc));
+            }
+          });
+          notes = [chord];
+        } else {
+          notes = noteSpecs.map(n => {
+            const note = new VF.StaveNote({ clef: 'treble', keys: [n.key], duration: 'q' });
+            if (n.acc) {
+              note.addAccidental(0, new VF.Accidental(n.acc));
+            }
+            return note;
+          });
+        }
+
+        const voice = renderMode === 'chord'
+          ? new VF.Voice({ num_beats: 4, beat_value: 4 })
+          : new VF.Voice({ num_beats: notes.length >= 4 ? notes.length : 4, beat_value: 4 });
+        voice.addTickables(notes);
+
+        const formatter = new VF.Formatter();
+        formatter.joinVoices([voice]).format([voice], 640);
+        voice.draw(context, stave);
+
+      } catch (e) {
+        console.error(e);
+      }
+    };
+  </script>
+</body>
+</html>

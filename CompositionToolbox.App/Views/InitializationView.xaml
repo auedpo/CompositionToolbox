@@ -1,0 +1,122 @@
+<UserControl x:Class="CompositionToolbox.App.Views.InitializationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:CompositionToolbox.App.Converters"
+             mc:Ignorable="d"
+             VerticalAlignment="Stretch"
+             HorizontalAlignment="Stretch">
+    <UserControl.Resources>
+        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+    </UserControl.Resources>
+    <Border Padding="12" Background="#222">
+        <StackPanel>
+            <TextBlock Text="Create Starting Object" Foreground="White" FontWeight="Bold" Margin="0,0,0,8" />
+            <TextBlock Text="Enter pc list (space or comma separated):" Foreground="White" />
+            <Grid Margin="0,4,0,8" HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="InputBox"
+                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                         FontFamily="Consolas"
+                         Grid.Column="0"
+                         Width="270"
+                         ToolTip="PC list (space or comma separated)" />
+                <Button Content="🎲" Command="{Binding RandomizePcCommand}" Grid.Column="1" Margin="4,0,0,0" />
+                <Button Content="Browse"
+                        Command="{Binding DataContext.OpenPresetPickerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        Grid.Column="2"
+                        Margin="4,0,0,0" />
+                <Button Content="Play" Command="{Binding PlayInputCommand}" Grid.Column="3" Margin="4,0,0,0" />
+            </Grid>
+
+            <Expander x:Name="RecentsExpander" Header="Recents &amp; Favorites" IsExpanded="False" Margin="0,0,0,8" Foreground="White">
+                <Grid Margin="0,4,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Visibility="{Binding HasFavorites, Converter={StaticResource BoolToVis}}" Margin="0,0,8,0">
+                        <TextBlock Text="Favorites" Foreground="White" FontWeight="Bold" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{Binding FavoritePresets}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding DisplayText}"
+                                            Command="{Binding DataContext.ApplyPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Click="PresetItem_Click"
+                                            HorizontalContentAlignment="Left"
+                                            Padding="4"
+                                            Margin="0,0,0,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Visibility="{Binding HasRecents, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Recents" Foreground="White" FontWeight="Bold" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{Binding RecentPresets}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding DisplayText}"
+                                            Command="{Binding DataContext.ApplyPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Click="PresetItem_Click"
+                                            HorizontalContentAlignment="Left"
+                                            Padding="4"
+                                            Margin="0,0,0,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Grid>
+            </Expander>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <RadioButton Content="Ordered" IsChecked="{Binding IsOrdered}" GroupName="Mode" Margin="0,0,8,0" />
+                <RadioButton Content="Unordered" IsChecked="{Binding IsUnordered}" GroupName="Mode" />
+            </StackPanel>
+
+            <!-- Ordered options -->
+            <StackPanel Orientation="Vertical" Margin="0,0,0,8" Visibility="{Binding IsOrdered, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Ordered options:" Foreground="White" />
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <RadioButton Content="As entered" IsChecked="{Binding SelectedOrderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=AsEntered}" GroupName="OrderedOptions" Margin="0,0,8,0" />
+                    <RadioButton Content="Sorted ascending" IsChecked="{Binding SelectedOrderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=SortedAscending}" GroupName="OrderedOptions" Margin="0,0,8,0" />
+                    <RadioButton Content="Only unique (preserve order)" IsChecked="{Binding SelectedOrderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=UniquePreserveOrder}" GroupName="OrderedOptions" Margin="0,0,8,0" />
+                    <RadioButton Content="Random permutation"
+                                 IsChecked="{Binding SelectedOrderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RandomPermutation}"
+                                 GroupName="OrderedOptions"
+                                 Margin="0,0,8,0"
+                                 PreviewMouseLeftButtonDown="RandomPermutationRadio_PreviewMouseLeftButtonDown" />
+                    <RadioButton Content="Random rotation"
+                                 IsChecked="{Binding SelectedOrderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RandomRotation}"
+                                 GroupName="OrderedOptions"
+                                 PreviewMouseLeftButtonDown="RandomRotationRadio_PreviewMouseLeftButtonDown" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Unordered options -->
+            <StackPanel Orientation="Vertical" Margin="0,0,0,8" Visibility="{Binding IsUnordered, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Unordered options:" Foreground="White" />
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <RadioButton Content="Normal order" IsChecked="{Binding SelectedUnorderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=NormalOrder}" GroupName="UnorderedOptions" Margin="0,0,8,0" />
+                    <RadioButton Content="Prime form" IsChecked="{Binding SelectedUnorderedOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PrimeForm}" GroupName="UnorderedOptions" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Preview:" Foreground="White" />
+                <Button Content="Play" Command="{Binding PlayPreviewCommand}" Margin="8,0,0,0" />
+            </StackPanel>
+            <TextBlock Text="{Binding Preview}" FontFamily="Consolas" Foreground="LightGray" Margin="0,4,0,12" />
+
+            <Button Content="Create Starting Object" Command="{Binding CreateStartingObjectCommand}" ToolTip="Adds starting object to the Transform Log" Margin="0,8,0,0" />
+        </StackPanel>
+    </Border>
+</UserControl>

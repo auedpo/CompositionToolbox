@@ -1,0 +1,192 @@
+<UserControl x:Class="CompositionToolbox.App.Views.InspectorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:CompositionToolbox.App.Converters"
+             xmlns:views="clr-namespace:CompositionToolbox.App.Views">
+    <UserControl.Resources>
+        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+    </UserControl.Resources>
+    <Border Background="#252526">
+        <StackPanel Margin="8">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <TextBlock Text="{Binding Badge}" Foreground="White" FontWeight="Bold" Margin="0,0,8,0" />
+                <TextBlock Text="{Binding PrimaryDisplay}" Foreground="LightGray" FontWeight="Bold"
+                           FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <Grid Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Label:" Foreground="LightGray" Margin="0,0,6,0" />
+                <TextBlock Grid.Column="1" Text="{Binding PrimaryDisplayLabel}" Foreground="LightGray"
+                           TextTrimming="CharacterEllipsis" MouseLeftButtonDown="LabelDisplay_MouseLeftButtonDown">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEditingLabel}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding PrimaryDisplayLabel}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Grid.Column="1" Text="(double-click to add)" Foreground="#8A8A8A"
+                           FontStyle="Italic" MouseLeftButtonDown="LabelDisplay_MouseLeftButtonDown">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEditingLabel}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding PrimaryDisplayLabel}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBox Grid.Column="1"
+                         Text="{Binding LabelEdit, UpdateSourceTrigger=PropertyChanged}"
+                         Foreground="White"
+                         Background="#1F1F1F"
+                         BorderBrush="#333"
+                         Padding="4,2"
+                         IsVisibleChanged="LabelEdit_IsVisibleChanged"
+                         LostKeyboardFocus="LabelEdit_LostKeyboardFocus"
+                         KeyDown="LabelEdit_KeyDown">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEditingLabel}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+            </Grid>
+
+            <TextBlock Text="{Binding FromLine}" Foreground="LightGray" FontSize="11" TextWrapping="Wrap" />
+
+            <Border Background="#1F1F1F" Padding="6" Margin="0,8,0,8">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton Content="Chord"
+                                     IsChecked="{Binding SelectedNotationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Chord}"
+                                     GroupName="InspectorNotationMode"
+                                     Margin="0,0,8,0" />
+                        <RadioButton Content="Sequence"
+                                     IsChecked="{Binding SelectedNotationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Sequence}"
+                                     GroupName="InspectorNotationMode" />
+                        <Button Content="Play" Command="{Binding PlayDisplayedCommand}" Margin="12,0,0,0" />
+                        <Button Content="Expand" Margin="8,0,0,0" Click="ExpandNotation_Click" />
+                    </StackPanel>
+                    <views:NotationView x:Name="InspectorNotation" Height="224" Margin="0,6,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Expander Header="Realization override (session)" Margin="0,0,0,8">
+                <StackPanel Margin="0,6,0,0">
+                    <CheckBox Content="Use override for this node" IsChecked="{Binding UseSessionOverride}" />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="PC0 ref:" Width="70" Foreground="LightGray" />
+                        <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding OverridePc0NoteIndex}"
+                                  IsEnabled="{Binding UseSessionOverride}" />
+                        <ComboBox Width="60" Margin="6,0,0,0" ItemsSource="{Binding Octaves}"
+                                  SelectedItem="{Binding OverridePc0Octave}" IsEnabled="{Binding UseSessionOverride}" />
+                    </StackPanel>
+
+                    <CheckBox Content="Use ambitus" Margin="0,6,0,0"
+                              IsChecked="{Binding OverrideUseAmbitus}" IsEnabled="{Binding UseSessionOverride}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Low:" Width="40" Foreground="LightGray" />
+                        <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding OverrideAmbitusLowNoteIndex}"
+                                  IsEnabled="{Binding UseSessionOverride}" />
+                        <ComboBox Width="60" Margin="6,0,0,0" ItemsSource="{Binding Octaves}"
+                                  SelectedItem="{Binding OverrideAmbitusLowOctave}" IsEnabled="{Binding UseSessionOverride}" />
+                        <TextBlock Text="High:" Width="45" Margin="10,0,0,0" Foreground="LightGray" />
+                        <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding OverrideAmbitusHighNoteIndex}"
+                                  IsEnabled="{Binding UseSessionOverride}" />
+                        <ComboBox Width="60" Margin="6,0,0,0" ItemsSource="{Binding Octaves}"
+                                  SelectedItem="{Binding OverrideAmbitusHighOctave}" IsEnabled="{Binding UseSessionOverride}" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Unwrap:" Width="70" Foreground="LightGray" />
+                        <ComboBox Width="160" ItemsSource="{Binding OrderedUnwrapModes}"
+                                  SelectedItem="{Binding OverrideOrderedUnwrapMode}" IsEnabled="{Binding UseSessionOverride}" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Voicing:" Width="70" Foreground="LightGray" />
+                        <ComboBox Width="160" ItemsSource="{Binding ChordVoicingModes}"
+                                  SelectedItem="{Binding OverrideChordVoicingMode}" IsEnabled="{Binding UseSessionOverride}" />
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+
+            <StackPanel Visibility="{Binding IsOrdered, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
+                <TextBlock Text="{Binding SequenceDisplay}" Foreground="LightGray"
+                           FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding LengthDisplay}" Foreground="LightGray" />
+                <TextBlock Text="{Binding UniqueCountDisplay}" Foreground="LightGray" />
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding IsPcSet, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Set projection (sorted unique pcs):" Foreground="White"
+                           ToolTip="Unordered projection of the node's pitch content." />
+                <TextBlock Text="{Binding SetProjectionDisplay}" Foreground="LightGray"
+                           FontFamily="Consolas,Cascadia Mono,Courier New" Margin="0,2,0,4" TextWrapping="Wrap" />
+                <Button Content="{Binding CommitUnorderedLabel}" Command="{Binding CommitUnorderedCommand}"
+                        IsEnabled="{Binding CanCommitUnordered}" Margin="0,0,0,8" />
+
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="NF (from set):" Foreground="White" Margin="0,0,6,0" />
+                    <TextBlock Grid.Column="1" Text="{Binding NormalFormDisplay}" Foreground="LightGray"
+                               FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                    <Button Grid.Column="2" Content="Commit NF node" Command="{Binding CommitNormalFormCommand}"
+                            IsEnabled="{Binding CanCommitNormalForm}" Margin="8,0,0,0" />
+                </Grid>
+
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="PF (from set):" Foreground="White" Margin="0,0,6,0" />
+                    <TextBlock Grid.Column="1" Text="{Binding PrimeFormDisplay}" Foreground="LightGray"
+                               FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                    <Button Grid.Column="2" Content="Commit PF node" Command="{Binding CommitPrimeFormCommand}"
+                            IsEnabled="{Binding CanCommitPrimeForm}" Margin="8,0,0,0" />
+                </Grid>
+
+                <Border Background="#1F1F1F" Padding="6">
+                    <StackPanel>
+                        <TextBlock Text="Pitch-class content" Foreground="White" FontWeight="Bold" Margin="0,0,0,4" />
+                        <TextBlock Text="{Binding CardinalityDisplay}" Foreground="LightGray" />
+                        <TextBlock Text="{Binding LinearSpanDisplay}" Foreground="LightGray" />
+                        <TextBlock Text="{Binding IntervalVectorDisplay}" Foreground="LightGray"
+                                   FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding OisDisplay}" Foreground="LightGray"
+                                   FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

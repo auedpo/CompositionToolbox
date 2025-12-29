@@ -1,0 +1,63 @@
+<Window x:Class="CompositionToolbox.App.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:CompositionToolbox.App.Converters"
+        Title="Settings" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E" Foreground="White" FontFamily="Segoe UI">
+    <Window.Resources>
+        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+    </Window.Resources>
+    <Border Padding="12" Background="#1E1E1E">
+        <StackPanel>
+            <TextBlock Text="Accidentals" FontWeight="Bold" Margin="0,0,0,8" />
+            <RadioButton Content="All sharps"
+                         IsChecked="{Binding SelectedAccidentalRule, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=AllSharps}"
+                         GroupName="AccidentalRules"
+                         Margin="0,0,0,4" />
+            <RadioButton Content="All flats"
+                         IsChecked="{Binding SelectedAccidentalRule, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=AllFlats}"
+                         GroupName="AccidentalRules"
+                         Margin="0,0,0,4" />
+            <RadioButton Content="Direction (per step)"
+                         IsChecked="{Binding SelectedAccidentalRule, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Direction}"
+                         GroupName="AccidentalRules"
+                         Margin="0,0,0,4" />
+            <RadioButton Content="Note aware (avoid sharp/flat flips)"
+                         IsChecked="{Binding SelectedAccidentalRule, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=NoteAware}"
+                         GroupName="AccidentalRules" />
+
+            <TextBlock Text="Realization" FontWeight="Bold" Margin="0,16,0,8" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                <TextBlock Text="PC0 reference:" VerticalAlignment="Center" Width="120" />
+                <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding Pc0NoteIndex}" />
+                <ComboBox Width="60" Margin="8,0,0,0" ItemsSource="{Binding Octaves}" SelectedItem="{Binding Pc0Octave}" />
+            </StackPanel>
+
+            <CheckBox Content="Use ambitus" IsChecked="{Binding UseAmbitus}" Margin="0,0,0,4" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                <TextBlock Text="Low:" VerticalAlignment="Center" Width="40" />
+                <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding AmbitusLowNoteIndex}" IsEnabled="{Binding UseAmbitus}" />
+                <ComboBox Width="60" Margin="8,0,0,0" ItemsSource="{Binding Octaves}" SelectedItem="{Binding AmbitusLowOctave}" IsEnabled="{Binding UseAmbitus}" />
+                <TextBlock Text="High:" VerticalAlignment="Center" Width="45" Margin="12,0,0,0" />
+                <ComboBox Width="60" ItemsSource="{Binding NoteNames}" SelectedIndex="{Binding AmbitusHighNoteIndex}" IsEnabled="{Binding UseAmbitus}" />
+                <ComboBox Width="60" Margin="8,0,0,0" ItemsSource="{Binding Octaves}" SelectedItem="{Binding AmbitusHighOctave}" IsEnabled="{Binding UseAmbitus}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                <TextBlock Text="Ordered unwrap:" VerticalAlignment="Center" Width="120" />
+                <ComboBox Width="180" ItemsSource="{Binding OrderedUnwrapModes}" SelectedItem="{Binding OrderedUnwrapMode}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                <TextBlock Text="Chord voicing:" VerticalAlignment="Center" Width="120" />
+                <ComboBox Width="180" ItemsSource="{Binding ChordVoicingModes}" SelectedItem="{Binding ChordVoicingMode}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="Default notation:" VerticalAlignment="Center" Width="120" />
+                <ComboBox Width="180" ItemsSource="{Binding NotationPreferences}" SelectedItem="{Binding DefaultNotationMode}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

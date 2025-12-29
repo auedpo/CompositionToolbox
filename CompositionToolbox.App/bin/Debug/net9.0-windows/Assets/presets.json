@@ -1,0 +1,5127 @@
+[
+  {
+    "Id": "1-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0
+    ],
+    "Cardinality": 1,
+    "IntervalVector": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "0"
+  },
+  {
+    "Id": "10-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "Cardinality": 10,
+    "IntervalVector": [
+      9,
+      8,
+      8,
+      8,
+      8,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "1111111113"
+  },
+  {
+    "Id": "10-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10
+    ],
+    "Cardinality": 10,
+    "IntervalVector": [
+      8,
+      9,
+      8,
+      8,
+      8,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "1111111122"
+  },
+  {
+    "Id": "10-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10
+    ],
+    "Cardinality": 10,
+    "IntervalVector": [
+      8,
+      8,
+      9,
+      8,
+      8,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "1111111212"
+  },
+  {
+    "Id": "10-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10
+    ],
+    "Cardinality": 10,
+    "IntervalVector": [
+      8,
+      8,
+      8,
+      9,
+      8,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "1111112112"
+  },
+  {
+    "Id": "10-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10
+    ],
+    "Cardinality": 10,
+    "IntervalVector": [
+      8,
+      8,
+      8,
+      8,
+      9,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "1111121112"
+  },
+  {
+    "Id": "10-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "Cardinality": 10,
+    "IntervalVector": [
+      8,
+      8,
+      8,
+      8,
+      8,
+      5
+    ],
+    "ZRelation": null,
+    "Cint": "1111211112"
+  },
+  {
+    "Id": "11-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "Cardinality": 11,
+    "IntervalVector": [
+      5
+    ],
+    "ZRelation": null,
+    "Cint": "11111111112"
+  },
+  {
+    "Id": "12-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "Cardinality": 12,
+    "IntervalVector": [
+      6
+    ],
+    "ZRelation": null,
+    "Cint": "111111111111"
+  },
+  {
+    "Id": "2-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1
+    ],
+    "Cardinality": 2,
+    "IntervalVector": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1B"
+  },
+  {
+    "Id": "2-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2
+    ],
+    "Cardinality": 2,
+    "IntervalVector": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "2A"
+  },
+  {
+    "Id": "2-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      3
+    ],
+    "Cardinality": 2,
+    "IntervalVector": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "39"
+  },
+  {
+    "Id": "2-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      4
+    ],
+    "Cardinality": 2,
+    "IntervalVector": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "48"
+  },
+  {
+    "Id": "2-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      5
+    ],
+    "Cardinality": 2,
+    "IntervalVector": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "57"
+  },
+  {
+    "Id": "2-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      6
+    ],
+    "Cardinality": 2,
+    "IntervalVector": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "66"
+  },
+  {
+    "Id": "3-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      2,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "11A"
+  },
+  {
+    "Id": "3-10",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      3,
+      6
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      0,
+      0,
+      2,
+      0,
+      0,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "336"
+  },
+  {
+    "Id": "3-11",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      3,
+      7
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "345"
+  },
+  {
+    "Id": "3-12",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      4,
+      8
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      0,
+      0,
+      0,
+      3,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "444"
+  },
+  {
+    "Id": "3-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "129"
+  },
+  {
+    "Id": "3-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "138"
+  },
+  {
+    "Id": "3-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      5
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      1,
+      0,
+      0,
+      1,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "147"
+  },
+  {
+    "Id": "3-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      6
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      1,
+      0,
+      0,
+      0,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "156"
+  },
+  {
+    "Id": "3-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      0,
+      2,
+      0,
+      1,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "228"
+  },
+  {
+    "Id": "3-7",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      5
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "237"
+  },
+  {
+    "Id": "3-8",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      6
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "246"
+  },
+  {
+    "Id": "3-9",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      7
+    ],
+    "Cardinality": 3,
+    "IntervalVector": [
+      0,
+      1,
+      0,
+      0,
+      2,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "255"
+  },
+  {
+    "Id": "4-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      3,
+      2,
+      1,
+      0,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1119"
+  },
+  {
+    "Id": "4-10",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      5
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      2,
+      2,
+      0,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "2127"
+  },
+  {
+    "Id": "4-11",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      2,
+      1,
+      1,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1227"
+  },
+  {
+    "Id": "4-12",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      6
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      1,
+      2,
+      1,
+      0,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "2136"
+  },
+  {
+    "Id": "4-13",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      6
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      1,
+      2,
+      0,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1236"
+  },
+  {
+    "Id": "4-14",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      1,
+      1,
+      1,
+      2,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "2145"
+  },
+  {
+    "Id": "4-15",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      6
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "ZRelation": "29",
+    "Cint": "1326"
+  },
+  {
+    "Id": "4-16",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      5,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      1,
+      0,
+      1,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1425"
+  },
+  {
+    "Id": "4-17",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      3,
+      4,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      0,
+      2,
+      2,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "3135"
+  },
+  {
+    "Id": "4-18",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      0,
+      2,
+      1,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1335"
+  },
+  {
+    "Id": "4-19",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      8
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      0,
+      1,
+      3,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1344"
+  },
+  {
+    "Id": "4-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      2,
+      2,
+      1,
+      1,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1128"
+  },
+  {
+    "Id": "4-20",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      5,
+      8
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      0,
+      1,
+      2,
+      2,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1434"
+  },
+  {
+    "Id": "4-21",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      6
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      0,
+      3,
+      0,
+      2,
+      0,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "2226"
+  },
+  {
+    "Id": "4-22",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      0,
+      2,
+      1,
+      1,
+      2,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "2235"
+  },
+  {
+    "Id": "4-23",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      5,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      0,
+      2,
+      1,
+      0,
+      3,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "2325"
+  },
+  {
+    "Id": "4-24",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      8
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      0,
+      2,
+      0,
+      3,
+      0,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "2244"
+  },
+  {
+    "Id": "4-25",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      6,
+      8
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      0,
+      2,
+      0,
+      2,
+      0,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "2424"
+  },
+  {
+    "Id": "4-26",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      3,
+      5,
+      8
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      0,
+      1,
+      2,
+      1,
+      2,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "3234"
+  },
+  {
+    "Id": "4-27",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      5,
+      8
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      0,
+      1,
+      2,
+      1,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "2334"
+  },
+  {
+    "Id": "4-28",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      3,
+      6,
+      9
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      0,
+      0,
+      4,
+      0,
+      0,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "3333"
+  },
+  {
+    "Id": "4-29",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "ZRelation": "15",
+    "Cint": "1245"
+  },
+  {
+    "Id": "4-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      2,
+      1,
+      2,
+      1,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1218"
+  },
+  {
+    "Id": "4-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1137"
+  },
+  {
+    "Id": "4-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      6
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      2,
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1146"
+  },
+  {
+    "Id": "4-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      2,
+      1,
+      0,
+      0,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1155"
+  },
+  {
+    "Id": "4-7",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      5
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      2,
+      0,
+      1,
+      2,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "1317"
+  },
+  {
+    "Id": "4-8",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      5,
+      6
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      2,
+      0,
+      0,
+      1,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1416"
+  },
+  {
+    "Id": "4-9",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      6,
+      7
+    ],
+    "Cardinality": 4,
+    "IntervalVector": [
+      2,
+      0,
+      0,
+      0,
+      2,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1515"
+  },
+  {
+    "Id": "5-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      4,
+      3,
+      2,
+      1,
+      0,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "11118"
+  },
+  {
+    "Id": "5-10",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      6
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      2,
+      3,
+      1,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "12126"
+  },
+  {
+    "Id": "5-11",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "21135"
+  },
+  {
+    "Id": "5-12",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      6
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      2,
+      2,
+      1,
+      2,
+      1
+    ],
+    "ZRelation": "36",
+    "Cint": "12216"
+  },
+  {
+    "Id": "5-13",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      2,
+      1,
+      3,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "11244"
+  },
+  {
+    "Id": "5-14",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      2,
+      1,
+      1,
+      3,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "11325"
+  },
+  {
+    "Id": "5-15",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      6,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      2,
+      0,
+      2,
+      2,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11424"
+  },
+  {
+    "Id": "5-16",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      1,
+      3,
+      2,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "12135"
+  },
+  {
+    "Id": "5-17",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      1,
+      2,
+      3,
+      2,
+      0
+    ],
+    "ZRelation": "37",
+    "Cint": "12144"
+  },
+  {
+    "Id": "5-18",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      5,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      1,
+      2,
+      2,
+      2,
+      1
+    ],
+    "ZRelation": "38",
+    "Cint": "13125"
+  },
+  {
+    "Id": "5-19",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      6,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      1,
+      2,
+      1,
+      2,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "12315"
+  },
+  {
+    "Id": "5-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      3,
+      3,
+      2,
+      1,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "11127"
+  },
+  {
+    "Id": "5-20",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      1,
+      1,
+      2,
+      3,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "14124"
+  },
+  {
+    "Id": "5-21",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      5,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      0,
+      2,
+      4,
+      2,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "13134"
+  },
+  {
+    "Id": "5-22",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      7,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      0,
+      2,
+      3,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "13314"
+  },
+  {
+    "Id": "5-23",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      5,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      3,
+      2,
+      1,
+      3,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "21225"
+  },
+  {
+    "Id": "5-24",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      3,
+      1,
+      2,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": " 12225"
+  },
+  {
+    "Id": "5-25",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      5,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      2,
+      3,
+      1,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "21234"
+  },
+  {
+    "Id": "5-26",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      5,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      2,
+      2,
+      3,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "22134"
+  },
+  {
+    "Id": "5-27",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      2,
+      2,
+      2,
+      3,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "12234"
+  },
+  {
+    "Id": "5-28",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      6,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      2,
+      2,
+      2,
+      1,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "21324"
+  },
+  {
+    "Id": "5-29",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      6,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      2,
+      2,
+      1,
+      3,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "12324"
+  },
+  {
+    "Id": "5-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      3,
+      2,
+      2,
+      2,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "11217"
+  },
+  {
+    "Id": "5-30",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      6,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      2,
+      1,
+      3,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "13224"
+  },
+  {
+    "Id": "5-31",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      6,
+      9
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      1,
+      4,
+      1,
+      1,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "12333"
+  },
+  {
+    "Id": "5-32",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      6,
+      9
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      1,
+      1,
+      3,
+      2,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "13233"
+  },
+  {
+    "Id": "5-33",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      6,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      0,
+      4,
+      0,
+      4,
+      0,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "22224"
+  },
+  {
+    "Id": "5-34",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      6,
+      9
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      0,
+      3,
+      2,
+      2,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "22233"
+  },
+  {
+    "Id": "5-35",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      7,
+      9
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      0,
+      3,
+      2,
+      1,
+      4,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "22323"
+  },
+  {
+    "Id": "5-36",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      2,
+      2,
+      1,
+      2,
+      1
+    ],
+    "ZRelation": "12",
+    "Cint": "11235"
+  },
+  {
+    "Id": "5-37",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      3,
+      4,
+      5,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      1,
+      2,
+      3,
+      2,
+      0
+    ],
+    "ZRelation": "17",
+    "Cint": "31134"
+  },
+  {
+    "Id": "5-38",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      8
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      1,
+      2,
+      2,
+      2,
+      1
+    ],
+    "ZRelation": "18",
+    "Cint": "11334"
+  },
+  {
+    "Id": "5-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      6
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      3,
+      2,
+      2,
+      1,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "11136"
+  },
+  {
+    "Id": "5-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      3,
+      2,
+      1,
+      1,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "11145"
+  },
+  {
+    "Id": "5-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      6
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      3,
+      1,
+      1,
+      2,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "11316"
+  },
+  {
+    "Id": "5-7",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      6,
+      7
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      3,
+      1,
+      0,
+      1,
+      3,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11415"
+  },
+  {
+    "Id": "5-8",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      6
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      3,
+      2,
+      2,
+      0,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "21126"
+  },
+  {
+    "Id": "5-9",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6
+    ],
+    "Cardinality": 5,
+    "IntervalVector": [
+      2,
+      3,
+      1,
+      2,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "11226"
+  },
+  {
+    "Id": "6-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      5,
+      4,
+      3,
+      2,
+      1,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "111117"
+  },
+  {
+    "Id": "6-10",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      3,
+      3,
+      3,
+      2,
+      1
+    ],
+    "ZRelation": "39",
+    "Cint": "121125"
+  },
+  {
+    "Id": "6-11",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      3,
+      3,
+      2,
+      3,
+      1
+    ],
+    "ZRelation": "40",
+    "Cint": "112125"
+  },
+  {
+    "Id": "6-12",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      3,
+      2,
+      2,
+      3,
+      2
+    ],
+    "ZRelation": "41",
+    "Cint": "112215"
+  },
+  {
+    "Id": "6-13",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      6,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      2,
+      4,
+      2,
+      2,
+      2
+    ],
+    "ZRelation": "42",
+    "Cint": "121215"
+  },
+  {
+    "Id": "6-14",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      2,
+      3,
+      4,
+      3,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "121134"
+  },
+  {
+    "Id": "6-15",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      2,
+      3,
+      4,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "112134"
+  },
+  {
+    "Id": "6-16",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      2,
+      2,
+      4,
+      3,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "131124"
+  },
+  {
+    "Id": "6-17",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      7,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      2,
+      2,
+      3,
+      3,
+      2
+    ],
+    "ZRelation": "43",
+    "Cint": "112314"
+  },
+  {
+    "Id": "6-18",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      7,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      2,
+      2,
+      2,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "113214"
+  },
+  {
+    "Id": "6-19",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      7,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      1,
+      3,
+      4,
+      3,
+      1
+    ],
+    "ZRelation": "44",
+    "Cint": "121314"
+  },
+  {
+    "Id": "6-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      4,
+      3,
+      2,
+      1,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "111126"
+  },
+  {
+    "Id": "6-20",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      5,
+      8,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      0,
+      3,
+      6,
+      3,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "131313"
+  },
+  {
+    "Id": "6-21",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      6,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      4,
+      2,
+      4,
+      1,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "211224"
+  },
+  {
+    "Id": "6-22",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      4,
+      1,
+      4,
+      2,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "112224"
+  },
+  {
+    "Id": "6-23",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      3,
+      4,
+      2,
+      2,
+      2
+    ],
+    "ZRelation": "45",
+    "Cint": "212124"
+  },
+  {
+    "Id": "6-24",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      6,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      3,
+      3,
+      3,
+      3,
+      1
+    ],
+    "ZRelation": "46",
+    "Cint": "121224"
+  },
+  {
+    "Id": "6-25",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      3,
+      3,
+      2,
+      4,
+      1
+    ],
+    "ZRelation": "47",
+    "Cint": "122124"
+  },
+  {
+    "Id": "6-26",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      7,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      3,
+      2,
+      3,
+      4,
+      1
+    ],
+    "ZRelation": "48",
+    "Cint": "122214"
+  },
+  {
+    "Id": "6-27",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      6,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      2,
+      5,
+      2,
+      2,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "121233"
+  },
+  {
+    "Id": "6-28",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      6,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      2,
+      4,
+      3,
+      2,
+      2
+    ],
+    "ZRelation": "49",
+    "Cint": "122133"
+  },
+  {
+    "Id": "6-29",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      2,
+      4,
+      2,
+      3,
+      2
+    ],
+    "ZRelation": "50",
+    "Cint": "213123"
+  },
+  {
+    "Id": "6-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      3,
+      3,
+      2,
+      2,
+      1
+    ],
+    "ZRelation": "36",
+    "Cint": "111216"
+  },
+  {
+    "Id": "6-30",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      2,
+      4,
+      2,
+      2,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "123123"
+  },
+  {
+    "Id": "6-31",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      2,
+      3,
+      4,
+      3,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "131223"
+  },
+  {
+    "Id": "6-32",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      1,
+      4,
+      3,
+      2,
+      5,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "221223"
+  },
+  {
+    "Id": "6-33",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      1,
+      4,
+      3,
+      2,
+      4,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "212223"
+  },
+  {
+    "Id": "6-34",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      1,
+      4,
+      2,
+      4,
+      2,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "122223"
+  },
+  {
+    "Id": "6-35",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      4,
+      6,
+      8,
+      10
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      0,
+      6,
+      0,
+      6,
+      0,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "222222"
+  },
+  {
+    "Id": "6-36",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      3,
+      3,
+      2,
+      2,
+      1
+    ],
+    "ZRelation": "3",
+    "Cint": "111135"
+  },
+  {
+    "Id": "6-37",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      3,
+      2,
+      3,
+      2,
+      1
+    ],
+    "ZRelation": "4",
+    "Cint": "111144"
+  },
+  {
+    "Id": "6-38",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      7,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      2,
+      1,
+      2,
+      4,
+      2
+    ],
+    "ZRelation": "6",
+    "Cint": "111414"
+  },
+  {
+    "Id": "6-39",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      5,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      3,
+      3,
+      3,
+      2,
+      1
+    ],
+    "ZRelation": "10",
+    "Cint": "211134"
+  },
+  {
+    "Id": "6-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      3,
+      2,
+      3,
+      2,
+      1
+    ],
+    "ZRelation": "37",
+    "Cint": "112116"
+  },
+  {
+    "Id": "6-40",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      3,
+      3,
+      2,
+      3,
+      1
+    ],
+    "ZRelation": "11",
+    "Cint": "111234"
+  },
+  {
+    "Id": "6-41",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      3,
+      2,
+      2,
+      3,
+      2
+    ],
+    "ZRelation": "12",
+    "Cint": "111324"
+  },
+  {
+    "Id": "6-42",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      2,
+      4,
+      2,
+      2,
+      2
+    ],
+    "ZRelation": "13",
+    "Cint": "111333"
+  },
+  {
+    "Id": "6-43",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      2,
+      2,
+      3,
+      3,
+      2
+    ],
+    "ZRelation": "17",
+    "Cint": "113124"
+  },
+  {
+    "Id": "6-44",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      6,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      1,
+      3,
+      4,
+      3,
+      1
+    ],
+    "ZRelation": "19",
+    "Cint": "113133"
+  },
+  {
+    "Id": "6-45",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      6,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      3,
+      4,
+      2,
+      2,
+      2
+    ],
+    "ZRelation": "23",
+    "Cint": "211233"
+  },
+  {
+    "Id": "6-46",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      3,
+      3,
+      3,
+      3,
+      1
+    ],
+    "ZRelation": "24",
+    "Cint": "112233"
+  },
+  {
+    "Id": "6-47",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      3,
+      3,
+      2,
+      4,
+      1
+    ],
+    "ZRelation": "25",
+    "Cint": "112323"
+  },
+  {
+    "Id": "6-48",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      3,
+      2,
+      3,
+      4,
+      1
+    ],
+    "ZRelation": "26",
+    "Cint": "113223"
+  },
+  {
+    "Id": "6-49",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      2,
+      4,
+      3,
+      2,
+      2
+    ],
+    "ZRelation": "28",
+    "Cint": "121323"
+  },
+  {
+    "Id": "6-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      2,
+      2,
+      2,
+      3,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "111315"
+  },
+  {
+    "Id": "6-50",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      4,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      2,
+      2,
+      4,
+      2,
+      3,
+      2
+    ],
+    "ZRelation": "29",
+    "Cint": "132123"
+  },
+  {
+    "Id": "6-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      6,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      2,
+      1,
+      2,
+      4,
+      2
+    ],
+    "ZRelation": "38",
+    "Cint": " 113115"
+  },
+  {
+    "Id": "6-7",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      6,
+      7,
+      8
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      4,
+      2,
+      0,
+      2,
+      4,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "114114"
+  },
+  {
+    "Id": "6-8",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      5,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      4,
+      3,
+      2,
+      3,
+      0
+    ],
+    "ZRelation": null,
+    "Cint": "211125"
+  },
+  {
+    "Id": "6-9",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      7
+    ],
+    "Cardinality": 6,
+    "IntervalVector": [
+      3,
+      4,
+      2,
+      2,
+      3,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "111225"
+  },
+  {
+    "Id": "7-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      6,
+      5,
+      4,
+      3,
+      2,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1111116"
+  },
+  {
+    "Id": "7-10",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      4,
+      5,
+      3,
+      3,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1111233"
+  },
+  {
+    "Id": "7-11",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1211124"
+  },
+  {
+    "Id": "7-12",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      4,
+      4,
+      3,
+      4,
+      2
+    ],
+    "ZRelation": "36",
+    "Cint": "1111323"
+  },
+  {
+    "Id": "7-13",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      4,
+      3,
+      5,
+      3,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1121124"
+  },
+  {
+    "Id": "7-14",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      7,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      4,
+      3,
+      3,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1112214"
+  },
+  {
+    "Id": "7-15",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6,
+      7,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      4,
+      2,
+      4,
+      4,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "1122114"
+  },
+  {
+    "Id": "7-16",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      3,
+      5,
+      4,
+      3,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1112133"
+  },
+  {
+    "Id": "7-17",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      3,
+      4,
+      5,
+      4,
+      1
+    ],
+    "ZRelation": "37",
+    "Cint": "1121133"
+  },
+  {
+    "Id": "7-18",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      8,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      3,
+      4,
+      4,
+      4,
+      2
+    ],
+    "ZRelation": "38",
+    "Cint": "1311123"
+  },
+  {
+    "Id": "7-19",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      3,
+      4,
+      3,
+      4,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "1113123"
+  },
+  {
+    "Id": "7-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      7
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      5,
+      5,
+      4,
+      3,
+      3,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1111125"
+  },
+  {
+    "Id": "7-20",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      3,
+      3,
+      4,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1131123"
+  },
+  {
+    "Id": "7-21",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      8,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      2,
+      4,
+      6,
+      4,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1121313"
+  },
+  {
+    "Id": "7-22",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      5,
+      6,
+      8,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      2,
+      4,
+      5,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1131213"
+  },
+  {
+    "Id": "7-23",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      5,
+      4,
+      3,
+      5,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "2111223"
+  },
+  {
+    "Id": "7-24",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      5,
+      3,
+      4,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1112223"
+  },
+  {
+    "Id": "7-25",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      4,
+      5,
+      3,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "2112123"
+  },
+  {
+    "Id": "7-26",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      4,
+      4,
+      5,
+      3,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1211223"
+  },
+  {
+    "Id": "7-27",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      4,
+      4,
+      4,
+      5,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1121223"
+  },
+  {
+    "Id": "7-28",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      4,
+      4,
+      4,
+      3,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "1221123"
+  },
+  {
+    "Id": "7-29",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      4,
+      4,
+      3,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1122123"
+  },
+  {
+    "Id": "7-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      5,
+      4,
+      4,
+      4,
+      3,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1111134"
+  },
+  {
+    "Id": "7-30",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6,
+      8,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      4,
+      3,
+      5,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1122213"
+  },
+  {
+    "Id": "7-31",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      3,
+      6,
+      3,
+      3,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "1212123"
+  },
+  {
+    "Id": "7-32",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      6,
+      8,
+      9
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      3,
+      3,
+      5,
+      4,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1212213"
+  },
+  {
+    "Id": "7-33",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6,
+      8,
+      10
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      2,
+      6,
+      2,
+      6,
+      2,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "1122222"
+  },
+  {
+    "Id": "7-34",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      6,
+      8,
+      10
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      2,
+      5,
+      4,
+      4,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1212222"
+  },
+  {
+    "Id": "7-35",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      5,
+      6,
+      8,
+      10
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      2,
+      5,
+      4,
+      3,
+      6,
+      1
+    ],
+    "ZRelation": null,
+    "Cint": "1221222"
+  },
+  {
+    "Id": "7-36",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      4,
+      4,
+      3,
+      4,
+      2
+    ],
+    "ZRelation": "12",
+    "Cint": "1112124"
+  },
+  {
+    "Id": "7-37",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      7,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      3,
+      4,
+      5,
+      4,
+      1
+    ],
+    "ZRelation": "17",
+    "Cint": "1211214"
+  },
+  {
+    "Id": "7-38",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      3,
+      4,
+      4,
+      4,
+      2
+    ],
+    "ZRelation": "18",
+    "Cint": "1121214"
+  },
+  {
+    "Id": "7-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      7
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1111215"
+  },
+  {
+    "Id": "7-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      7
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      5,
+      4,
+      3,
+      3,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1112115"
+  },
+  {
+    "Id": "7-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      7,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      5,
+      3,
+      3,
+      4,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1111314"
+  },
+  {
+    "Id": "7-7",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      5,
+      3,
+      2,
+      3,
+      5,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "1113114"
+  },
+  {
+    "Id": "7-8",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      5,
+      4,
+      4,
+      2,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "2111124"
+  },
+  {
+    "Id": "7-9",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      8
+    ],
+    "Cardinality": 7,
+    "IntervalVector": [
+      4,
+      5,
+      3,
+      4,
+      3,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "1111224"
+  },
+  {
+    "Id": "8-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      7,
+      6,
+      5,
+      4,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11111115"
+  },
+  {
+    "Id": "8-10",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      6,
+      6,
+      4,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "21111123"
+  },
+  {
+    "Id": "8-11",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      7,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      6,
+      5,
+      5,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11111223"
+  },
+  {
+    "Id": "8-12",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      5,
+      6,
+      5,
+      4,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "12111123"
+  },
+  {
+    "Id": "8-13",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      5,
+      6,
+      4,
+      5,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11112123"
+  },
+  {
+    "Id": "8-14",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      5,
+      5,
+      5,
+      6,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11211123"
+  },
+  {
+    "Id": "8-15",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      5,
+      5,
+      5,
+      5,
+      3
+    ],
+    "ZRelation": "29",
+    "Cint": "11112213"
+  },
+  {
+    "Id": "8-16",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      7,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      5,
+      4,
+      5,
+      6,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11122113"
+  },
+  {
+    "Id": "8-17",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      4,
+      6,
+      6,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "12111213"
+  },
+  {
+    "Id": "8-18",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      4,
+      6,
+      5,
+      5,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11121213"
+  },
+  {
+    "Id": "8-19",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      4,
+      5,
+      7,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11211213"
+  },
+  {
+    "Id": "8-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      6,
+      6,
+      5,
+      5,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11111124"
+  },
+  {
+    "Id": "8-20",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      4,
+      5,
+      6,
+      6,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11212113"
+  },
+  {
+    "Id": "8-21",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      8,
+      10
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      4,
+      7,
+      4,
+      6,
+      4,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11112222"
+  },
+  {
+    "Id": "8-22",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      8,
+      10
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      4,
+      6,
+      5,
+      5,
+      6,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11121222"
+  },
+  {
+    "Id": "8-23",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      7,
+      8,
+      10
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      4,
+      6,
+      5,
+      4,
+      7,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11122122"
+  },
+  {
+    "Id": "8-24",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      10
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      4,
+      6,
+      4,
+      7,
+      4,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11211222"
+  },
+  {
+    "Id": "8-25",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      6,
+      7,
+      8,
+      10
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      4,
+      6,
+      4,
+      6,
+      4,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "11221122"
+  },
+  {
+    "Id": "8-26",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      7,
+      8,
+      10
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      4,
+      5,
+      6,
+      5,
+      6,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "12112122"
+  },
+  {
+    "Id": "8-27",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      10
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      4,
+      5,
+      6,
+      5,
+      5,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11212122"
+  },
+  {
+    "Id": "8-28",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      3,
+      4,
+      6,
+      7,
+      9,
+      10
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      4,
+      4,
+      8,
+      4,
+      4,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "12121212"
+  },
+  {
+    "Id": "8-29",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      5,
+      5,
+      5,
+      5,
+      5,
+      3
+    ],
+    "ZRelation": "15",
+    "Cint": "11121123"
+  },
+  {
+    "Id": "8-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      6,
+      5,
+      6,
+      5,
+      4,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11111133"
+  },
+  {
+    "Id": "8-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      7,
+      8
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      6,
+      5,
+      5,
+      5,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11111214"
+  },
+  {
+    "Id": "8-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      7,
+      8
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      6,
+      5,
+      4,
+      5,
+      5,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11112114"
+  },
+  {
+    "Id": "8-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      6,
+      5,
+      4,
+      4,
+      6,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11121114"
+  },
+  {
+    "Id": "8-7",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      6,
+      4,
+      5,
+      6,
+      5,
+      2
+    ],
+    "ZRelation": null,
+    "Cint": "11111313"
+  },
+  {
+    "Id": "8-8",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      7,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      6,
+      4,
+      4,
+      5,
+      6,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "11113113"
+  },
+  {
+    "Id": "8-9",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7,
+      8,
+      9
+    ],
+    "Cardinality": 8,
+    "IntervalVector": [
+      6,
+      4,
+      4,
+      4,
+      6,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "11131113"
+  },
+  {
+    "Id": "9-1",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      8,
+      7,
+      6,
+      6,
+      6,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "111111114"
+  },
+  {
+    "Id": "9-10",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      7,
+      9,
+      10
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      6,
+      6,
+      8,
+      6,
+      6,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "111121212"
+  },
+  {
+    "Id": "9-11",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      9,
+      10
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      6,
+      6,
+      7,
+      7,
+      7,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "111211212"
+  },
+  {
+    "Id": "9-12",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      6,
+      6,
+      6,
+      9,
+      6,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "112112112"
+  },
+  {
+    "Id": "9-2",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      7,
+      7,
+      7,
+      6,
+      6,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "111111123"
+  },
+  {
+    "Id": "9-3",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      7,
+      6,
+      7,
+      7,
+      6,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "111111213"
+  },
+  {
+    "Id": "9-4",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      7,
+      8,
+      9
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      7,
+      6,
+      6,
+      7,
+      7,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "111112113"
+  },
+  {
+    "Id": "9-5",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      7,
+      8,
+      9
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      7,
+      6,
+      6,
+      6,
+      7,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "111121113"
+  },
+  {
+    "Id": "9-6",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      10
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      6,
+      8,
+      6,
+      7,
+      6,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "111111222"
+  },
+  {
+    "Id": "9-7",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      7,
+      8,
+      10
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      6,
+      7,
+      7,
+      6,
+      7,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "111112122"
+  },
+  {
+    "Id": "9-8",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      7,
+      8,
+      10
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      6,
+      7,
+      6,
+      7,
+      6,
+      4
+    ],
+    "ZRelation": null,
+    "Cint": "111121122"
+  },
+  {
+    "Id": "9-9",
+    "Modulus": 12,
+    "PrimeForm": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      10
+    ],
+    "Cardinality": 9,
+    "IntervalVector": [
+      6,
+      7,
+      6,
+      6,
+      8,
+      3
+    ],
+    "ZRelation": null,
+    "Cint": "111211122"
+  }
+]

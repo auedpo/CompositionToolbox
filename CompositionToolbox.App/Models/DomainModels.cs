@@ -1,0 +1,74 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+
+namespace CompositionToolbox.App.Models
+{
+    public enum PcMode { Ordered, Unordered }
+
+    public class OpDescriptor
+    {
+        public string OpType { get; set; } = string.Empty;
+        public string OperationLabel { get; set; } = string.Empty;
+        public string SourceLens { get; set; } = string.Empty;
+        public Dictionary<string, object>? OpParams { get; set; }
+        public Guid? SourceNodeId { get; set; }
+
+        public string ToDisplayString()
+        {
+            if (string.IsNullOrWhiteSpace(OperationLabel))
+            {
+                return SourceLens;
+            }
+            if (string.IsNullOrWhiteSpace(SourceLens))
+            {
+                return OperationLabel;
+            }
+            return $"{SourceLens} -> {OperationLabel}";
+        }
+    }
+
+    public class PitchNode : INotifyPropertyChanged
+    {
+        private string _label = string.Empty;
+
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public int Modulus { get; set; }
+        public PcMode Mode { get; set; }
+        public int[] Ordered { get; set; } = Array.Empty<int>();
+        public int[] Unordered { get; set; } = Array.Empty<int>();
+        public string Label
+        {
+            get => _label;
+            set
+            {
+                if (string.Equals(_label, value, StringComparison.Ordinal)) return;
+                _label = value;
+                OnPropertyChanged(nameof(Label));
+            }
+        }
+        public OpDescriptor? OpFromPrev { get; set; }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public override string ToString()
+        {
+            var badge = Mode == PcMode.Unordered ? "[U]" : "[O]";
+            var body = Mode == PcMode.Unordered ? $"[{string.Join(' ', Unordered)}]" : $"({string.Join(' ', Ordered)})";
+            var label = string.IsNullOrWhiteSpace(Label) ? "-" : Label;
+            var showLabel = !string.IsNullOrWhiteSpace(Label)
+                && !string.Equals(Label, "Input", StringComparison.OrdinalIgnoreCase);
+            var op = OpFromPrev?.ToDisplayString();
+            if (!string.IsNullOrWhiteSpace(op))
+            {
+                label = showLabel ? $"{label} ({op})" : $"({op})";
+            }
+            return $"{badge} {label} {body}";
+        }
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}
