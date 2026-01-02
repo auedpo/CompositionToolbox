@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,9 +16,11 @@ namespace CompositionToolbox.App.Views
         private PresetPickerViewModel? _vm;
         private SettingsService? _settingsService;
         private AppSettings? _appSettings;
+        private Stopwatch? _ctorStopwatch;
 
         public PresetPickerDialog()
         {
+            _ctorStopwatch = Stopwatch.StartNew();
             InitializeComponent();
             Loaded += PresetPickerDialog_Loaded;
             DataContextChanged += PresetPickerDialog_DataContextChanged;
@@ -36,6 +39,11 @@ namespace CompositionToolbox.App.Views
 
         private void PresetPickerDialog_Loaded(object sender, RoutedEventArgs e)
         {
+            if (_ctorStopwatch != null)
+            {
+                _ctorStopwatch.Stop();
+                TimingLogger.Log($"PresetPickerDialog: Loaded after {_ctorStopwatch.ElapsedMilliseconds}ms; ResultsList.Items={ResultsList?.Items.Count}");
+            }
             SearchBox.Focus();
             SearchBox.SelectionStart = SearchBox.Text.Length;
         }

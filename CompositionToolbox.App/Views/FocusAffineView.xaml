@@ -1,0 +1,78 @@
+<UserControl x:Class="CompositionToolbox.App.Views.FocusAffineView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:CompositionToolbox.App.Converters">
+    <UserControl.Resources>
+        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+        <Style x:Key="AffineMonoText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas" />
+        </Style>
+    </UserControl.Resources>
+    <Border Padding="12">
+        <StackPanel>
+            <TextBlock Text="Focus Affine" FontWeight="Bold" Margin="0,0,0,8" />
+
+            <StackPanel Margin="0,0,0,8">
+                <WrapPanel Margin="0,0,0,6">
+                    <TextBlock Text="Multiplier (a):" Margin="0,0,6,0" />
+                    <TextBox Width="80"
+                             Text="{Binding MultiplierInput, UpdateSourceTrigger=PropertyChanged}" />
+                </WrapPanel>
+                <WrapPanel Margin="0,0,0,6">
+                    <TextBlock Text="Focus mode:" Margin="0,0,6,0" />
+                    <RadioButton Content="All foci (each member of set)"
+                                 GroupName="FocusMode"
+                                 Margin="0,0,12,0"
+                                 IsChecked="{Binding FocusMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=All}" />
+                    <RadioButton Content="Single focus"
+                                 GroupName="FocusMode"
+                                 IsChecked="{Binding FocusMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Single}" />
+                </WrapPanel>
+                <WrapPanel>
+                    <WrapPanel.Style>
+                        <Style TargetType="WrapPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding FocusMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Single}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </WrapPanel.Style>
+                    <TextBlock Text="Single focus:" Margin="0,0,6,0" />
+                    <ComboBox Width="140"
+                              ItemsSource="{Binding FocusCandidates}"
+                              SelectedItem="{Binding SelectedFocus}" />
+                </WrapPanel>
+            </StackPanel>
+
+            <TextBlock Text="{Binding SummaryText}" Margin="0,0,0,8" />
+
+            <DockPanel Margin="0,0,0,4">
+                <TextBlock FontWeight="Bold" Text="Results" DockPanel.Dock="Left" />
+                <Button Content="Commit Selected" Command="{Binding CommitSelectedCommand}" DockPanel.Dock="Right" />
+            </DockPanel>
+
+            <DataGrid x:Name="ResultsGrid"
+                      ItemsSource="{Binding Results}"
+                      SelectedItem="{Binding SelectedResult}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                      MouseDoubleClick="ResultsGrid_MouseDoubleClick"
+                      PreviewKeyDown="ResultsGrid_PreviewKeyDown"
+                      Height="260"
+                      Margin="0,0,0,8">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Focus" Binding="{Binding Focus}" Width="80" ElementStyle="{StaticResource AffineMonoText}" />
+                    <DataGridTextColumn Header="Result PCSet" Binding="{Binding ResultDisplay}" Width="*" ElementStyle="{StaticResource AffineMonoText}" />
+                    <DataGridTextColumn Header="IV" Binding="{Binding IntervalVectorDisplay}" Width="180" ElementStyle="{StaticResource AffineMonoText}" />
+                    <DataGridTextColumn Header="Δk" Binding="{Binding CardinalityChangeDisplay}" Width="120" ElementStyle="{StaticResource AffineMonoText}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -8,10 +8,11 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace CompositionToolbox.App.ViewModels
 {
-    public class InitializationViewModel : ObservableObject
+    public class InitializationViewModel : ObservableObject, ILensPreviewSource, ILensActivation
     {
         private readonly CompositeStore _store;
         private readonly Func<int> _getModulus;
@@ -19,6 +20,8 @@ namespace CompositionToolbox.App.ViewModels
         private readonly PresetCatalogService _presetCatalog;
         private readonly PresetStateService _presetState;
         private readonly Func<RealizationConfig> _getRealizationConfig;
+        private bool _isActive;
+        private bool _pendingPreview;
 
         private string _inputText = string.Empty;
         public string InputText
@@ -67,6 +70,22 @@ namespace CompositionToolbox.App.ViewModels
         {
             get => _previewNode;
             private set => SetProperty(ref _previewNode, value);
+        }
+
+        public WorkspacePreview? WorkspacePreview
+        {
+            get
+            {
+                if (PreviewNode == null) return null;
+                var renderMode = PreviewNode.Mode == PcMode.Unordered ? "chord" : "line";
+                var pcs = PreviewNode.Mode == PcMode.Ordered ? PreviewNode.Ordered : PreviewNode.Unordered;
+                var attributes = WorkspacePreviewAttributeHelpers.BuildPcAttributes(
+                    pcs,
+                    PreviewNode.Modulus,
+                    PreviewNode.Label,
+                    "Initialization");
+                return new WorkspacePreview(PreviewNode, renderMode, attributes);
+            }
         }
 
         private string _normalOrderPreview = string.Empty;
@@ -185,8 +204,34 @@ namespace CompositionToolbox.App.ViewModels
             RefreshPresetLists();
         }
 
+        public void Activate()
+        {
+            if (_isActive) return;
+            _isActive = true;
+            if (_pendingPreview)
+            {
+                UpdatePreview();
+            }
+        }
+
+        public void Deactivate()
+        {
+            _isActive = false;
+        }
+
+        public void RefreshForModulusChange()
+        {
+            UpdatePreview();
+        }
+
         private void UpdatePreview()
         {
+            if (!_isActive)
+            {
+                _pendingPreview = true;
+                return;
+            }
+
             var modulus = _getModulus();
             var pcs = ParseInput(InputText, modulus);
             var unordered = Models.MusicUtils.NormalizeUnordered(pcs, modulus);
@@ -248,12 +293,19 @@ namespace CompositionToolbox.App.ViewModels
                 Label = "Preview",
                 OpFromPrev = null
             };
+            OnPropertyChanged(nameof(WorkspacePreview));
 
             UpdatePermutationPreview();
+            _pendingPreview = false;
         }
 
         private void UpdatePermutationPreview()
         {
+            if (!_isActive)
+            {
+                return;
+            }
+
             var pcs = ParseInput(InputText, _getModulus());
             if (string.IsNullOrEmpty(Seed) || pcs.Length == 0)
             {
@@ -336,8 +388,7 @@ namespace CompositionToolbox.App.ViewModels
             if (pcs.Length == 0) return;
 
             var config = _getRealizationConfig();
-            var midi = MusicUtils.RealizePcs(pcs, modulus, PcMode.Ordered, config);
-            await _midiService.PlayMidiSequence(midi);
+            await _midiService.PlayPcs(pcs, modulus, PcMode.Ordered, config);
         }
 
         private async Task PlayPreviewAsync()
@@ -345,15 +396,7 @@ namespace CompositionToolbox.App.ViewModels
             if (PreviewNode == null) return;
             var config = _getRealizationConfig();
             var pcs = PreviewNode.Mode == PcMode.Ordered ? PreviewNode.Ordered : PreviewNode.Unordered;
-            var midi = MusicUtils.RealizePcs(pcs, PreviewNode.Modulus, PreviewNode.Mode, config);
-            if (PreviewNode.Mode == PcMode.Unordered)
-            {
-                await _midiService.PlayMidiChord(midi);
-            }
-            else
-            {
-                await _midiService.PlayMidiSequence(midi);
-            }
+            await _midiService.PlayPcs(pcs, PreviewNode.Modulus, PreviewNode.Mode, config);
         }
 
         public void ApplyPreset(PresetPcSet? preset)
@@ -417,13 +460,13 @@ namespace CompositionToolbox.App.ViewModels
                 }
             };
 
-            _store.Nodes.Add(node);
+            var nodeId = _store.GetOrAddNode(node);
             var prevState = _store.SelectedState;
             var compositeId = _store.SelectedComposite?.CompositeId ?? Guid.NewGuid();
             var nextState = new CompositeState
             {
                 CompositeId = compositeId,
-                PitchRef = node.NodeId,
+                PitchRef = nodeId,
                 RhythmRef = prevState?.RhythmRef,
                 RegisterRef = prevState?.RegisterRef,
                 InstrumentRef = prevState?.InstrumentRef,

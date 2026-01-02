@@ -1,0 +1,159 @@
+<UserControl x:Class="CompositionToolbox.App.Views.IVExplorerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:CompositionToolbox.App.Converters">
+    <UserControl.Resources>
+        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+        <Style x:Key="IvMonoText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas" />
+        </Style>
+    </UserControl.Resources>
+    <Border Padding="12">
+        <StackPanel>
+            <TextBlock Text="IV Explorer" FontWeight="Bold" Margin="0,0,0,8" />
+
+            <StackPanel Margin="0,0,0,8">
+                <WrapPanel Margin="0,0,0,4">
+                    <TextBlock Text="Base Set (U): " FontWeight="Bold" />
+                    <TextBlock Text="{Binding BaseSetDisplay}" FontFamily="Consolas" Margin="0,0,12,0" />
+                    <TextBlock Text="k=" FontWeight="Bold" />
+                    <TextBlock Text="{Binding Cardinality}" Margin="0,0,12,0" />
+                    <TextBlock Text="n=" FontWeight="Bold" />
+                    <TextBlock Text="{Binding Modulus}" Margin="0,0,12,0" />
+                    <TextBlock Text="Base IV: " FontWeight="Bold" />
+                    <TextBlock Text="{Binding BaseIvDisplay}" FontFamily="Consolas" />
+                </WrapPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Equivalence:" Margin="0,0,6,0" />
+                    <RadioButton Content="T"
+                                 GroupName="EqMode"
+                                 Margin="0,0,8,0"
+                                 IsChecked="{Binding EquivalenceMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=T}" />
+                    <RadioButton Content="T/I"
+                                 GroupName="EqMode"
+                                 IsChecked="{Binding EquivalenceMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=TI}" />
+                    <TextBlock Text="Display:" Margin="16,0,6,0" />
+                    <RadioButton Content="NF"
+                                 GroupName="DisplayMode"
+                                 Margin="0,0,8,0"
+                                 IsChecked="{Binding DisplayForm, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=NF}" />
+                    <RadioButton Content="PF"
+                                 GroupName="DisplayMode"
+                                 IsEnabled="{Binding IsPrimeFormEnabled}"
+                                 IsChecked="{Binding DisplayForm, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PF}" />
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Text="Select a pitch-class set with at least 2 unique pcs."
+                       Margin="0,4,0,12">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasValidSource}" Value="False">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <StackPanel Visibility="{Binding HasValidSource, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding IndexStatusText}" FontStyle="Italic" Margin="0,0,0,6" />
+
+                <ItemsControl ItemsSource="{Binding IcRows}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,2,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60" />
+                                    <ColumnDefinition Width="40" />
+                                    <ColumnDefinition Width="50" />
+                                    <ColumnDefinition Width="60" />
+                                    <ColumnDefinition Width="50" />
+                                    <ColumnDefinition Width="60" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding IcIndex, StringFormat=IC{0}}" />
+                                <TextBlock Grid.Column="1" Text="{Binding BaseValue}" />
+                                <Button Grid.Column="2" Content="-1" Command="{Binding DecrementCommand}" Width="40" />
+                                <TextBlock Grid.Column="3" Text="{Binding DecrementCountDisplay}" Margin="6,0,0,0" />
+                                <Button Grid.Column="4" Content="+1" Command="{Binding IncrementCommand}" Width="40" Margin="12,0,0,0" />
+                                <TextBlock Grid.Column="5" Text="{Binding IncrementCountDisplay}" Margin="6,0,0,0" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <DockPanel Margin="0,12,0,4">
+                    <TextBlock FontWeight="Bold" Text="{Binding ResultsHeader}" DockPanel.Dock="Left" />
+                    <Button Content="Commit" Command="{Binding CommitSelectedCommand}" DockPanel.Dock="Right" />
+                </DockPanel>
+
+                <TextBlock Text="No results yet. Choose an IC move."
+                           Margin="0,0,0,6">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasResults}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <DataGrid x:Name="ResultsGrid"
+                          ItemsSource="{Binding Results}"
+                          SelectedItem="{Binding SelectedResult}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow"
+                          MouseDoubleClick="ResultsGrid_MouseDoubleClick"
+                          PreviewKeyDown="ResultsGrid_PreviewKeyDown"
+                          Height="220"
+                          Margin="0,0,0,8">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Set" Binding="{Binding DisplaySet}" Width="*" ElementStyle="{StaticResource IvMonoText}" />
+                        <DataGridTextColumn Header="IV" Binding="{Binding IntervalVectorDisplay}" Width="180" ElementStyle="{StaticResource IvMonoText}" />
+                        <DataGridTemplateColumn Header="Actions" Width="140">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                        <Button Content="Copy"
+                                                Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Content="Pin"
+                                                Margin="6,0,0,0"
+                                                Command="{Binding DataContext.PinCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Visibility="{Binding HasPinned, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Pinned" FontWeight="Bold" Margin="0,4,0,4" />
+                    <ItemsControl ItemsSource="{Binding PinnedResults}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,2,0,2">
+                                    <TextBlock Text="{Binding DisplaySet}" FontFamily="Consolas" DockPanel.Dock="Left" />
+                                    <Button Content="Unpin"
+                                            DockPanel.Dock="Right"
+                                            Command="{Binding DataContext.UnpinCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

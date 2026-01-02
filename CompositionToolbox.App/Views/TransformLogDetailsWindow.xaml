@@ -1,0 +1,40 @@
+<Window x:Class="CompositionToolbox.App.Views.TransformLogDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Transform Log Details"
+        Width="560"
+        Height="520"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI">
+    <Border Padding="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <DockPanel Margin="0,0,0,8">
+                <TextBlock Text="Details" FontWeight="Bold" DockPanel.Dock="Left" />
+                <Button Content="Copy snapshot" Command="{Binding CopySnapshotCommand}" DockPanel.Dock="Right" />
+            </DockPanel>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock FontFamily="Consolas,Cascadia Mono,Courier New"
+                               TextWrapping="Wrap"
+                               Text="{Binding LogDetailsAfter}" />
+                    <TextBlock FontFamily="Consolas,Cascadia Mono,Courier New"
+                               TextWrapping="Wrap"
+                               Text="{Binding LogDetailsBefore}"
+                               Margin="0,12,0,0" />
+                    <TextBlock FontFamily="Consolas,Cascadia Mono,Courier New"
+                               TextWrapping="Wrap"
+                               Text="{Binding LogDetailsMeta}"
+                               Margin="0,12,0,0" />
+                    <TextBlock FontFamily="Consolas,Cascadia Mono,Courier New"
+                               TextWrapping="Wrap"
+                               Text="{Binding LogDetailsOpParams}"
+                               Margin="0,12,0,0" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>

@@ -35,5 +35,6 @@ namespace CompositionToolbox.App.Models
         public OrderedUnwrapMode OrderedUnwrapMode { get; set; } = OrderedUnwrapMode.MinimalLeap;
         public ChordVoicingMode ChordVoicingMode { get; set; } = ChordVoicingMode.Centered;
         public NotationPreference DefaultNotationMode { get; set; } = NotationPreference.Chord;
+        public int PitchBendRangeSemitones { get; set; } = 48;
     }
 }

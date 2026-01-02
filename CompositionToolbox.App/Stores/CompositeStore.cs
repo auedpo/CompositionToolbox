@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CompositionToolbox.App.Models;
 
@@ -11,6 +12,10 @@ namespace CompositionToolbox.App.Stores
     {
         private static int _transformInvocationCounter;
         public ObservableCollection<AtomicNode> Nodes { get; } = new ObservableCollection<AtomicNode>();
+
+        public CompositeStore()
+        {
+        }
         public ObservableCollection<Composite> Composites { get; } = new ObservableCollection<Composite>();
         public ObservableCollection<CompositeState> States { get; } = new ObservableCollection<CompositeState>();
         public ObservableCollection<CompositeTransformLogEntry> LogEntries { get; } = new ObservableCollection<CompositeTransformLogEntry>();
@@ -138,6 +143,25 @@ namespace CompositionToolbox.App.Stores
                 OpParams = traceParams,
                 Patch = BuildPatch(prevState, newState)
             };
+            // Check for duplicate transform entries (same composite, same new state, same op).
+            var duplicate = LogEntries.Any(e => e.CompositeId == entry.CompositeId && e.NewStateId == entry.NewStateId && e.Op == entry.Op);
+            if (duplicate)
+            {
+                Trace.WriteLine($"[CompositeStore] Duplicate transform entry suppressed for CompositeId={entry.CompositeId}, NewStateId={entry.NewStateId} Op={entry.Op} ts={DateTime.UtcNow:o}");
+                Trace.WriteLine(Environment.StackTrace);
+                // Optional fail-fast: set COMPOSITION_TOOLBOX_FAIL_ON_DUPLICATE=1 in your environment to throw and capture a stack trace.
+                var fail = string.Equals(Environment.GetEnvironmentVariable("COMPOSITION_TOOLBOX_FAIL_ON_DUPLICATE"), "1", StringComparison.OrdinalIgnoreCase);
+                if (fail)
+                {
+                    throw new InvalidOperationException("Duplicate transform entry detected and suppressed.");
+                }
+#if DEBUG
+                Trace.WriteLine("[DEBUG][CompositeStore] Duplicate transform entry detected and suppressed.");
+                Trace.WriteLine(Environment.StackTrace);
+#endif
+                return SelectedComposite;
+            }
+
             LogEntries.Add(entry);
 
             SelectedComposite.CurrentStateId = newState.StateId;
@@ -178,6 +202,55 @@ namespace CompositionToolbox.App.Stores
             {
                 if (entry.CompositeId != SelectedComposite.CompositeId) continue;
                 CurrentLogEntries.Add(entry);
+            }
+        }
+
+        /// <summary>
+        /// Return an existing equivalent node's NodeId if present; otherwise add the candidate and return its NodeId.
+        /// Equivalence is defined by Mode, Modulus and ordered/unordered sequence equality.
+        /// </summary>
+        private readonly object _nodeAddLock = new object();
+
+        public Guid GetOrAddNode(AtomicNode candidate)
+        {
+            if (candidate == null) throw new ArgumentNullException(nameof(candidate));
+
+            lock (_nodeAddLock)
+            {
+                var existing = Nodes.FirstOrDefault(n =>
+                    n.Mode == candidate.Mode
+                    && n.Modulus == candidate.Modulus
+                    && (n.Mode == PcMode.Ordered
+                        ? n.Ordered.SequenceEqual(candidate.Ordered)
+                        : n.Unordered.SequenceEqual(candidate.Unordered)));
+                if (existing != null)
+                {
+                    return existing.NodeId;
+                }
+
+                Nodes.Add(candidate);
+
+                // Diagnostic: detect unexpected duplicates with same content and log stack traces to aid repro.
+                var matches = Nodes.Where(n =>
+                    n.Mode == candidate.Mode
+                    && n.Modulus == candidate.Modulus
+                    && (n.Mode == PcMode.Ordered ? n.Ordered.SequenceEqual(candidate.Ordered) : n.Unordered.SequenceEqual(candidate.Unordered)))
+                    .ToList();
+                if (matches.Count > 1)
+                {
+                    var msg = $"[CompositeStore] Duplicate nodes detected for candidate {candidate.NodeId} - matches: {string.Join(',', matches.Select(m => m.NodeId.ToString()))}";
+                    // Optional fail-fast: set COMPOSITION_TOOLBOX_FAIL_ON_DUPLICATE=1 in your environment to throw and capture a stack trace.
+                    var fail = string.Equals(Environment.GetEnvironmentVariable("COMPOSITION_TOOLBOX_FAIL_ON_DUPLICATE"), "1", StringComparison.OrdinalIgnoreCase);
+                    if (fail)
+                    {
+                        throw new InvalidOperationException(msg);
+                    }
+#if DEBUG
+                    Trace.WriteLine("[DEBUG][CompositeStore] " + msg);
+#endif
+                }
+
+                return candidate.NodeId;
             }
         }
     }

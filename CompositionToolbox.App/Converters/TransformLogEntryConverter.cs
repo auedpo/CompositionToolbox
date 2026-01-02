@@ -22,6 +22,7 @@ namespace CompositionToolbox.App.Converters
             {
                 "Badges" => FormatBadges(entry),
                 "StepIndex" => FormatStepIndex(entry, store),
+                "PitchListValue" => FormatPitchListValue(entry, store),
                 _ => FormatPatchSummary(entry, store)
             };
         }
@@ -69,6 +70,19 @@ namespace CompositionToolbox.App.Converters
             var index = store.CurrentLogEntries.IndexOf(entry);
             if (index < 0) return string.Empty;
             return $"#{index + 1}";
+        }
+
+        private static string FormatPitchListValue(CompositeTransformLogEntry entry, CompositeStore? store)
+        {
+            if (store == null) return "-";
+            var state = store.States.FirstOrDefault(s => s.StateId == entry.NewStateId);
+            if (state?.PitchRef == null) return "-";
+            var node = store.Nodes.FirstOrDefault(n => n.NodeId == state.PitchRef.Value);
+            if (node == null || node.ValueType != AtomicValueType.PitchList) return "-";
+            var pcs = node.Mode == PcMode.Unordered ? node.Unordered : node.Ordered;
+            var open = node.Mode == PcMode.Unordered ? "[" : "(";
+            var close = node.Mode == PcMode.Unordered ? "]" : ")";
+            return $"{open}{string.Join(' ', pcs)}{close}";
         }
 
         private static string FormatRef(string slot, Guid? id, CompositeStore? store)

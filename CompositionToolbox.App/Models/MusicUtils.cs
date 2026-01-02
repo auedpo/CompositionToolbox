@@ -58,27 +58,46 @@ namespace CompositionToolbox.App.Models
                 if (span > bestSpan || bestAdj == null || best == null) continue;
 
                 // Tie on total span: apply tie-break rules per specification
-                // 1) Choose the set with the smaller interval between the first and penultimate notes
-                var penult = candidate[k - 2];
-                // DEBUG HELP: if you are trying to trace why the {0,5,6,7} case chooses the wrong rotation,
-                // you can temporarily uncomment the following diagnostic throw to inspect runtime values.
-                // if (set.Length == 4 && set[0]==0 && set[1]==5 && set[2]==6 && set[3]==7 && i == 1)
-                // {
-                //     throw new Exception($"DEBUG: i={i}, span={span}, penult={penult}, bestPenult={bestPenult}, bestIndex={bestIndex}");
-                // }
-                if (penult < bestPenult)
+                // Rahn-style leftward tie-break ("most compact toward the left"):
+                // If rotations tie on overall span, compare the distance from the first
+                // note to the second-last note; if tied, compare first→third-last; keep
+                // moving leftward until a difference is found. This ensures each upper
+                // notes are as "scrunched down" as possible. Example: {1,4,7,8,10} ->
+                // normal form [7,8,10,1,4].
+                bool decided = false;
+                bool chooseCandidate = false;
+                for (int offset = 2; offset <= k - 1; offset++)
+                {
+                    var idx = k - offset;
+                    var candVal = candidate[idx];
+                    var bestVal = best[idx];
+                    if (candVal < bestVal)
+                    {
+                        chooseCandidate = true;
+                        decided = true;
+                        break;
+                    }
+                    if (candVal > bestVal)
+                    {
+                        chooseCandidate = false;
+                        decided = true;
+                        break;
+                    }
+                    // otherwise continue to next leftward comparison
+                }
+
+                if (decided && chooseCandidate)
                 {
                     best = candidate;
                     bestSpan = span;
                     bestAdj = adj;
                     bestIndex = i;
-                    bestPenult = penult;
+                    bestPenult = candidate[k - 2];
                     bestStart = set[i];
                     continue;
                 }
-                if (penult > bestPenult) continue;
 
-                // 2) If still tied, choose the set that begins on the smaller pitch-class number
+                // If still tied after leftward comparisons, fall back to starting-PC comparison
                 var startPc = set[i];
                 if (startPc < bestStart || (startPc == bestStart && i < bestIndex))
                 {
@@ -86,7 +105,7 @@ namespace CompositionToolbox.App.Models
                     bestSpan = span;
                     bestAdj = adj;
                     bestIndex = i;
-                    bestPenult = penult;
+                    bestPenult = candidate[k - 2];
                     bestStart = startPc;
                 }
             }

@@ -43,5 +43,20 @@ namespace CompositionToolbox.App.Views
             InputBox.SelectionStart = InputBox.Text?.Length ?? 0;
             InputBox.SelectionLength = 0;
         }
+
+        /// <summary>
+        /// Apply a preset directly to the input box and focus it.
+        /// </summary>
+        public void ApplyPresetToInput(Models.PresetPcSet preset)
+        {
+            if (DataContext is InitializationViewModel vm)
+            {
+                vm.ApplyPreset(preset);
+            }
+            // Focus input box so user sees the change and can edit immediately
+            InputBox.Focus();
+            InputBox.SelectionStart = InputBox.Text?.Length ?? 0;
+            InputBox.SelectionLength = 0;
+        }
     }
 }

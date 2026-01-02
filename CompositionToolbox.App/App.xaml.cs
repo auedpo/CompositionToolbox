@@ -32,72 +32,6 @@ namespace CompositionToolbox.App
             gripperBrush.Freeze();
             Current.Resources["App.GripperDotBrush"] = gripperBrush;
 
-            // Resolve a Fluent-aware list background brush so list controls follow semantic theme tokens
-            var bgCandidates = new[]
-            {
-                "SystemControlPageBackgroundChromeLowBrush",
-                "SystemControlBackgroundBaseLowBrush",
-                "SystemControlBackgroundBaseMediumLowBrush",
-                "ControlBackgroundBrush",
-            };
-
-            System.Windows.Media.Brush? listBg = null;
-            foreach (var key in bgCandidates)
-            {
-                var res = TryFindResource(key);
-                if (res is System.Windows.Media.Brush b)
-                {
-                    listBg = b;
-                    break;
-                }
-                if (res is System.Windows.Media.Color c)
-                {
-                    listBg = new System.Windows.Media.SolidColorBrush(c);
-                    break;
-                }
-            }
-
-            if (listBg is null)
-            {
-                // Fallback to window background brush
-                listBg = (System.Windows.Media.Brush)FindResource(System.Windows.SystemColors.WindowBrushKey);
-            }
-
-            // If the resolved list background is a light SolidColorBrush (like a white fallback),
-            // prefer a dark system brush so dark themes render correctly.
-            if (listBg is System.Windows.Media.SolidColorBrush sb)
-            {
-                var c = sb.Color;
-                // compute relative luminance (simplified)
-                double luminance = (0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B) / 255.0;
-                if (luminance > 0.75)
-                {
-                    // choose a dark system brush fallback
-                    try
-                    {
-                        listBg = (System.Windows.Media.Brush)FindResource(System.Windows.SystemColors.ControlDarkBrushKey);
-                    }
-                    catch
-                    {
-                        // if even this fails, leave original
-                    }
-                }
-                // if still too dark (nearly black), nudge to a dark grey so UI isn't pitch black
-                var finalSb = listBg as System.Windows.Media.SolidColorBrush;
-                if (finalSb != null)
-                {
-                    var fc = finalSb.Color;
-                    double finalLum = (0.2126 * fc.R + 0.7152 * fc.G + 0.0722 * fc.B) / 255.0;
-                    if (finalLum < 0.12)
-                    {
-                        // pick a pleasant dark-gray fallback instead of absolute black
-                        listBg = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(36, 36, 36));
-                    }
-                }
-            }
-
-            Current.Resources["App.ListBackgroundBrush"] = listBg;
-
 #if DEBUG
             try
             {
@@ -153,6 +87,11 @@ namespace CompositionToolbox.App
                             foreach (var themeKey in themeDicts.Keys)
                             {
                                 var themeName = themeKey?.ToString() ?? "<null>";
+                                if (themeKey == null)
+                                {
+                                    logSb.AppendLine("    <null> -> <non-dictionary>");
+                                    continue;
+                                }
                                 if (themeDicts[themeKey] is ResourceDictionary td)
                                 {
                                     var tkeys = td.Keys.Cast<object?>()
@@ -192,6 +131,26 @@ namespace CompositionToolbox.App
             {
                 Debug.WriteLine($"Resource key enumeration failed: {ex.Message}");
             }
+
+            // Attach a file-based Trace listener for easier capture of Trace.WriteLine output during debugging.
+            try
+            {
+                try
+                {
+                    var traceFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CompositionToolbox");
+                    Directory.CreateDirectory(traceFolder);
+                    var tracePath = Path.Combine(traceFolder, "trace.log");
+
+                    Trace.Listeners.Add(new TextWriterTraceListener(tracePath));
+                    Trace.AutoFlush = true;
+                    Trace.WriteLine($"--- CompositionToolbox Trace started: {DateTime.UtcNow:o} ---");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to create trace file listener: {ex.Message}");
+                }
+            }
+            catch { }
 #endif
         }
 

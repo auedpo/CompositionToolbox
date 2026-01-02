@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 using CompositionToolbox.App.Models;
 
 namespace CompositionToolbox.App.Services
@@ -58,11 +59,13 @@ namespace CompositionToolbox.App.Services
 
         private static List<PresetPcSet> LoadCatalog()
         {
+            var sw = Stopwatch.StartNew();
             try
             {
                 var path = Path.Combine(AppContext.BaseDirectory, "Assets", "presets.json");
                 if (!File.Exists(path))
                 {
+                    TimingLogger.Log($"PresetCatalogService.LoadCatalog: presets.json not found (path={path}) - took {sw.ElapsedMilliseconds}ms");
                     return new List<PresetPcSet>();
                 }
 
@@ -84,10 +87,13 @@ namespace CompositionToolbox.App.Services
                     }
                 }
 
-                return presets.OrderBy(p => p.Id, StringComparer.OrdinalIgnoreCase).ToList();
+                var ordered = presets.OrderBy(p => p.Id, StringComparer.OrdinalIgnoreCase).ToList();
+                TimingLogger.Log($"PresetCatalogService.LoadCatalog: loaded {ordered.Count} presets in {sw.ElapsedMilliseconds}ms (path={path})");
+                return ordered;
             }
-            catch
+            catch (Exception ex)
             {
+                TimingLogger.Log($"PresetCatalogService.LoadCatalog: failed ({ex.Message}) after {sw.ElapsedMilliseconds}ms");
                 return new List<PresetPcSet>();
             }
         }

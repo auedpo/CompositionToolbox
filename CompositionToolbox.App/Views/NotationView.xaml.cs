@@ -22,6 +22,7 @@ namespace CompositionToolbox.App.Views
         private bool _pendingShowOverflowIndicator;
         private bool _pendingAllowScroll;
         private int[]? _pendingMidiNotes;
+        private bool _pendingUseMidiForEdo19;
         private bool _hasPending;
         private bool _isInitialized;
 
@@ -55,7 +56,8 @@ namespace CompositionToolbox.App.Views
             bool showOverflowIndicator = false,
             double? contentWidth = null,
             bool allowScroll = false,
-            int[]? midiNotes = null)
+            int[]? midiNotes = null,
+            bool useMidiForEdo19 = false)
         {
             if (node == null) return;
             if (WebView.CoreWebView2 == null || !_isInitialized)
@@ -71,6 +73,7 @@ namespace CompositionToolbox.App.Views
                 _pendingShowOverflowIndicator = showOverflowIndicator;
                 _pendingAllowScroll = allowScroll;
                 _pendingMidiNotes = midiNotes;
+                _pendingUseMidiForEdo19 = useMidiForEdo19;
                 _hasPending = true;
                 return;
             }
@@ -89,7 +92,8 @@ namespace CompositionToolbox.App.Views
                 clip = clipToViewport,
                 showOverflow = showOverflowIndicator,
                 contentWidth,
-                allowScroll
+                allowScroll,
+                useMidiForEdo19
             };
             var json = JsonSerializer.Serialize(payload);
             try
@@ -113,8 +117,9 @@ namespace CompositionToolbox.App.Views
             var contentWidth = _pendingContentWidth;
             var allowScroll = _pendingAllowScroll;
             var midiNotes = _pendingMidiNotes;
+            var useMidiForEdo19 = _pendingUseMidiForEdo19;
             _hasPending = false;
-            RenderNode(node, rule, mode, width, height, maxNotes, clip, showOverflow, contentWidth, allowScroll, midiNotes);
+            RenderNode(node, rule, mode, width, height, maxNotes, clip, showOverflow, contentWidth, allowScroll, midiNotes, useMidiForEdo19);
         }
     }
 }

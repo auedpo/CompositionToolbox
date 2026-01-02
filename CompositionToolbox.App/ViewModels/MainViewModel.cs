@@ -33,7 +33,13 @@ namespace CompositionToolbox.App.ViewModels
         public int SelectedModulus
         {
             get => _selectedModulus;
-            set => SetProperty(ref _selectedModulus, value);
+            set
+            {
+                if (SetProperty(ref _selectedModulus, value))
+                {
+                    Initialization.RefreshForModulusChange();
+                }
+            }
         }
 
         public ObservableCollection<MidiDeviceInfo> MidiDevices { get; } = new ObservableCollection<MidiDeviceInfo>();
@@ -50,6 +56,7 @@ namespace CompositionToolbox.App.ViewModels
                     _appSettings.SelectedMidiDeviceIndex = value;
                     _settingsService.Save(_appSettings);
                     TestMidiCommand?.NotifyCanExecuteChanged();
+                    TestMicrotoneCommand?.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -74,7 +81,9 @@ namespace CompositionToolbox.App.ViewModels
         private OrderedUnwrapMode _orderedUnwrapMode;
         private ChordVoicingMode _chordVoicingMode;
         private NotationPreference _defaultNotationMode;
+        private int _pitchBendRangeSemitones;
         private CompositeTransformLogEntry? _selectedLogEntry;
+        private WorkspacePreview? _workspacePreview;
         private string _logDetailsAfter = "Refs after: -";
         private string _logDetailsBefore = "Refs before: -";
         private string _logDetailsOpParams = "Op params: -";
@@ -92,11 +101,15 @@ namespace CompositionToolbox.App.ViewModels
             PresetState = new PresetStateService();
             _selectedAccidentalRule = _appSettings.AccidentalRule;
             LoadRealizationSettings();
+            _midiService.SetPitchBendRangeSemitones(_pitchBendRangeSemitones);
             RefreshMidiDevices();
             PlayCommand = new RelayCommand(async () => await PlayAsync(), () => Store.SelectedState?.PitchRef != null);
+            PlayWorkspacePreviewCommand = new RelayCommand(async () => await PlayWorkspacePreviewAsync(), () => WorkspacePreview?.Node != null);
             TestMidiCommand = new RelayCommand(async () => await TestMidiAsync(), () => SelectedMidiDeviceIndex >= 0);
+            TestMicrotoneCommand = new RelayCommand(async () => await TestMicrotoneAsync(), () => SelectedMidiDeviceIndex >= 0);
             OpenPresetPickerCommand = new RelayCommand(() => PresetPickerRequested?.Invoke(this, EventArgs.Empty));
             OpenPitchListCatalogCommand = new RelayCommand(() => PitchListCatalogRequested?.Invoke(this, EventArgs.Empty));
+            OpenPitchListCatalogModalCommand = new RelayCommand(() => PitchListCatalogModalRequested?.Invoke(this, EventArgs.Empty));
             NewCompositeCommand = new RelayCommand(CreateComposite);
             DuplicateCompositeCommand = new RelayCommand(DuplicateComposite, () => Store.SelectedComposite != null);
             RenameCompositeCommand = new RelayCommand(RenameComposite, () => Store.SelectedComposite != null);
@@ -121,13 +134,25 @@ namespace CompositionToolbox.App.ViewModels
                 {
                     var entry = Store.LastTransformEntry;
                     if (entry == null) return;
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
+                    // If there is no active WPF Application or dispatcher (tests), update synchronously.
+                    var app = System.Windows.Application.Current;
+                    if (app == null || app.Dispatcher == null)
                     {
                         if (Store.CurrentLogEntries.Contains(entry))
                         {
                             SelectedLogEntry = entry;
                         }
-                    });
+                    }
+                    else
+                    {
+                        app.Dispatcher.BeginInvoke(() =>
+                        {
+                            if (Store.CurrentLogEntries.Contains(entry))
+                            {
+                                SelectedLogEntry = entry;
+                            }
+                        });
+                    }
                 }
                 else if (e.PropertyName == nameof(Store.SelectedComposite))
                 {
@@ -173,9 +198,12 @@ namespace CompositionToolbox.App.ViewModels
         }
 
         public IRelayCommand PlayCommand { get; }
+        public IRelayCommand PlayWorkspacePreviewCommand { get; }
         public IRelayCommand TestMidiCommand { get; }
+        public IRelayCommand TestMicrotoneCommand { get; }
         public IRelayCommand OpenPresetPickerCommand { get; }
         public IRelayCommand OpenPitchListCatalogCommand { get; }
+        public IRelayCommand OpenPitchListCatalogModalCommand { get; }
         public IRelayCommand NewCompositeCommand { get; }
         public IRelayCommand DuplicateCompositeCommand { get; }
         public IRelayCommand RenameCompositeCommand { get; }
@@ -183,6 +211,7 @@ namespace CompositionToolbox.App.ViewModels
         public IRelayCommand CopySnapshotCommand { get; }
         public event EventHandler? PresetPickerRequested;
         public event EventHandler? PitchListCatalogRequested;
+        public event EventHandler? PitchListCatalogModalRequested;
 
         public AccidentalRule SelectedAccidentalRule
         {
@@ -352,6 +381,18 @@ namespace CompositionToolbox.App.ViewModels
             }
         }
 
+        public WorkspacePreview? WorkspacePreview
+        {
+            get => _workspacePreview;
+            private set => SetProperty(ref _workspacePreview, value);
+        }
+
+        public void SetWorkspacePreview(WorkspacePreview? preview)
+        {
+            WorkspacePreview = preview;
+            PlayWorkspacePreviewCommand.NotifyCanExecuteChanged();
+        }
+
         public string LogDetailsAfter
         {
             get => _logDetailsAfter;
@@ -384,20 +425,50 @@ namespace CompositionToolbox.App.ViewModels
                 var node = Store.Nodes.FirstOrDefault(n => n.NodeId == state.PitchRef.Value);
                 if (node == null) return;
                 var config = GetRealizationConfig();
-                var midi = MusicUtils.RealizePcs(
-                    node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered,
-                    node.Modulus,
-                    node.Mode,
-                    config);
-                if (midi.Length == 0) return;
+                var pcs = node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered;
+                await _midiService.PlayPcs(pcs, node.Modulus, node.Mode, config);
+            }
+        }
 
-                if (node.Mode == PcMode.Unordered)
+        private async Task PlayWorkspacePreviewAsync()
+        {
+            var preview = WorkspacePreview;
+            if (preview?.Node == null) return;
+            var node = preview.Node;
+
+            if (preview.MidiNotes != null && preview.MidiNotes.Length > 0)
+            {
+                if (string.Equals(preview.RenderMode, "chord", StringComparison.OrdinalIgnoreCase))
                 {
-                    await _midiService.PlayMidiChord(midi);
+                    await _midiService.PlayMidiChord(preview.MidiNotes);
                 }
                 else
                 {
-                    await _midiService.PlayMidiSequence(midi);
+                    await _midiService.PlayMidiSequence(preview.MidiNotes);
+                }
+                return;
+            }
+
+            var mode = string.Equals(preview.RenderMode, "chord", StringComparison.OrdinalIgnoreCase)
+                ? PcMode.Unordered
+                : PcMode.Ordered;
+            var pcs = mode == PcMode.Unordered
+                ? (node.Mode == PcMode.Unordered ? node.Unordered : MusicUtils.NormalizeUnordered(node.Ordered, node.Modulus))
+                : (node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered);
+            if (pcs.Length == 0) return;
+
+            var config = GetRealizationConfig();
+            await _midiService.PlayPcs(pcs, node.Modulus, mode, config);
+        }
+
+        public int PitchBendRangeSemitones
+        {
+            get => _pitchBendRangeSemitones;
+            set
+            {
+                if (SetProperty(ref _pitchBendRangeSemitones, value))
+                {
+                    SaveRealizationSettings();
                 }
             }
         }
@@ -414,6 +485,20 @@ namespace CompositionToolbox.App.ViewModels
                 return;
             }
             await _midiService.TestOutput();
+        }
+
+        private async Task TestMicrotoneAsync()
+        {
+            if (!_midiService.IsOpen)
+            {
+                System.Windows.MessageBox.Show(
+                    "No MIDI output device is open. Select a device and try again.",
+                    "MIDI Output",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+            await _midiService.TestMicrotoneSweep(SelectedModulus, _appSettings.Pc0RefMidi);
         }
 
         public MidiService MidiService => _midiService;
@@ -456,6 +541,7 @@ namespace CompositionToolbox.App.ViewModels
             _orderedUnwrapMode = _appSettings.OrderedUnwrapMode;
             _chordVoicingMode = _appSettings.ChordVoicingMode;
             _defaultNotationMode = _appSettings.DefaultNotationMode;
+            _pitchBendRangeSemitones = _appSettings.PitchBendRangeSemitones;
         }
 
         private void UpdatePc0RefMidi()
@@ -476,7 +562,9 @@ namespace CompositionToolbox.App.ViewModels
             _appSettings.UseAmbitus = _useAmbitus;
             _appSettings.OrderedUnwrapMode = _orderedUnwrapMode;
             _appSettings.ChordVoicingMode = _chordVoicingMode;
+            _appSettings.PitchBendRangeSemitones = _pitchBendRangeSemitones;
             _settingsService.Save(_appSettings);
+            _midiService.SetPitchBendRangeSemitones(_pitchBendRangeSemitones);
             RealizationConfigChanged?.Invoke(this, EventArgs.Empty);
         }
 

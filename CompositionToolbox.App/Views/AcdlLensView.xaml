@@ -1,0 +1,135 @@
+<UserControl x:Class="CompositionToolbox.App.Views.AcdlLensView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="AcdlMonoText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Consolas" />
+        </Style>
+    </UserControl.Resources>
+    <Border Padding="12">
+        <StackPanel>
+            <TextBlock Text="ACDL" FontWeight="Bold" Margin="0,0,0,8" />
+
+            <StackPanel Margin="0,0,0,8">
+                <WrapPanel Margin="0,0,0,6">
+                    <TextBlock Text="P:" Margin="0,0,6,0" />
+                    <TextBox Width="80"
+                             Text="{Binding PInput, UpdateSourceTrigger=PropertyChanged}" />
+                </WrapPanel>
+                <WrapPanel Margin="0,0,0,6">
+                    <TextBlock Text="Multi P:" Margin="0,0,6,0" />
+                    <TextBox Width="160"
+                             Text="{Binding MultiPInput, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="(e.g. 1-5,8)" Margin="6,0,0,0" />
+                </WrapPanel>
+                <WrapPanel Margin="0,0,0,6">
+                    <CheckBox Content="Retain anchor PCs"
+                              IsChecked="{Binding RetainAnchorGapPcs}" />
+                </WrapPanel>
+                <WrapPanel>
+                    <TextBlock Text="Projection:" Margin="0,0,6,0" />
+                    <ComboBox Width="160"
+                              ItemsSource="{Binding ProjectionModes}"
+                              SelectedItem="{Binding ProjectionMode}" />
+                </WrapPanel>
+            </StackPanel>
+
+            <TextBlock Text="{Binding StatusText}"
+                       Margin="0,0,0,6"
+                       Visibility="{Binding HasStatusText, Converter={StaticResource BoolToVis}}" />
+
+            <WrapPanel Margin="0,0,0,8">
+                <WrapPanel.Style>
+                    <Style TargetType="WrapPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding HasPitchSource}" Value="True" />
+                                    <Condition Binding="{Binding IsOrderedSource}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible" />
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </WrapPanel.Style>
+                <TextBlock Text="Unordered source detected." Margin="0,0,8,0" />
+                <Button Content="Create ordered PitchList"
+                        Command="{Binding CreateOrderedFromUnorderedCommand}" />
+            </WrapPanel>
+
+            <WrapPanel Margin="0,0,0,8" Visibility="{Binding CanDedupe, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Duplicates detected." Margin="0,0,8,0" />
+                <Button Content="Dedupe (Unique Preserve Order)" Command="{Binding DedupeCommand}" />
+            </WrapPanel>
+
+            <StackPanel Margin="0,0,0,8" Visibility="{Binding HasValidSource, Converter={StaticResource BoolToVis}}">
+                <WrapPanel Margin="0,0,0,4">
+                    <TextBlock Text="Input:" FontWeight="Bold" Margin="0,0,6,0" />
+                    <TextBlock Text="{Binding SourceDisplay}" Style="{StaticResource AcdlMonoText}" />
+                </WrapPanel>
+                <WrapPanel>
+                    <TextBlock Text="CINT:" FontWeight="Bold" Margin="0,0,6,0" />
+                    <TextBlock Text="{Binding InputCintDisplay}" Style="{StaticResource AcdlMonoText}" />
+                </WrapPanel>
+            </StackPanel>
+
+            <DockPanel Margin="0,0,0,4">
+                <TextBlock FontWeight="Bold" Text="Results" DockPanel.Dock="Left" />
+                <Button Content="Commit Selected" Command="{Binding CommitSelectedCommand}" DockPanel.Dock="Right" />
+            </DockPanel>
+
+            <DataGrid x:Name="ResultsGrid"
+                      ItemsSource="{Binding Results}"
+                      SelectedItem="{Binding SelectedResult}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                      SelectionChanged="ResultsGrid_SelectionChanged"
+                      MouseDoubleClick="ResultsGrid_MouseDoubleClick"
+                      PreviewKeyDown="ResultsGrid_PreviewKeyDown"
+                      Height="260"
+                      Margin="0,0,0,8"
+                      Visibility="{Binding ShowSingleResults, Converter={StaticResource BoolToVis}}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Anchor" Binding="{Binding AnchorGapIndex}" Width="70" />
+                    <DataGridTextColumn Header="Fixed" Binding="{Binding FixedGap}" Width="60" />
+                    <DataGridTextColumn Header="SumV" Binding="{Binding ScaledFreeSum}" Width="70" />
+                    <DataGridTextColumn Header="Target" Binding="{Binding TargetFreeSum}" Width="70" />
+                    <DataGridTextColumn Header="Projected CINT" Binding="{Binding ProjectedCintDisplay}" Width="160" ElementStyle="{StaticResource AcdlMonoText}" />
+                    <DataGridTextColumn Header="Result" Binding="{Binding ResultDisplay}" Width="*" ElementStyle="{StaticResource AcdlMonoText}" />
+                    <DataGridTemplateColumn Header="Commit" Width="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Commit"
+                                        Command="{Binding DataContext.CommitRowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <DockPanel Margin="0,0,0,4" Visibility="{Binding ShowMultiResults, Converter={StaticResource BoolToVis}}">
+                <TextBlock FontWeight="Bold" Text="Multi-P Results" DockPanel.Dock="Left" />
+            </DockPanel>
+
+            <DataGrid x:Name="MultiResultsGrid"
+                      ItemsSource="{Binding MultiResults}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      SelectionUnit="Cell"
+                      SelectedCellsChanged="MultiResultsGrid_SelectedCellsChanged"
+                      MouseDoubleClick="MultiResultsGrid_MouseDoubleClick"
+                      Height="220"
+                      Margin="0,0,0,8"
+                      Visibility="{Binding ShowMultiResults, Converter={StaticResource BoolToVis}}" />
+        </StackPanel>
+    </Border>
+</UserControl>

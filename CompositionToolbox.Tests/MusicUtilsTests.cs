@@ -72,4 +72,13 @@ public class MusicUtilsTests
         Assert.Equal(new[] { 0, 1, 4 }, prime);
         // uses Example 33.3.1 from https://musictheory.pugetsound.edu/mt21c/PrimeForm.html
     }
+
+    [Fact]
+    public void NormalOrder_LeftwardTieBreak_Example147810()
+    {
+        var pcs = new[] { 1, 4, 7, 8, 10 };
+        var result = MusicUtils.ComputeNormalOrder(pcs, 12);
+        // Should choose the rotation most compact toward the left: [7,8,10,1,4]
+        Assert.Equal(new[] { 7, 8, 10, 1, 4 }, result);
+    }
 }

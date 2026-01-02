@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace CompositionToolbox.App.ViewModels
 {
@@ -525,7 +526,7 @@ namespace CompositionToolbox.App.ViewModels
             OisDisplay = $"OIS (circular): {FormatCircularOis(_setProjection, node.Modulus)}";
             IntervalVectorDisplay = _setProjection.Length == 0
                 ? "IV: -"
-                : $"IV: [{string.Join(' ', MusicUtils.ComputeIntervalVector(_setProjection, node.Modulus))}]";
+                : $"IV: <{string.Join(',', MusicUtils.ComputeIntervalVector(_setProjection, node.Modulus))}>";
 
             CommitUnorderedLabel = IsOrdered ? "Commit as Unordered node" : "Already Unordered";
             var hasUnorderedCandidate = NodeExists(node.Modulus, PcMode.Unordered, _setProjection, null);
@@ -602,15 +603,8 @@ namespace CompositionToolbox.App.ViewModels
             if (pcs.Length == 0) return;
 
             var config = GetEffectiveRealizationConfig();
-            var midi = MusicUtils.RealizePcs(pcs, node.Modulus, isChord ? PcMode.Unordered : PcMode.Ordered, config);
-            if (isChord)
-            {
-                await _midiService.PlayMidiChord(midi);
-            }
-            else
-            {
-                await _midiService.PlayMidiSequence(midi);
-            }
+            var mode = isChord ? PcMode.Unordered : PcMode.Ordered;
+            await _midiService.PlayPcs(pcs, node.Modulus, mode, config);
         }
 
         public void RefreshRealization()
@@ -700,12 +694,15 @@ namespace CompositionToolbox.App.ViewModels
 
         private void AppendPitchNode(string op, Dictionary<string, object>? opParams, AtomicNode node)
         {
-            _store.Nodes.Add(node);
+            Trace.WriteLine($"[InspectorViewModel] Appending pitch node ts={DateTime.UtcNow:o} tid={Environment.CurrentManagedThreadId} op={op}");
+            Trace.WriteLine(Environment.StackTrace);
+            var nodeId = _store.GetOrAddNode(node);
+            Trace.WriteLine($"[InspectorViewModel] GetOrAddNode returned {nodeId} ts={DateTime.UtcNow:o}");
             var prevState = _store.SelectedState;
             var nextState = new CompositeState
             {
                 CompositeId = _store.SelectedComposite?.CompositeId ?? Guid.NewGuid(),
-                PitchRef = node.NodeId,
+                PitchRef = nodeId,
                 RhythmRef = prevState?.RhythmRef,
                 RegisterRef = prevState?.RegisterRef,
                 InstrumentRef = prevState?.InstrumentRef,

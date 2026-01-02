@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
+using System.Diagnostics;
 
 namespace CompositionToolbox.App.ViewModels
 {
@@ -74,10 +77,10 @@ namespace CompositionToolbox.App.ViewModels
         private readonly InitializationViewModel _initialization;
         private readonly MidiService _midiService;
         private readonly Func<RealizationConfig> _getRealizationConfig;
-        private readonly Dictionary<string, PresetItemViewModel> _itemsById;
+        private readonly ConcurrentDictionary<string, PresetItemViewModel> _itemsById;
 
         private string _searchQuery = string.Empty;
-        private PresetItemViewModel? _selectedPreset;
+        private object? _selectedPreset;
         private PresetNotationMode _selectedNotationMode = PresetNotationMode.Chord;
         private AtomicNode? _previewNode;
         private int[] _previewMidiNotes = Array.Empty<int>();
@@ -103,10 +106,33 @@ namespace CompositionToolbox.App.ViewModels
             _accidentalRule = accidentalRule;
             _getRealizationConfig = getRealizationConfig;
 
-            Results = new ObservableCollection<PresetItemViewModel>();
+            var sw = Stopwatch.StartNew();
+            Results = new ObservableCollection<object>();
             Favorites = new ObservableCollection<PresetItemViewModel>();
             CardinalityOptions = new ObservableCollection<CardinalityOption>();
-            _itemsById = _catalog.All.ToDictionary(p => p.Id, p => new PresetItemViewModel(p, _state), StringComparer.OrdinalIgnoreCase);
+            _itemsById = new ConcurrentDictionary<string, PresetItemViewModel>(StringComparer.OrdinalIgnoreCase);
+            // Bring in any globally precreated items from the PresetItemCache (if present)
+            foreach (var vm in PresetItemCache.Values)
+            {
+                _itemsById[vm.Preset.Id] = vm;
+            }
+
+            // Kick off background creation of any remaining item VMs to avoid blocking UI when the user opens the catalog
+            _ = Task.Run(() =>
+            {
+                var swCreate = Stopwatch.StartNew();
+                foreach (var p in _catalog.All)
+                {
+                    // avoid overwriting already cached/precreated instances
+                    if (!_itemsById.ContainsKey(p.Id))
+                    {
+                        var vm = new PresetItemViewModel(p, _state);
+                        _itemsById[p.Id] = vm;
+                    }
+                }
+                TimingLogger.Log($"PresetPickerViewModel: background created {_itemsById.Count} items in {swCreate.ElapsedMilliseconds}ms");
+            });
+            TimingLogger.Log($"PresetPickerViewModel: built _itemsById with {_itemsById.Count} items in {sw.ElapsedMilliseconds}ms");
 
             SelectPresetCommand = new RelayCommand<PresetItemViewModel?>(SelectPreset, preset => preset != null);
             PlayCommand = new RelayCommand(async () => await PlayAsync(), () => SelectedPreset != null);
@@ -117,7 +143,7 @@ namespace CompositionToolbox.App.ViewModels
             UpdateResults();
         }
 
-        public ObservableCollection<PresetItemViewModel> Results { get; }
+        public ObservableCollection<object> Results { get; }
         public ObservableCollection<PresetItemViewModel> Favorites { get; }
         public ObservableCollection<CardinalityOption> CardinalityOptions { get; }
 
@@ -136,18 +162,27 @@ namespace CompositionToolbox.App.ViewModels
             }
         }
 
-        public PresetItemViewModel? SelectedPreset
+        public object? SelectedPreset
         {
             get => _selectedPreset;
             set
             {
                 if (SetProperty(ref _selectedPreset, value))
                 {
+                    // If a lightweight model was selected, materialize it eagerly so user actions work immediately
+                    if (_selectedPreset is PresetPcSet model)
+                    {
+                        var idx = Results.IndexOf(model);
+                        if (idx >= 0) EnsureMaterialized(model, idx);
+                    }
+
                     UpdateNotationNode();
                     PlayCommand.NotifyCanExecuteChanged();
                 }
             }
         }
+
+        public PresetItemViewModel? SelectedPresetVm => _selectedPreset as PresetItemViewModel;
 
         public PresetNotationMode SelectedNotationMode
         {
@@ -235,8 +270,9 @@ namespace CompositionToolbox.App.ViewModels
 
         public bool ApplySelected()
         {
-            if (SelectedPreset == null) return false;
-            _initialization.ApplyPreset(SelectedPreset.Preset);
+            var preset = GetSelectedPresetModel();
+            if (preset == null) return false;
+            _initialization.ApplyPreset(preset);
             return true;
         }
 
@@ -251,27 +287,72 @@ namespace CompositionToolbox.App.ViewModels
             SelectedPreset = preset;
         }
 
+        private PresetPcSet? GetSelectedPresetModel()
+        {
+            if (SelectedPresetVm != null) return SelectedPresetVm.Preset;
+            if (SelectedPreset is PresetPcSet p) return p;
+            return null;
+        }
+
         private async Task PlayAsync()
         {
-            if (SelectedPreset == null) return;
-            var pcs = SelectedPreset.Preset.PrimeForm.ToArray();
+            var preset = GetSelectedPresetModel();
+            if (preset == null) return;
+            var pcs = preset.PrimeForm.ToArray();
             var config = _getRealizationConfig();
             if (SelectedNotationMode == PresetNotationMode.Chord)
             {
-                var midi = MusicUtils.RealizePcs(pcs, SelectedPreset.Preset.Modulus, PcMode.Unordered, config);
-                await _midiService.PlayMidiChord(midi);
+                await _midiService.PlayPcs(pcs, preset.Modulus, PcMode.Unordered, config);
             }
             else
             {
-                var midi = MusicUtils.RealizePcs(pcs, SelectedPreset.Preset.Modulus, PcMode.Ordered, config);
-                await _midiService.PlayMidiSequence(midi);
+                await _midiService.PlayPcs(pcs, preset.Modulus, PcMode.Ordered, config);
             }
         }
 
-        private void UpdateResults()
+        private CancellationTokenSource? _populateCts;
+
+        // Materialize a model into a PresetItemViewModel at the given index (called from ListView loader)
+        public void EnsureMaterialized(PresetPcSet preset, int index)
         {
-            var previousId = SelectedPreset?.Preset.Id;
-            Results.Clear();
+            try
+            {
+                if (index < 0 || index >= Results.Count) return;
+                var current = Results[index];
+                if (current is PresetItemViewModel) return;
+                if (current is PresetPcSet p && !string.Equals(p.Id, preset.Id, StringComparison.OrdinalIgnoreCase)) return;
+
+                var vm = GetOrCreateItem(preset);
+                App.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        if (index < 0 || index >= Results.Count) return;
+                        if (Results[index] is PresetPcSet q && string.Equals(q.Id, preset.Id, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Results[index] = vm;
+                            TimingLogger.Log($"PresetPickerViewModel: Materialized preset {preset.Id} at index {index}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        TimingLogger.Log($"PresetPickerViewModel: Materialize UI replace failed: {ex.Message}");
+                    }
+                }, System.Windows.Threading.DispatcherPriority.Background);
+            }
+            catch (Exception ex)
+            {
+                TimingLogger.Log($"PresetPickerViewModel: EnsureMaterialized failed: {ex.Message}");
+            }
+        }
+        private async void UpdateResults()
+        {
+            var sw = Stopwatch.StartNew();
+            string? previousId = null;
+            if (SelectedPresetVm != null) previousId = SelectedPresetVm.Preset.Id;
+            else if (SelectedPreset is PresetPcSet sp) previousId = sp.Id;
+            _populateCts?.Cancel();
+            _populateCts = new CancellationTokenSource();
 
             IEnumerable<PresetPcSet> filtered = _catalog.Search(SearchQuery);
 
@@ -298,14 +379,39 @@ namespace CompositionToolbox.App.ViewModels
                 filtered = filtered.OrderBy(p => p.Id, StringComparer.OrdinalIgnoreCase);
             }
 
-            foreach (var preset in filtered)
+            // Start by clearing and populate first small batch synchronously with lightweight models for snappy UI
+            Results.Clear();
+            var list = filtered.ToList();
+            int initial = Math.Min(40, list.Count);
+            for (int i = 0; i < initial; i++)
             {
-                if (_itemsById.TryGetValue(preset.Id, out var item))
+                Results.Add(list[i]);
+            }
+            TimingLogger.Log($"PresetPickerViewModel: initial {initial} model items added in {sw.ElapsedMilliseconds}ms");
+
+            // If there are more items, populate them in background batches so UI remains responsive (models only)
+            if (list.Count > initial)
+            {
+                var cts = _populateCts;
+                _ = Task.Run(async () =>
                 {
-                    Results.Add(item);
-                }
+                    const int batch = 40;
+                    for (int start = initial; start < list.Count; start += batch)
+                    {
+                        if (cts?.IsCancellationRequested == true) break;
+                        var end = Math.Min(start + batch, list.Count);
+                        var batchItems = list.GetRange(start, end - start);
+                        await App.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            foreach (var it in batchItems) Results.Add(it);
+                        });
+                        try { await Task.Delay(40, cts?.Token ?? CancellationToken.None); } catch { break; }
+                    }
+                    TimingLogger.Log($"PresetPickerViewModel: finished populating {list.Count} results (models only)");
+                }, cts?.Token ?? CancellationToken.None);
             }
 
+            // Update selection with available results (may change as more items arrive)
             if (Results.Count == 0)
             {
                 SelectedPreset = null;
@@ -314,7 +420,12 @@ namespace CompositionToolbox.App.ViewModels
 
             if (!string.IsNullOrWhiteSpace(previousId))
             {
-                var match = Results.FirstOrDefault(x => string.Equals(x.Preset.Id, previousId, StringComparison.OrdinalIgnoreCase));
+                object? match = null;
+                foreach (var it in Results)
+                {
+                    if (it is PresetItemViewModel vm && string.Equals(vm.Preset.Id, previousId, StringComparison.OrdinalIgnoreCase)) { match = it; break; }
+                    if (it is PresetPcSet p && string.Equals(p.Id, previousId, StringComparison.OrdinalIgnoreCase)) { match = it; break; }
+                }
                 SelectedPreset = match ?? Results[0];
             }
             else
@@ -332,22 +443,29 @@ namespace CompositionToolbox.App.ViewModels
                 return;
             }
 
-            var pcs = SelectedPreset.Preset.PrimeForm.ToArray();
+            var preset = GetSelectedPresetModel();
+            if (preset == null)
+            {
+                PreviewNode = null;
+                PreviewMidiNotes = Array.Empty<int>();
+                return;
+            }
+            var pcs = preset.PrimeForm.ToArray();
             var isChord = SelectedNotationMode == PresetNotationMode.Chord;
             NotationRenderMode = isChord ? "chord" : "line";
 
             PreviewNode = new AtomicNode
             {
-                Modulus = SelectedPreset.Preset.Modulus,
+                Modulus = preset.Modulus,
                 Mode = isChord ? PcMode.Unordered : PcMode.Ordered,
                 Ordered = pcs,
                 Unordered = pcs,
-                Label = SelectedPreset.Preset.Id,
+                Label = preset.Id,
                 OpFromPrev = null
             };
 
             var config = _getRealizationConfig();
-            PreviewMidiNotes = MusicUtils.RealizePcs(pcs, SelectedPreset.Preset.Modulus, isChord ? PcMode.Unordered : PcMode.Ordered, config);
+            PreviewMidiNotes = MusicUtils.RealizePcs(pcs, preset.Modulus, isChord ? PcMode.Unordered : PcMode.Ordered, config);
         }
 
         private void SyncFromState()
@@ -363,9 +481,20 @@ namespace CompositionToolbox.App.ViewModels
         private void UpdateFavoriteFlags()
         {
             var favorites = new HashSet<string>(_state.Favorites, StringComparer.OrdinalIgnoreCase);
+            // Ensure any favorites are created quickly so they appear in the Favorites list immediately
+            foreach (var id in favorites)
+            {
+                var preset = _catalog.GetById(id);
+                if (preset == null) continue;
+                var itm = GetOrCreateItem(preset);
+                itm.IsFavorite = true;
+            }
             foreach (var item in _itemsById.Values)
             {
-                item.IsFavorite = favorites.Contains(item.Preset.Id);
+                if (!favorites.Contains(item.Preset.Id))
+                {
+                    item.IsFavorite = false;
+                }
             }
         }
 
@@ -391,6 +520,14 @@ namespace CompositionToolbox.App.ViewModels
                 CardinalityOptions.Add(new CardinalityOption { Value = i, Label = i.ToString() });
             }
             SelectedCardinality = null;
+        }
+
+        private PresetItemViewModel GetOrCreateItem(PresetPcSet preset)
+        {
+            if (_itemsById.TryGetValue(preset.Id, out var item)) return item;
+            var newItem = new PresetItemViewModel(preset, _state);
+            _itemsById.TryAdd(preset.Id, newItem);
+            return newItem;
         }
 
         private static IEnumerable<PresetPcSet> ApplySort(IEnumerable<PresetPcSet> source, string column, bool ascending)

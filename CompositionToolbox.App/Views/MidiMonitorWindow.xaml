@@ -1,0 +1,56 @@
+<Window x:Class="CompositionToolbox.App.Views.MidiMonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MIDI Monitor" Height="360" Width="520"
+        FontFamily="Segoe UI">
+    <Window.Resources>
+        <Style x:Key="MidiMonitorListItemStyle" TargetType="ListViewItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <GridViewRowPresenter Columns="{Binding RelativeSource={RelativeSource AncestorType=ListView}, Path=View.Columns}"
+                                                  Content="{TemplateBinding Content}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource App.TransformLog.RowSelectedBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource App.TransformLog.RowSelectedTextBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource App.TransformLog.RowHoverBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" LastChildFill="False">
+            <TextBlock Text="Outgoing MIDI" FontWeight="Bold" DockPanel.Dock="Left" />
+            <Button Content="Clear" Click="Clear_Click" DockPanel.Dock="Right" />
+        </DockPanel>
+        <ListView Grid.Row="1"
+                  ItemsSource="{Binding Messages}"
+                  ItemContainerStyle="{StaticResource MidiMonitorListItemStyle}"
+                  Margin="0,8,0,0">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Time" Width="140" DisplayMemberBinding="{Binding Timestamp}" />
+                    <GridViewColumn Header="Type" Width="80" DisplayMemberBinding="{Binding EventType}" />
+                    <GridViewColumn Header="Ch" Width="40" DisplayMemberBinding="{Binding Channel}" />
+                    <GridViewColumn Header="Note" Width="60" DisplayMemberBinding="{Binding Note}" />
+                    <GridViewColumn Header="PB" Width="80" DisplayMemberBinding="{Binding PitchBend}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>

@@ -11,6 +11,7 @@ namespace CompositionToolbox.App.Views
         private AccidentalRule _rule;
         private string _renderMode = "line";
         private int[]? _midiNotes;
+        private bool _useMidiForEdo19;
 
         public InspectorNotationWindow()
         {
@@ -20,12 +21,13 @@ namespace CompositionToolbox.App.Views
             Closing += InspectorNotationWindow_Closing;
         }
 
-        public void SetNotation(AtomicNode node, AccidentalRule rule, string renderMode, int[]? midiNotes = null)
+        public void SetNotation(AtomicNode node, AccidentalRule rule, string renderMode, int[]? midiNotes = null, bool useMidiForEdo19 = false)
         {
             _node = node;
             _rule = rule;
             _renderMode = renderMode;
             _midiNotes = midiNotes;
+            _useMidiForEdo19 = useMidiForEdo19;
             HeaderText.Text = $"{node.Label} ({_renderMode})";
             Render();
         }
@@ -67,7 +69,8 @@ namespace CompositionToolbox.App.Views
                 showOverflowIndicator: false,
                 contentWidth: estimatedWidth,
                 allowScroll: true,
-                midiNotes: midi);
+                midiNotes: midi,
+                useMidiForEdo19: _useMidiForEdo19);
         }
 
         private static RealizationConfig GetRealizationConfig()

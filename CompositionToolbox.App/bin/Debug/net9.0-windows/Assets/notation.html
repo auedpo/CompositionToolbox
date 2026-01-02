@@ -31,6 +31,32 @@
       return { key: base + "/" + octave, acc };
     }
 
+    const edo19Names = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'E#', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B', 'B#'];
+
+    function pcToEdo19Spec(pc, baseOctave) {
+      const normalized = ((pc % 19) + 19) % 19;
+      const name = edo19Names[normalized];
+      const base = name[0].toLowerCase();
+      const acc = name.length > 1 ? name.slice(1) : null;
+      return { key: base + "/" + baseOctave, acc };
+    }
+
+    function pcsToEdo19Notes(pcs, baseOctave) {
+      return pcs.map(pc => pcToEdo19Spec(pc, baseOctave));
+    }
+
+    function pcsToEdoNotesWithMidi(pcs, midiList, modulus) {
+      const safeMidi = midiList.length > 0 ? midiList : [60];
+      const minMidi = Math.min(...safeMidi);
+      const baseOctave = Math.floor(minMidi / 12) - 1;
+      return pcs.map((pc, i) => {
+        const midi = midiList[i] ?? minMidi;
+        const octaveShift = Math.floor((midi - minMidi) / modulus);
+        const octave = baseOctave + octaveShift;
+        return pcToEdo19Spec(pc, octave);
+      });
+    }
+
     function getDirectionPreference(values, i, fallback) {
       if (i > 0 && values[i] !== values[i - 1]) return values[i] > values[i - 1];
       for (let j = i + 1; j < values.length; j++) {
@@ -123,10 +149,15 @@
         stave.addClef('treble').setContext(context).draw();
 
         const overflowCount = maxNotes && pcs.length > maxNotes ? pcs.length - maxNotes : 0;
-        const renderSource = midiList ? (maxNotes ? midiList.slice(0, maxNotes) : midiList) : (maxNotes ? pcs.slice(0, maxNotes) : pcs);
-        const noteSpecs = midiList
-          ? midiListToNoteSpecs(renderSource, accidentalRule)
-          : pcsToMidiNotes(renderSource, base, accidentalRule);
+        const renderPcs = maxNotes ? pcs.slice(0, maxNotes) : pcs;
+        const renderMidi = midiList ? (maxNotes ? midiList.slice(0, maxNotes) : midiList) : null;
+        const useEdo19 = obj.modulus === 19;
+        const allowMidiForEdo19 = obj.useMidiForEdo19 === true;
+        const noteSpecs = useEdo19 && renderPcs.length > 0
+          ? (allowMidiForEdo19 && renderMidi && renderMidi.length === renderPcs.length
+            ? pcsToEdoNotesWithMidi(renderPcs, renderMidi, obj.modulus)
+            : pcsToEdo19Notes(renderPcs, 4))
+          : (renderMidi ? midiListToNoteSpecs(renderMidi, accidentalRule) : pcsToMidiNotes(renderPcs, base, accidentalRule));
         if (noteSpecs.length === 0) {
           // render empty measure
           return;

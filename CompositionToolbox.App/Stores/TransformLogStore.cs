@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using CompositionToolbox.App.Models;
 using System.Linq;
+using System.Diagnostics;
 
 namespace CompositionToolbox.App.Stores
 {
@@ -23,11 +24,34 @@ namespace CompositionToolbox.App.Stores
 
         public event EventHandler<AtomicNode?>? SelectedNodeChanged;
 
+        private readonly CompositeStore? _compositeStore;
+
+        public TransformLogStore() { }
+
+        public TransformLogStore(CompositeStore compositeStore)
+        {
+            _compositeStore = compositeStore ?? throw new ArgumentNullException(nameof(compositeStore));
+        }
+
         public void AppendAndSelect(AtomicNode node)
         {
             if (!ValidateProvenance(node)) return;
-            Nodes.Add(node);
-            SelectedNode = node;
+            Trace.WriteLine($"[TransformLogStore] AppendAndSelect: adding node {node.NodeId} ts={DateTime.UtcNow:o} tid={Environment.CurrentManagedThreadId}");
+            Trace.WriteLine(Environment.StackTrace);
+            if (_compositeStore != null)
+            {
+                var nodeId = _compositeStore.GetOrAddNode(node);
+                var canonical = _compositeStore.Nodes.First(n => n.NodeId == nodeId);
+                Nodes.Add(canonical);
+                Trace.WriteLine($"[TransformLogStore] AppendAndSelect: added canonical node {canonical.NodeId} ts={DateTime.UtcNow:o}");
+                SelectedNode = canonical;
+            }
+            else
+            {
+                Nodes.Add(node);
+                Trace.WriteLine($"[TransformLogStore] AppendAndSelect: added node {node.NodeId} ts={DateTime.UtcNow:o}");
+                SelectedNode = node;
+            }
         }
 
         public bool AppendUnlessNoop(AtomicNode candidate)
@@ -39,7 +63,20 @@ namespace CompositionToolbox.App.Stores
                 return false;
             }
 
+            Trace.WriteLine($"[TransformLogStore] AppendUnlessNoop: adding candidate {candidate.NodeId} ts={DateTime.UtcNow:o} tid={Environment.CurrentManagedThreadId}");
+            Trace.WriteLine(Environment.StackTrace);
+            if (_compositeStore != null)
+            {
+                var nodeId = _compositeStore.GetOrAddNode(candidate);
+                var canonical = _compositeStore.Nodes.First(n => n.NodeId == nodeId);
+                Nodes.Add(canonical);
+                Trace.WriteLine($"[TransformLogStore] AppendUnlessNoop: added canonical candidate {canonical.NodeId} ts={DateTime.UtcNow:o}");
+                SelectedNode = canonical;
+                return true;
+            }
+
             Nodes.Add(candidate);
+            Trace.WriteLine($"[TransformLogStore] AppendUnlessNoop: added candidate {candidate.NodeId} ts={DateTime.UtcNow:o}");
             SelectedNode = candidate;
             return true;
         }

@@ -54,7 +54,7 @@
                 </TextBlock>
                 <TextBox Grid.Column="1"
                          Text="{Binding LabelEdit, UpdateSourceTrigger=PropertyChanged}"
-                         Padding="4,2"
+                         FontFamily="Consolas,Cascadia Mono,Courier New"
                          IsVisibleChanged="LabelEdit_IsVisibleChanged"
                          LostKeyboardFocus="LabelEdit_LostKeyboardFocus"
                          KeyDown="LabelEdit_KeyDown">

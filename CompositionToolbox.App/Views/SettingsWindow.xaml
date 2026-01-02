@@ -50,6 +50,12 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                <TextBlock Text="Pitch bend range:" VerticalAlignment="Center" Width="120" />
+                <TextBox Width="60" Text="{Binding PitchBendRangeSemitones}" />
+                <TextBlock Text="semitones" VerticalAlignment="Center" Margin="8,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
                 <TextBlock Text="Chord voicing:" VerticalAlignment="Center" Width="120" />
                 <ComboBox Width="180" ItemsSource="{Binding ChordVoicingModes}" SelectedItem="{Binding ChordVoicingMode}" />
             </StackPanel>

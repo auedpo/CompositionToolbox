@@ -67,13 +67,14 @@ namespace CompositionToolbox.App.Views
                 maxNotes: 16,
                 clipToViewport: true,
                 showOverflowIndicator: true,
-                midiNotes: _vm.NotationMidiNotes);
+                midiNotes: _vm.NotationMidiNotes,
+                useMidiForEdo19: _vm.UseSessionOverride);
         }
 
         private void UpdateExpandedNotation()
         {
             if (_notationWindow == null || !_notationWindow.IsVisible || _vm?.NotationNode == null) return;
-            _notationWindow.SetNotation(_vm.NotationNode, _vm.AccidentalRule, _vm.NotationRenderMode, _vm.NotationMidiNotes);
+            _notationWindow.SetNotation(_vm.NotationNode, _vm.AccidentalRule, _vm.NotationRenderMode, _vm.NotationMidiNotes, _vm.UseSessionOverride);
         }
 
         private void ExpandNotation_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -87,7 +88,7 @@ namespace CompositionToolbox.App.Views
                 };
                 _notationWindow.Closed += (_, _) => _notationWindow = null;
             }
-            _notationWindow.SetNotation(_vm.NotationNode, _vm.AccidentalRule, _vm.NotationRenderMode, _vm.NotationMidiNotes);
+            _notationWindow.SetNotation(_vm.NotationNode, _vm.AccidentalRule, _vm.NotationRenderMode, _vm.NotationMidiNotes, _vm.UseSessionOverride);
             _notationWindow.Show();
             _notationWindow.Activate();
         }

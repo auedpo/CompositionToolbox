@@ -1,0 +1,31 @@
+<UserControl x:Class="CompositionToolbox.App.Views.GapToPcView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Border Padding="12">
+        <StackPanel>
+            <TextBlock Text="Gap -> PC" FontWeight="Bold" Margin="0,0,0,8" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                <TextBlock Text="Root PC:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox Width="60"
+                         Text="{Binding RootInput, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Gaps:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <TextBox Width="260"
+                         Text="{Binding GapsInput, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <TextBlock Text="Enter gaps separated by spaces, e.g. 1 4 3."
+                       FontStyle="Italic"
+                       Margin="0,0,0,8" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Preview:" FontWeight="Bold" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding PreviewDisplay}" FontFamily="Consolas" Margin="0,0,12,0" />
+                <TextBlock Text="Count:" FontWeight="Bold" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding PcCount}" />
+            </StackPanel>
+
+            <Button Content="Create Pitch List" Command="{Binding CreatePitchListCommand}" Width="160" />
+        </StackPanel>
+    </Border>
+</UserControl>
