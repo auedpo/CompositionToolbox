@@ -1,3 +1,5 @@
-2026/01/02-00:00:27.986 b588 Reusing MANIFEST C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Site Characteristics Database/MANIFEST-000001
-2026/01/02-00:00:27.988 b588 Recovering log #3
-2026/01/02-00:00:27.988 b588 Reusing old log C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Site Characteristics Database/000003.log 
+2026/01/02-10:09:49.570 cb08 Log #3: 341 ops saved to Table #4 OK
+2026/01/02-10:09:49.573 cb08 Archiving C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Site Characteristics Database/000003.log: OK
+2026/01/02-10:09:49.574 cb08 Table #4: 341 entries OK
+2026/01/02-10:09:49.576 cb08 Archiving C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Site Characteristics Database/MANIFEST-000001: OK
+2026/01/02-10:09:49.593 cb08 **** Repaired leveldb C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Site Characteristics Database; recovered 1 files; 4762 bytes. Some data may have been lost. ****

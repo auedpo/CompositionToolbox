@@ -1,5 +1,5 @@
 ﻿CompositionToolbox.App
-
+1.0.0.0
 
 winexe
 C#
@@ -12,7 +12,7 @@ TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\App.xaml
 16513651894
 3554582714
-73951594022
+751846392706
 221-541485389
 MainWindow.xaml;Themes\Colors.xaml;Views\AcdlLensView.xaml;Views\FocusAffineView.xaml;Views\GapToPcView.xaml;Views\InitializationView.xaml;Views\InspectorNotationWindow.xaml;Views\InspectorView.xaml;Views\IVExplorerView.xaml;Views\MidiMonitorWindow.xaml;Views\NotationView.xaml;Views\PitchListCatalogWindow.xaml;Views\PresetPickerDialog.xaml;Views\SettingsWindow.xaml;Views\TestLensView.xaml;Views\TransformLogDetailsWindow.xaml;
 
