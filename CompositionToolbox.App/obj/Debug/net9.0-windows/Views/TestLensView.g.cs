@@ -52,7 +52,7 @@ namespace CompositionToolbox.App.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/CompositionToolbox.App;V1.0.0.0;component/views/testlensview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/CompositionToolbox.App;component/views/testlensview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\TestLensView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

@@ -61,7 +61,7 @@ namespace CompositionToolbox.App.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/CompositionToolbox.App;V1.0.0.0;component/views/ivexplorerview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/CompositionToolbox.App;component/views/ivexplorerview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\IVExplorerView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
