@@ -31,6 +31,8 @@ namespace CompositionToolbox.App
         private AcdlLensViewModel? _acdlViewModel;
         private GapToPcView? _gapToPcView;
         private GapToPcViewModel? _gapToPcViewModel;
+        private SwirlingMistsLensView? _swirlingMistsView;
+        private SwirlingMistsLensViewModel? _swirlingMistsViewModel;
         private TestLensView? _testLensView;
         private SettingsWindow? _settingsWindow;
         private PresetPickerDialog? _presetPickerDialog;
@@ -311,6 +313,15 @@ namespace CompositionToolbox.App
                 else if (string.Equals(tag, "GapToPc", StringComparison.OrdinalIgnoreCase))
                 {
                     ShowLens(_gapToPcView);
+                }
+                else if (string.Equals(tag, "SwirlingMists", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (_swirlingMistsView == null)
+                    {
+                        _swirlingMistsViewModel = new SwirlingMistsLensViewModel();
+                        _swirlingMistsView = new SwirlingMistsLensView { DataContext = _swirlingMistsViewModel };
+                    }
+                    ShowLens(_swirlingMistsView);
                 }
                 else if (string.Equals(tag, "Test", StringComparison.OrdinalIgnoreCase))
                 {
@@ -634,6 +645,8 @@ namespace CompositionToolbox.App
             UiPersistenceHelper.ApplyColumnWidth(CompositesColumn, _appSettings, "Main.Composites");
             UiPersistenceHelper.ApplyColumnWidth(LensSelectorColumn, _appSettings, "Main.LensSelector");
             UiPersistenceHelper.ApplyColumnWidth(TransformLogColumn, _appSettings, "Main.TransformLog");
+            UiPersistenceHelper.ApplyColumnWidth(MiddleColumn, _appSettings, "Main.Middle");
+            UiPersistenceHelper.ApplyColumnWidth(WorkspaceColumn, _appSettings, "Main.Workspace");
             UiPersistenceHelper.ApplyColumnWidth(InspectorColumn, _appSettings, "Main.Inspector", _appSettings.InspectorPanelWidth);
         }
 
@@ -658,6 +671,8 @@ namespace CompositionToolbox.App
             UiPersistenceHelper.SaveColumnWidth(CompositesColumn, _appSettings, "Main.Composites");
             UiPersistenceHelper.SaveColumnWidth(LensSelectorColumn, _appSettings, "Main.LensSelector");
             UiPersistenceHelper.SaveColumnWidth(TransformLogColumn, _appSettings, "Main.TransformLog");
+            UiPersistenceHelper.SaveColumnWidth(MiddleColumn, _appSettings, "Main.Middle");
+            UiPersistenceHelper.SaveColumnWidth(WorkspaceColumn, _appSettings, "Main.Workspace");
             UiPersistenceHelper.SaveColumnWidth(InspectorColumn, _appSettings, "Main.Inspector");
             _settingsService.Save(_appSettings);
         }

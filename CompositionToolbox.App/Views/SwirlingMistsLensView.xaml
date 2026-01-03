@@ -1,0 +1,494 @@
+﻿<UserControl x:Class="CompositionToolbox.App.Views.SwirlingMistsLensView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:CompositionToolbox.App.ViewModels"
+             xmlns:sysw="clr-namespace:System.Windows;assembly=PresentationFramework">
+    <Border Padding="12">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Swirling Mists" FontWeight="Bold" Margin="0,0,0,8" />
+
+                <StackPanel Margin="0,0,0,10">
+                    <Expander Header="Presets" IsExpanded="False" Margin="0,0,0,6"
+                              ToolTip="Quickly apply a preset set of strata parameters.">
+                        <WrapPanel Margin="0,0,0,6">
+                            <Button Content="Soft Drift" Command="{Binding ApplyPresetCommand}" CommandParameter="Soft Drift" Margin="0,0,6,0"
+                                    ToolTip="Apply the Soft Drift preset." />
+                            <Button Content="Ripple" Command="{Binding ApplyPresetCommand}" CommandParameter="Ripple" Margin="0,0,6,0"
+                                    ToolTip="Apply the Ripple preset." />
+                            <Button Content="Misty Walk" Command="{Binding ApplyPresetCommand}" CommandParameter="Misty Walk"
+                                    ToolTip="Apply the Misty Walk preset." />
+                        </WrapPanel>
+                    </Expander>
+                    <Expander Header="Global Settings" IsExpanded="False" Margin="0,0,0,6"
+                              ToolTip="Global seed, units, and interpolation settings.">
+                        <StackPanel>
+                            <WrapPanel Margin="0,0,0,6">
+                                <TextBlock Text="Global Seed:" Margin="0,0,6,0" ToolTip="Global seed combined with per-stratum seeds for RandomWalk." />
+                                <TextBox Width="120"
+                                         Text="{Binding GlobalSeedText, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Global seed combined with per-stratum seeds for RandomWalk." />
+                                <TextBlock Text="Units:" Margin="12,0,6,0" ToolTip="Display-only label for the field output units." />
+                                <TextBox Width="120" Text="{Binding Units, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Display-only label for the field output units." />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,0,0,6">
+                                <TextBlock Text="Interpolation:" Margin="0,0,6,0"
+                                           ToolTip="How values blend between sample points (e.g., Linear vs. Step)." />
+                                <ComboBox Width="120"
+                                          ItemsSource="{Binding InterpolationKinds}"
+                                          SelectedItem="{Binding Interpolation}"
+                                          ToolTip="How values blend between sample points (e.g., Linear vs. Step)." />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Expander>
+                    <WrapPanel Margin="0,0,0,6">
+                        <TextBlock Text="t:" Margin="0,0,6,0" ToolTip="Current time cursor (t)." />
+                        <TextBox Width="80" Text="{Binding CurrentT, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Current time cursor (t)." />
+                        <TextBlock Text="x:" Margin="12,0,6,0" ToolTip="Current position cursor (x)." />
+                        <TextBox Width="80" Text="{Binding CurrentX, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Current position cursor (x)." />
+                        <TextBlock Text="dt:" Margin="12,0,6,0" ToolTip="Playback step applied to t each tick." />
+                        <TextBox Width="80" Text="{Binding TimeStep, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Playback step applied to t each tick." />
+                        <Button Content="Play/Pause"
+                                Command="{Binding TogglePlayCommand}"
+                                Margin="12,0,0,0"
+                                ToolTip="Start or stop time playback." />
+                    </WrapPanel>
+                    <WrapPanel>
+                        <TextBlock Text="Snapshot:" Margin="0,0,6,0" ToolTip="Field values at the current t/x cursor." />
+                        <TextBox Width="320"
+                                 Text="{Binding CurrentSnapshotDisplay, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 ToolTip="Field values at the current t/x cursor." />
+                    </WrapPanel>
+                </StackPanel>
+
+                <TextBlock Text="Strata" FontWeight="Bold" Margin="0,0,0,6" />
+                <WrapPanel Margin="0,0,0,6">
+                    <Button Content="Add Stratum" Command="{Binding AddStratumCommand}" Margin="0,0,8,0" />
+                    <Button Content="Remove Selected" Command="{Binding RemoveStratumCommand}" />
+                </WrapPanel>
+                <ListBox ItemsSource="{Binding Strata}"
+                         SelectedItem="{Binding SelectedStratum}"
+                         Height="120"
+                         Margin="0,0,0,8">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="4" Margin="0,0,0,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="S" />
+                                    <TextBlock Text="{Binding Index}" Margin="0,0,6,0" />
+                                    <TextBlock Text="{Binding SummaryText}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel DataContext="{Binding SelectedStratum}">
+                    <Expander Header="Stratum Details" IsExpanded="True" Margin="0,0,0,6">
+                        <StackPanel>
+                            <TextBlock Text="General" FontWeight="Bold" Margin="0,0,0,4" />
+                            <WrapPanel Margin="0,0,0,6">
+                                <CheckBox Content="Enabled"
+                                          IsChecked="{Binding Enabled}"
+                                          Margin="0,0,12,0"
+                                          ToolTip="Enable or disable this stratum." />
+                                <TextBlock Text="Color:" Margin="0,0,6,0" ToolTip="Pick the display color for this stratum." />
+                                <Button Width="20" Height="20"
+                                        Background="{Binding ColorBrush}"
+                                        BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                                        BorderThickness="1"
+                                        ToolTip="Pick the display color for this stratum."
+                                        Command="{Binding PickColorCommand}" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,0,0,6">
+                                <TextBlock Text="Baseline:" Margin="0,0,6,0" ToolTip="Offset added after waveform delta." />
+                                <Slider Width="140"
+                                        Minimum="-10"
+                                        Maximum="10"
+                                        SmallChange="0.1"
+                                        ToolTip="Offset added after waveform delta."
+                                        Value="{Binding Baseline, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="60" Text="{Binding Baseline, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,0,0,6">
+                                <TextBlock Text="Loop Length:" Margin="0,0,6,0" ToolTip="Number of samples in the loop (L)." />
+                                <Slider Width="120"
+                                        Minimum="1"
+                                        Maximum="64"
+                                        TickFrequency="1"
+                                        IsSnapToTickEnabled="True"
+                                        SmallChange="1"
+                                        ToolTip="Number of samples in the loop (L)."
+                                        Value="{Binding LoopLength, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="60" Text="{Binding LoopLength, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,0,0,6">
+                                <TextBlock Text="Speed:" Margin="0,0,6,0" ToolTip="Phase advance per tick (samples/tick)." />
+                                <Slider Width="120"
+                                        Minimum="-4"
+                                        Maximum="4"
+                                        SmallChange="0.05"
+                                        ToolTip="Phase advance per tick (samples/tick)."
+                                        Value="{Binding Speed, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="60" Text="{Binding Speed, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                            </WrapPanel>
+                            <WrapPanel Margin="0,0,0,6">
+                                <TextBlock Text="Phase (deg):" Margin="0,0,6,0" ToolTip="Phase offset in degrees (360 = one loop)." />
+                                <Slider Width="140"
+                                        Minimum="0"
+                                        Maximum="360"
+                                        SmallChange="1"
+                                        ToolTip="Phase offset in degrees (360 = one loop)."
+                                        Value="{Binding PhaseDegrees, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="60" Text="{Binding PhaseDegrees, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                            </WrapPanel>
+
+                            <Separator Margin="0,4,0,6" />
+                            <TextBlock Text="Clamp" FontWeight="Bold" Margin="0,0,0,4" />
+                            <WrapPanel Margin="0,0,0,6">
+                                <TextBlock Text="Min:" Margin="0,0,6,0" ToolTip="Minimum waveform delta before baseline." />
+                                <Slider Width="120"
+                                        Minimum="-5"
+                                        Maximum="5"
+                                        SmallChange="0.05"
+                                        ToolTip="Minimum waveform delta before baseline."
+                                        Value="{Binding ClampMin, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="60" Text="{Binding ClampMin, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                                <TextBlock Text="Max:" Margin="12,0,6,0" ToolTip="Maximum waveform delta before baseline." />
+                                <Slider Width="120"
+                                        Minimum="-5"
+                                        Maximum="5"
+                                        SmallChange="0.05"
+                                        ToolTip="Maximum waveform delta before baseline."
+                                        Value="{Binding ClampMax, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="60" Text="{Binding ClampMax, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                            </WrapPanel>
+
+                            <Separator Margin="0,4,0,6" />
+                            <TextBlock Text="Waveform" FontWeight="Bold" Margin="0,0,0,4" />
+                            <WrapPanel Margin="0,0,0,6">
+                                <TextBlock Text="Type:" Margin="0,0,6,0" ToolTip="Waveform source for this stratum." />
+                                <ComboBox Width="140"
+                                          ItemsSource="{Binding DataContext.WaveformKinds, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                          ToolTip="Waveform source for this stratum."
+                                          SelectedItem="{Binding WaveformKind}" />
+                            </WrapPanel>
+
+                            <StackPanel Margin="0,0,0,6">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding WaveformKind}" Value="CustomTable">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Text="Custom Table (comma or space separated):"
+                                           Margin="0,0,0,4"
+                                           ToolTip="List of sample values for one loop." />
+                                <TextBox Text="{Binding CustomTableText, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True"
+                                         ToolTip="List of sample values for one loop."
+                                         Height="60" />
+                        <TextBlock Text="{Binding CustomTableStatus}"
+                                   Margin="0,4,0,0"
+                                   Foreground="DarkRed">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding CustomTableStatus}" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding CustomTableStatus}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                        </Style.Triggers>
+                                        </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <WrapPanel Margin="0,6,0,0">
+                            <ToggleButton x:Name="CustomTableRandomizeButton"
+                                          IsChecked="{Binding IsCustomTableRandomizerOpen}"
+                                          ToolTip="Randomize the custom table."
+                                          Padding="6,0">
+                                <TextBlock Text="🎲"
+                                           FontFamily="Segoe UI Emoji"
+                                           FontSize="14"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center" />
+                            </ToggleButton>
+                            <TextBlock Text="Randomize table" Margin="6,0,0,0" VerticalAlignment="Center" />
+                        </WrapPanel>
+                        <Popup IsOpen="{Binding IsCustomTableRandomizerOpen}"
+                               PlacementTarget="{Binding ElementName=CustomTableRandomizeButton}"
+                               Placement="Bottom"
+                               StaysOpen="False"
+                               AllowsTransparency="True">
+                            <Border Background="#CC2A2A2A"
+                                    BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                                    BorderThickness="1"
+                                    Padding="8">
+                                <StackPanel>
+                                    <TextBlock Text="Randomize Custom Table" FontWeight="Bold" Margin="0,0,0,6" />
+                                    <WrapPanel Margin="0,0,0,6">
+                                        <TextBlock Text="Count:" Margin="0,0,6,0" />
+                                        <TextBox Width="60" Text="{Binding RandomTableCount, UpdateSourceTrigger=PropertyChanged}" />
+                                    </WrapPanel>
+                                    <WrapPanel Margin="0,0,0,6">
+                                        <TextBlock Text="Min:" Margin="0,0,6,0" />
+                                        <TextBox Width="60" Text="{Binding RandomTableMin, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Max:" Margin="12,0,6,0" />
+                                        <TextBox Width="60" Text="{Binding RandomTableMax, UpdateSourceTrigger=PropertyChanged}" />
+                                    </WrapPanel>
+                                    <WrapPanel Margin="0,0,0,6">
+                                        <TextBlock Text="Step:" Margin="0,0,6,0" />
+                                        <TextBox Width="60" Text="{Binding RandomTableStep, UpdateSourceTrigger=PropertyChanged}" />
+                                    </WrapPanel>
+                                    <WrapPanel Margin="0,6,0,0">
+                                        <Button Content="Generate" Command="{Binding GenerateRandomCustomTableCommand}" />
+                                        <Button Content="Close" Command="{Binding CloseRandomizeCustomTableCommand}" Margin="6,0,0,0" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </StackPanel>
+
+                            <StackPanel Margin="0,0,0,6">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding WaveformKind}" Value="RandomWalk">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <Separator Margin="0,4,0,6" />
+                                <TextBlock Text="Random Walk" FontWeight="Bold" Margin="0,0,0,4" />
+                                <WrapPanel Margin="0,0,0,6">
+                                    <TextBlock Text="Seed:" Margin="0,0,6,0" ToolTip="8-char seed; same seed = same walk." />
+                                    <TextBox Width="120"
+                                             Text="{Binding RandomWalkSeedText, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="8-char seed; same seed = same walk." />
+                                    <Button Command="{Binding RandomizeSeedCommand}"
+                                            ToolTip="Generate a random seed."
+                                            Margin="6,0,0,0"
+                                            Padding="6,0">
+                                        <TextBlock Text="🎲"
+                                                   FontFamily="Segoe UI Emoji"
+                                                   FontSize="14"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center" />
+                                    </Button>
+                                </WrapPanel>
+                                <WrapPanel Margin="0,0,0,6">
+                                    <TextBlock Text="Step:" Margin="0,0,6,0" ToolTip="Max step size per tick in the walk." />
+                                    <Slider Width="120"
+                                            Minimum="0"
+                                            Maximum="1"
+                                            SmallChange="0.01"
+                                            ToolTip="Max step size per tick in the walk."
+                                            Value="{Binding RandomWalkStepSize, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Width="60" Text="{Binding RandomWalkStepSize, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                                </WrapPanel>
+                                <TextBlock Text="Clamp" FontWeight="Bold" Margin="0,4,0,4" />
+                                <WrapPanel Margin="0,0,0,6">
+                                    <TextBlock Text="Min:" Margin="0,0,6,0" ToolTip="Lower bound for the random walk." />
+                                    <TextBox Width="80"
+                                             Text="{Binding RandomWalkClampMin, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="Lower bound for the random walk." />
+                                    <TextBlock Text="Max:" Margin="12,0,6,0" ToolTip="Upper bound for the random walk." />
+                                    <TextBox Width="80"
+                                             Text="{Binding RandomWalkClampMax, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="Upper bound for the random walk." />
+                                </WrapPanel>
+                                <WrapPanel Margin="0,0,0,6">
+                                    <TextBlock Text="Start:" Margin="0,0,6,0" ToolTip="Initial value for the walk." />
+                                    <Slider Width="120"
+                                            Minimum="-1"
+                                            Maximum="1"
+                                            SmallChange="0.01"
+                                            ToolTip="Initial value for the walk."
+                                            Value="{Binding RandomWalkStartValue, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Width="60" Text="{Binding RandomWalkStartValue, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                                    <TextBlock Text="Smoothing:" Margin="12,0,6,0" ToolTip="Simple moving-average window." />
+                                    <Slider Width="120"
+                                            Minimum="0"
+                                            Maximum="8"
+                                            TickFrequency="1"
+                                            IsSnapToTickEnabled="True"
+                                            SmallChange="1"
+                                            ToolTip="Simple moving-average window."
+                                            Value="{Binding RandomWalkSmoothing, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Width="60" Text="{Binding RandomWalkSmoothing, UpdateSourceTrigger=PropertyChanged}" Margin="6,0,0,0" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="Field Preview" FontWeight="Bold" Margin="0,0,0,6" />
+                <ItemsControl ItemsSource="{Binding WaveformPreviews}" Margin="0,0,0,8">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,6">
+                                <TextBlock Text="{Binding Label}" />
+                                <Border Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
+                                        BorderBrush="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                                        BorderThickness="1"
+                                        Padding="2">
+                                    <Viewbox Width="350" Height="100" Stretch="Fill">
+                                        <Canvas Width="200" Height="100">
+                                            <Line X1="0" X2="100" Y1="50" Y2="50"
+                                                  Stroke="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                                                  StrokeThickness="1"
+                                                  StrokeDashArray="2,2" />
+                                            <Line X1="0" X2="100" Y1="100" Y2="0"
+                                                  Stroke="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}"
+                                                  StrokeThickness="0.5"
+                                                  StrokeDashArray="2,2" />
+                                            <Polyline Points="{Binding Points}"
+                                                      Stroke="{Binding Stroke}"
+                                                      StrokeThickness="1.5"
+                                                      SnapsToDevicePixels="True" />
+                                        </Canvas>
+                                    </Viewbox>
+                                </Border>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="Cursor View" FontWeight="Bold" Margin="0,0,0,6" />
+                <CheckBox Content="Separate dots"
+                          IsChecked="{Binding SeparateCursorDots}"
+                          Margin="0,0,0,4" />
+                <Viewbox Width="350" Height="80" Margin="0,0,0,10">
+                    <Canvas Width="200" Height="100">
+                        <Line X1="{Binding CursorX}" X2="{Binding CursorX}" Y1="0" Y2="100"
+                              Stroke="{DynamicResource {x:Static sysw:SystemColors.HighlightBrushKey}}"
+                              StrokeThickness="1" />
+                        <ItemsControl ItemsSource="{Binding CursorMarkers}" Width="100" Height="100">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas Width="100" Height="100" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Canvas.Left" Value="{Binding Left}" />
+                                    <Setter Property="Canvas.Top" Value="{Binding Top}" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Ellipse Width="6" Height="6"
+                                             Fill="{Binding Fill}"
+                                             />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Canvas>
+                </Viewbox>
+
+                <TextBlock Text="Extraction" FontWeight="Bold" Margin="0,0,0,8" />
+                <WrapPanel Margin="0,0,0,6">
+                    <TextBlock Text="Mode:" Margin="0,0,6,0" />
+                    <ComboBox Width="140"
+                              ItemsSource="{Binding ExtractionModes}"
+                              SelectedItem="{Binding ExtractionMode}" />
+                    <Button Content="Preview Extraction"
+                            Command="{Binding PreviewExtractionCommand}"
+                            Margin="12,0,0,0" />
+                </WrapPanel>
+
+                <StackPanel Margin="0,0,0,6">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ExtractionMode}" Value="XWindow">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <WrapPanel Margin="0,0,0,6">
+                        <TextBlock Text="Fixed t:" Margin="0,0,6,0" />
+                        <TextBox Width="80" Text="{Binding FixedT, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="x Start:" Margin="12,0,6,0" />
+                        <TextBox Width="80" Text="{Binding XStart, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="x End:" Margin="12,0,6,0" />
+                        <TextBox Width="80" Text="{Binding XEnd, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="Count:" Margin="12,0,6,0" />
+                        <TextBox Width="60" Text="{Binding SampleCount, UpdateSourceTrigger=PropertyChanged}" />
+                    </WrapPanel>
+                </StackPanel>
+
+                <StackPanel Margin="0,0,0,6">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ExtractionMode}" Value="TWindow">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <WrapPanel Margin="0,0,0,6">
+                        <TextBlock Text="Fixed x:" Margin="0,0,6,0" />
+                        <TextBox Width="80" Text="{Binding FixedX, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="t Start:" Margin="12,0,6,0" />
+                        <TextBox Width="80" Text="{Binding TStart, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="t End:" Margin="12,0,6,0" />
+                        <TextBox Width="80" Text="{Binding TEnd, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="Count:" Margin="12,0,6,0" />
+                        <TextBox Width="60" Text="{Binding SampleCount, UpdateSourceTrigger=PropertyChanged}" />
+                    </WrapPanel>
+                </StackPanel>
+
+                <DataGrid x:Name="ExtractionGrid"
+                          ItemsSource="{Binding ExtractionRows}"
+                          SelectedItem="{Binding SelectedSnapshotRow}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow"
+                          Height="220"
+                          Margin="0,0,0,8" />
+
+                <TextBlock Text="Flatten Preview" FontWeight="Bold" Margin="0,0,0,6" />
+                <WrapPanel Margin="0,0,0,6">
+                    <TextBlock Text="Policy:" Margin="0,0,6,0" />
+                    <ComboBox Width="140"
+                              ItemsSource="{Binding FlattenPolicies}"
+                              SelectedItem="{Binding FlattenPolicy}" />
+                </WrapPanel>
+                <TextBox Text="{Binding FlattenedPreview, Mode=OneWay}"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         Height="60" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

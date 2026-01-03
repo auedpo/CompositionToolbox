@@ -70,3 +70,5 @@ C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Ap
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\TransformLogDetailsWindow.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\TransformLogDetailsWindow.g.cs
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\CompositionToolbox.App.sourcelink.json
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\SwirlingMistsLensView.g.cs
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\SwirlingMistsLensView.baml

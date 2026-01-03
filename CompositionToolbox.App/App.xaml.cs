@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using CompositionToolbox.App.Views.Behaviors;
 
 namespace CompositionToolbox.App
 {
@@ -21,6 +22,8 @@ namespace CompositionToolbox.App
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            SliderWheelBehavior.EnsureInitialized();
+            TextBoxClearButtonBehavior.EnsureInitialized();
             var windowBrush = TryFindResource(System.Windows.SystemColors.WindowBrushKey) as System.Windows.Media.Brush
                 ?? (System.Windows.Media.Brush)FindResource(System.Windows.SystemColors.WindowBrushKey);
 

@@ -104,9 +104,9 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="CompositesColumn" Width="*" MinWidth="220" />
                 <ColumnDefinition Width="6" />
-                <ColumnDefinition Width="*" MinWidth="360" />
+                <ColumnDefinition x:Name="MiddleColumn" Width="*" MinWidth="360" />
                 <ColumnDefinition Width="6" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="WorkspaceColumn" Width="*" />
                 <ColumnDefinition Width="6" />
                 <ColumnDefinition x:Name="InspectorColumn" Width="*" MinWidth="260" />
             </Grid.ColumnDefinitions>
@@ -169,6 +169,7 @@
                                 <ListBoxItem Content="Focus Affine" Tag="FocusAffine" />
                                 <ListBoxItem Content="ACDL" Tag="ACDL" />
                                 <ListBoxItem Content="Gap -> PC" Tag="GapToPc" />
+                                <ListBoxItem Content="Swirling Mists" Tag="SwirlingMists" />
                                 <ListBoxItem Content="Test Lens" Tag="Test" />
                             </ListBox>
                         </Grid>

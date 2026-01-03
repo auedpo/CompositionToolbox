@@ -29,6 +29,7 @@
               </ControlTemplate>
             </Setter.Value>
           </Setter>
-        </Style>    </ResourceDictionary>
+        </Style>
+    </ResourceDictionary>
   </Application.Resources>
 </Application>

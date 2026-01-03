@@ -4889,3 +4889,198 @@
 2026-01-02T15:20:09.6485730Z PresetCatalogService.LoadCatalog: loaded 223 presets in 18ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
 2026-01-02T15:20:10.0227330Z PresetItemCache: precreated 223 items in 0ms
 2026-01-02T15:20:10.6150663Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-02T16:46:29.9068077Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-02T16:46:30.2638531Z PresetItemCache: precreated 223 items in 1ms
+2026-01-02T16:46:30.8980075Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:19:37.7527460Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:19:37.9098072Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:19:38.4435651Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:20:29.9121492Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:20:30.0632008Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T02:20:30.6109382Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:21:42.6541314Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:21:42.8086597Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:21:43.3468022Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:22:35.6883337Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:22:35.8433794Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:22:36.4026121Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:24:53.1962927Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:24:53.3507884Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:24:54.0062219Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:27:09.6225667Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:27:09.7858859Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:27:10.3133043Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:29:08.6811848Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:29:08.8297379Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:29:09.3795977Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:33:17.4961857Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:33:17.6557614Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:33:18.2340431Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:36:17.3526015Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:36:17.5863464Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T02:36:18.2568136Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:37:54.9513819Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:37:55.1004753Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:37:55.6400859Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:47:58.0790800Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:47:58.2639824Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:47:58.8304873Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:49:34.8152549Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:49:35.0066689Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T02:49:35.5739271Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:51:56.8203048Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:51:57.0179998Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T02:51:57.5701871Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:53:37.7139076Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:53:37.8872085Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T02:53:38.4872885Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T02:55:48.9036759Z PresetCatalogService.LoadCatalog: loaded 223 presets in 18ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T02:55:49.0913793Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T02:55:49.6902365Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T03:20:57.2861511Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T03:20:57.4769052Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T03:20:58.0710891Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T03:24:42.4788931Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T03:24:42.6428965Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T03:24:43.2046029Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T03:27:52.2819841Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T03:27:52.4378481Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T03:27:53.0482298Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T03:30:27.3940597Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T03:30:27.5855025Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T03:30:28.2095573Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T03:31:50.7149794Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T03:31:50.9029398Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T03:31:51.5013077Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T03:42:33.1473503Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T03:42:33.3061030Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T03:42:33.8510913Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T03:46:45.8049551Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T03:46:45.9896648Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T03:46:46.5268420Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:12:03.4449248Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:12:03.6100503Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T04:12:04.2348169Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:15:59.4610942Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:15:59.6160521Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T04:16:00.2281595Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:17:54.0496456Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:17:54.2322598Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T04:17:54.7759687Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:18:09.0521328Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:18:09.2088579Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T04:18:09.7983030Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:21:36.7039154Z PresetCatalogService.LoadCatalog: loaded 223 presets in 18ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:21:36.9830525Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T04:21:37.7117198Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:27:32.1940256Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:27:32.3797658Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T04:27:32.9964986Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:29:16.2356265Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:29:16.4101858Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T04:29:17.0604131Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:35:22.7990398Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:35:22.9968969Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T04:35:23.5846345Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:37:04.6023047Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:37:04.7768843Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T04:37:05.4001374Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:43:56.6406772Z PresetCatalogService.LoadCatalog: loaded 223 presets in 19ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:43:56.8461541Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T04:43:57.5222793Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:45:07.6001475Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:45:07.7717362Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T04:45:08.4209738Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T04:47:27.1677394Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T04:47:27.3713873Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T04:47:27.9637580Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:02:40.2452175Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:02:40.4340639Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T05:02:41.0432568Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:04:18.8266705Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:04:19.0005923Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T05:04:19.5915167Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:08:35.9005648Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:08:36.0959532Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T05:08:36.6836031Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:12:57.3641992Z PresetCatalogService.LoadCatalog: loaded 223 presets in 4ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:12:57.5698740Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T05:12:58.1696317Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:14:12.5366502Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:14:12.7335116Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T05:14:13.3692256Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:18:00.1776287Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:18:00.3515598Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T05:18:00.9450283Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:27:51.7743508Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:27:51.9356224Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T05:27:52.5358032Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:34:16.0677168Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:34:16.2717082Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T05:34:16.9284605Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:43:25.1685105Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:43:25.3222260Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T05:43:25.9097667Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T05:58:56.4898584Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T05:58:56.6477494Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T05:58:57.2116767Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:01:24.4058353Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:01:24.5583614Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T06:01:25.1081389Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:05:44.7921802Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:05:44.9493476Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:05:45.5199877Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:07:51.0432394Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:07:51.1986061Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:07:51.7637505Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:12:39.4755156Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:12:39.6315014Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T06:12:40.1892473Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:14:13.6213049Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:14:13.8020483Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:14:14.3592411Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:15:04.9234518Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:15:05.1067799Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T06:15:05.6310183Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:15:39.9624352Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:15:40.1451024Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:15:40.6605850Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:16:15.3362841Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:16:15.5160166Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:16:16.0746742Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:17:15.6874944Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:17:15.8662472Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:17:16.4099146Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:17:34.6418862Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:17:34.7942782Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T06:17:35.3571159Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:18:17.7772363Z PresetCatalogService.LoadCatalog: loaded 223 presets in 2ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:18:17.9693944Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T06:18:18.4964212Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:19:10.1560787Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:19:10.3316104Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:19:10.8805437Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:19:39.0248820Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:19:39.1812748Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:19:39.7493903Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:20:19.4343418Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:20:19.5968863Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:20:20.1629167Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:20:50.6988667Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:20:50.8847117Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T06:20:51.5061906Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:21:13.5888635Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:21:13.7682592Z PresetItemCache: precreated 223 items in 1ms
+2026-01-03T06:21:14.3376089Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:21:33.9246301Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:21:34.1551781Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:21:34.6974189Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:21:58.2462712Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:21:58.3944729Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:21:58.9304355Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:22:17.7605624Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:22:17.9160464Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:22:18.4761774Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-03T06:22:49.1876863Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-03T06:22:49.3394609Z PresetItemCache: precreated 223 items in 0ms
+2026-01-03T06:22:49.8939127Z MainWindow: Light UI prewarm skipped - required resources not available

@@ -1,2 +1,3 @@
-2026/01/02-10:20:10.817 785c Creating DB C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Local Storage\leveldb since it was missing.
-2026/01/02-10:20:10.848 785c Reusing MANIFEST C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/03-01:22:50.102 f170 Reusing MANIFEST C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/03-01:22:50.114 f170 Recovering log #3
+2026/01/03-01:22:50.117 f170 Reusing old log C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\CompositionToolbox.App.exe.WebView2\EBWebView\Default\Local Storage\leveldb/000003.log 
