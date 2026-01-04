@@ -66,10 +66,22 @@ namespace CompositionToolbox.App.Converters
 
         private static string FormatStepIndex(CompositeTransformLogEntry entry, CompositeStore? store)
         {
-            if (store == null) return string.Empty;
-            var index = store.CurrentLogEntries.IndexOf(entry);
-            if (index < 0) return string.Empty;
-            return $"#{index + 1}";
+            if (store?.SelectedComposite == null) return string.Empty;
+            var compositeId = store.SelectedComposite.CompositeId;
+            var index = 0;
+            foreach (var logEntry in store.LogEntries)
+            {
+                if (logEntry.CompositeId != compositeId)
+                {
+                    continue;
+                }
+                if (logEntry.EntryId == entry.EntryId)
+                {
+                    return $"#{index + 1}";
+                }
+                index++;
+            }
+            return string.Empty;
         }
 
         private static string FormatPitchListValue(CompositeTransformLogEntry entry, CompositeStore? store)

@@ -18,26 +18,46 @@ namespace CompositionToolbox.App.ViewModels
 
     public sealed class FocusAffineResultRow
     {
-        public FocusAffineResultRow(int focus, PCSet resultSet, int[] intervalVector, int baseCardinality)
+        public FocusAffineResultRow(int focusIndex, int focus, PCSet resultSet, int[] offsets, int[] intervalVector, int baseCardinality, bool isOrdered)
         {
+            FocusIndex = focusIndex;
             Focus = focus;
             ResultSet = resultSet;
+            Offsets = offsets ?? Array.Empty<int>();
+            IsOrdered = isOrdered;
             IntervalVector = intervalVector;
             Cardinality = resultSet.Cardinality;
             CardinalityChanged = Cardinality != baseCardinality;
             BaseCardinality = baseCardinality;
         }
 
+        public int FocusIndex { get; }
         public int Focus { get; }
         public PCSet ResultSet { get; }
+        public int[] Offsets { get; }
         public int[] IntervalVector { get; }
         public int Cardinality { get; }
         public bool CardinalityChanged { get; }
         public int BaseCardinality { get; }
-        public string ResultDisplay => ResultSet.ToBracketString();
+        public bool IsOrdered { get; }
+        public string ResultDisplay => BuildDisplay(ResultSet.Members);
+        public string OffsetsDisplay => BuildDisplay(Offsets);
         public string IntervalVectorDisplay => $"<{string.Join(',', IntervalVector)}>";
         public string CardinalityChangeDisplay
             => $"Δk {Cardinality - BaseCardinality:+#;-#;0} -> {Cardinality}";
+
+        private string BuildDisplay(IEnumerable<int> pcs)
+        {
+            var open = IsOrdered ? "(" : "[";
+            var close = IsOrdered ? ")" : "]";
+            return $"{open}{string.Join(' ', pcs)}{close}";
+        }
+    }
+
+    public enum FocusAffinePreviewMode
+    {
+        Outputs,
+        Offsets
     }
 
     public sealed class FocusAffineLensViewModel : ObservableObject, ILensPreviewSource, ILensActivation
@@ -48,12 +68,13 @@ namespace CompositionToolbox.App.ViewModels
         private string _multiplierInput = "5";
         private int _multiplierA = 5;
         private FocusMode _focusMode = FocusMode.All;
-        private int? _selectedFocus;
+        private int? _selectedFocusIndex;
         private bool _hasValidSource;
         private bool _isActive;
         private FocusAffineResultRow? _selectedResult;
         private WorkspacePreview? _workspacePreview;
         private string _summaryText = string.Empty;
+        private FocusAffinePreviewMode _previewMode = FocusAffinePreviewMode.Outputs;
         private readonly Dictionary<FocusAffineCacheKey, List<FocusAffineResultRow>> _cache = new();
 
         public FocusAffineLensViewModel(CompositeStore store)
@@ -119,12 +140,12 @@ namespace CompositionToolbox.App.ViewModels
             }
         }
 
-        public int? SelectedFocus
+        public int? SelectedFocusIndex
         {
-            get => _selectedFocus;
+            get => _selectedFocusIndex;
             set
             {
-                if (SetProperty(ref _selectedFocus, value))
+                if (SetProperty(ref _selectedFocusIndex, value))
                 {
                     Recompute();
                 }
@@ -159,6 +180,7 @@ namespace CompositionToolbox.App.ViewModels
         public WorkspacePreview? WorkspacePreview => _workspacePreview;
 
         public IRelayCommand CommitSelectedCommand { get; }
+        public FocusAffinePreviewMode PreviewMode => _previewMode;
 
         public void Activate()
         {
@@ -170,6 +192,13 @@ namespace CompositionToolbox.App.ViewModels
         public void Deactivate()
         {
             _isActive = false;
+        }
+
+        public void SetPreviewMode(FocusAffinePreviewMode mode)
+        {
+            if (_previewMode == mode) return;
+            _previewMode = mode;
+            UpdateWorkspacePreview(SelectedResult);
         }
 
         private void UpdateFromSelectedState()
@@ -195,7 +224,7 @@ namespace CompositionToolbox.App.ViewModels
             }
 
             var pcs = node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered;
-            _baseSet = FocusAffineMath.ComputeDistinctSet(pcs, node.Modulus);
+            _baseSet = pcs?.ToArray() ?? Array.Empty<int>();
             if (_baseSet.Length == 0)
             {
                 ClearSource();
@@ -229,14 +258,14 @@ namespace CompositionToolbox.App.ViewModels
 
             if (FocusMode == FocusMode.Single)
             {
-                if (!_selectedFocus.HasValue || !_baseSet.Contains(_selectedFocus.Value))
+                if (!_selectedFocusIndex.HasValue || _selectedFocusIndex.Value < 0 || _selectedFocusIndex.Value >= _baseSet.Length)
                 {
-                    SelectedFocus = _baseSet.FirstOrDefault();
+                    SelectedFocusIndex = _baseSet.Length > 0 ? 0 : null;
                 }
             }
             else
             {
-                SelectedFocus = null;
+                SelectedFocusIndex = null;
             }
         }
 
@@ -259,7 +288,7 @@ namespace CompositionToolbox.App.ViewModels
                 modulus,
                 MultiplierA,
                 FocusMode,
-                FocusMode == FocusMode.Single ? (int?)focusList.FirstOrDefault() : null,
+                FocusMode == FocusMode.Single ? _selectedFocusIndex : null,
                 baseHash);
 
             if (_cache.TryGetValue(key, out var cached))
@@ -269,12 +298,14 @@ namespace CompositionToolbox.App.ViewModels
             }
 
             var rows = new List<FocusAffineResultRow>();
-            foreach (var focus in focusList)
+            foreach (var focusIndex in focusList)
             {
-                var result = FocusAffineMath.ComputeFocusAffine(_baseSet, modulus, MultiplierA, focus);
-                var resultSet = new PCSet(modulus, result);
-                var iv = IntervalVectorIndexService.ComputeIntervalVector(result, modulus);
-                rows.Add(new FocusAffineResultRow(focus, resultSet, iv, _baseSet.Length));
+                var focus = _baseSet[focusIndex];
+                var offsets = FocusAffineMath.ComputeOffsets(_baseSet, modulus, MultiplierA, focusIndex);
+                var outputs = FocusAffineMath.ComputeOutputs(_baseSet, modulus, MultiplierA, focusIndex);
+                var resultSet = new PCSet(modulus, outputs);
+                var iv = IntervalVectorIndexService.ComputeIntervalVector(outputs, modulus);
+                rows.Add(new FocusAffineResultRow(focusIndex, focus, resultSet, offsets, iv, _baseSet.Length, true));
             }
 
             _cache[key] = rows;
@@ -285,19 +316,25 @@ namespace CompositionToolbox.App.ViewModels
         {
             if (FocusMode == FocusMode.Single)
             {
-                if (_selectedFocus.HasValue && _baseSet.Contains(_selectedFocus.Value))
+                if (_selectedFocusIndex.HasValue
+                    && _selectedFocusIndex.Value >= 0
+                    && _selectedFocusIndex.Value < _baseSet.Length)
                 {
-                    return new[] { _selectedFocus.Value };
+                    return new[] { _selectedFocusIndex.Value };
                 }
-                return _baseSet.Length > 0 ? new[] { _baseSet[0] } : Array.Empty<int>();
+
+                return _baseSet.Length > 0 ? new[] { 0 } : Array.Empty<int>();
             }
-            return _baseSet.ToArray();
+
+            return _baseSet.Length > 0
+                ? Enumerable.Range(0, _baseSet.Length).ToArray()
+                : Array.Empty<int>();
         }
 
         private void ApplyResults(List<FocusAffineResultRow> rows, int[] focusList)
         {
             Results.Clear();
-            foreach (var row in rows.OrderBy(r => r.Focus))
+            foreach (var row in rows.OrderBy(r => r.FocusIndex))
             {
                 Results.Add(row);
             }
@@ -314,9 +351,12 @@ namespace CompositionToolbox.App.ViewModels
                 return;
             }
             var baseSetDisplay = $"[{string.Join(' ', _baseSet)}]";
-            var focusDisplay = focusList.Length == 0
+            var focusValues = focusList.Length == 0
+                ? Array.Empty<int>()
+                : focusList.Select(index => _baseSet[index]).ToArray();
+            var focusDisplay = focusValues.Length == 0
                 ? "-"
-                : $"[{string.Join(' ', focusList)}]";
+                : $"[{string.Join(' ', focusValues)}]";
             SummaryText = $"PitchList {baseSetDisplay} at Focus {focusDisplay} with multiplier {MultiplierA}";
         }
 
@@ -329,7 +369,9 @@ namespace CompositionToolbox.App.ViewModels
                 return;
             }
 
-            var pcs = row.ResultSet.Members.ToArray();
+            var pcs = _previewMode == FocusAffinePreviewMode.Offsets
+                ? row.Offsets.ToArray()
+                : row.ResultSet.Members.ToArray();
             var node = new AtomicNode
             {
                 Modulus = row.ResultSet.Modulus,
@@ -346,8 +388,13 @@ namespace CompositionToolbox.App.ViewModels
                 new WorkspacePreviewAttribute("Focus", row.Focus.ToString()),
                 new WorkspacePreviewAttribute("Multiplier", MultiplierA.ToString()),
                 new WorkspacePreviewAttribute("Modulus", row.ResultSet.Modulus.ToString()),
-                new WorkspacePreviewAttribute("Result", row.ResultSet.ToBracketString()),
-                new WorkspacePreviewAttribute("IV", row.IntervalVectorDisplay),
+                new WorkspacePreviewAttribute("Mode", _previewMode == FocusAffinePreviewMode.Offsets ? "Offsets" : "Outputs"),
+                _previewMode == FocusAffinePreviewMode.Offsets
+                    ? new WorkspacePreviewAttribute("Offsets", row.OffsetsDisplay)
+                    : new WorkspacePreviewAttribute("Result", row.ResultDisplay),
+                new WorkspacePreviewAttribute("IV", _previewMode == FocusAffinePreviewMode.Offsets
+                    ? $"<{string.Join(',', IntervalVectorIndexService.ComputeIntervalVector(row.Offsets, row.ResultSet.Modulus))}>"
+                    : row.IntervalVectorDisplay),
                 new WorkspacePreviewAttribute("Card", row.Cardinality.ToString())
             };
 
@@ -355,18 +402,33 @@ namespace CompositionToolbox.App.ViewModels
             OnPropertyChanged(nameof(WorkspacePreview));
         }
 
+        public void CommitSelectedOffsets()
+        {
+            CommitSelected(useOffsets: true);
+        }
+
         private void CommitSelected()
+        {
+            CommitSelected(useOffsets: false);
+        }
+
+        private void CommitSelected(bool useOffsets)
         {
             if (SelectedResult == null || _sourceNode == null) return;
             var current = _sourceNode;
             var currentPcs = current.Mode == PcMode.Ordered ? current.Ordered : current.Unordered;
             var currentSet = MusicUtils.NormalizeUnordered(currentPcs, current.Modulus);
-            if (currentSet.SequenceEqual(SelectedResult.ResultSet.Members))
+            var targetSet = useOffsets
+                ? MusicUtils.NormalizeUnordered(SelectedResult.Offsets, SelectedResult.ResultSet.Modulus)
+                : SelectedResult.ResultSet.Members;
+            if (currentSet.SequenceEqual(targetSet))
             {
                 return;
             }
 
-            var resultPcs = SelectedResult.ResultSet.Members.ToArray();
+            var resultPcs = useOffsets
+                ? SelectedResult.Offsets.ToArray()
+                : SelectedResult.ResultSet.Members.ToArray();
             var node = new AtomicNode
             {
                 NodeId = Guid.NewGuid(),
@@ -378,14 +440,17 @@ namespace CompositionToolbox.App.ViewModels
                 OpFromPrev = new OpDescriptor
                 {
                     OpType = "FocusAffine",
-                    OperationLabel = $"Focus Affine f={SelectedResult.Focus}",
+                    OperationLabel = useOffsets
+                        ? $"Focus Affine Offsets f={SelectedResult.Focus}"
+                        : $"Focus Affine f={SelectedResult.Focus}",
                     SourceLens = "FocusAffine",
                     SourceNodeId = current.NodeId,
                     OpParams = new Dictionary<string, object>
                     {
                         ["a"] = MultiplierA,
                         ["focus"] = SelectedResult.Focus,
-                        ["modulus"] = SelectedResult.ResultSet.Modulus
+                        ["modulus"] = SelectedResult.ResultSet.Modulus,
+                        ["mode"] = useOffsets ? "Offsets" : "Outputs"
                     }
                 }
             };
@@ -408,7 +473,8 @@ namespace CompositionToolbox.App.ViewModels
             {
                 ["a"] = MultiplierA,
                 ["focus"] = SelectedResult.Focus,
-                ["modulus"] = SelectedResult.ResultSet.Modulus
+                ["modulus"] = SelectedResult.ResultSet.Modulus,
+                ["mode"] = useOffsets ? "Offsets" : "Outputs"
             };
             _store.TransformState("FocusAffine", opParams, nextState);
         }
@@ -418,7 +484,7 @@ namespace CompositionToolbox.App.ViewModels
             int Modulus,
             int Multiplier,
             FocusMode FocusMode,
-            int? SelectedFocus,
+            int? SelectedFocusIndex,
             string BaseSetHash);
     }
 }

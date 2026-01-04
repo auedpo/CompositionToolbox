@@ -42,7 +42,7 @@
                     <TextBlock Text="Single focus:" Margin="0,0,6,0" />
                     <ComboBox Width="140"
                               ItemsSource="{Binding FocusCandidates}"
-                              SelectedItem="{Binding SelectedFocus}" />
+                              SelectedIndex="{Binding SelectedFocusIndex}" />
                 </WrapPanel>
             </StackPanel>
 
@@ -63,12 +63,14 @@
                       SelectionMode="Single"
                       SelectionUnit="FullRow"
                       MouseDoubleClick="ResultsGrid_MouseDoubleClick"
+                      PreviewMouseLeftButtonDown="ResultsGrid_PreviewMouseLeftButtonDown"
                       PreviewKeyDown="ResultsGrid_PreviewKeyDown"
                       Height="260"
                       Margin="0,0,0,8">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Focus" Binding="{Binding Focus}" Width="80" ElementStyle="{StaticResource AffineMonoText}" />
                     <DataGridTextColumn Header="Result PCSet" Binding="{Binding ResultDisplay}" Width="*" ElementStyle="{StaticResource AffineMonoText}" />
+                    <DataGridTextColumn Header="Offsets" Binding="{Binding OffsetsDisplay}" Width="*" ElementStyle="{StaticResource AffineMonoText}" />
                     <DataGridTextColumn Header="IV" Binding="{Binding IntervalVectorDisplay}" Width="180" ElementStyle="{StaticResource AffineMonoText}" />
                     <DataGridTextColumn Header="Δk" Binding="{Binding CardinalityChangeDisplay}" Width="120" ElementStyle="{StaticResource AffineMonoText}" />
                 </DataGrid.Columns>

@@ -11,16 +11,44 @@ namespace CompositionToolbox.App.Services
             return MusicUtils.NormalizeUnordered(pcs, modulus);
         }
 
-        public static int[] ComputeFocusAffine(int[] baseSet, int modulus, int multiplier, int focus)
+        public static int[] NormalizeOrdered(int[] pcs, int modulus)
         {
-            if (modulus <= 0 || baseSet.Length == 0) return Array.Empty<int>();
-            var result = new int[baseSet.Length];
-            for (int i = 0; i < baseSet.Length; i++)
+            if (pcs == null) return Array.Empty<int>();
+            if (modulus <= 0) return pcs.ToArray();
+            return pcs.Select(pc => NormalizeMod(pc, modulus)).ToArray();
+        }
+
+        public static int[] ComputeOffsets(int[] xs, int modulus, int multiplier, int focusIndex)
+        {
+            if (modulus <= 0 || xs.Length == 0) return Array.Empty<int>();
+            if (focusIndex < 0 || focusIndex >= xs.Length) return Array.Empty<int>();
+
+            var focus = xs[focusIndex];
+            var result = new int[xs.Length];
+            for (int i = 0; i < xs.Length; i++)
             {
-                var value = (multiplier * baseSet[i]) - focus;
-                result[i] = NormalizeMod(value, modulus);
+                var delta = NormalizeMod(xs[i] - focus, modulus);
+                var scaled = NormalizeMod(multiplier * delta, modulus);
+                result[i] = scaled;
             }
-            return result.Distinct().OrderBy(v => v).ToArray();
+
+            return result;
+        }
+
+        public static int[] ComputeOutputs(int[] xs, int modulus, int multiplier, int focusIndex)
+        {
+            if (modulus <= 0 || xs.Length == 0) return Array.Empty<int>();
+            if (focusIndex < 0 || focusIndex >= xs.Length) return Array.Empty<int>();
+
+            var focus = xs[focusIndex];
+            var offsets = ComputeOffsets(xs, modulus, multiplier, focusIndex);
+            var result = new int[xs.Length];
+            for (int i = 0; i < offsets.Length; i++)
+            {
+                result[i] = NormalizeMod(focus + offsets[i], modulus);
+            }
+
+            return result;
         }
 
         public static bool IsBijective(int multiplier, int modulus)

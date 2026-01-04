@@ -102,16 +102,6 @@ namespace CompositionToolbox.App
             // Subscribe once to preview changes to update notation
             _vm.Initialization.PropertyChanged += Initialization_PropertyChanged;
             _vm.PropertyChanged += MainViewModel_PropertyChanged;
-            _vm.Store.CurrentLogEntries.CollectionChanged += (_, _) =>
-                System.Windows.Application.Current.Dispatcher.BeginInvoke(
-                    DispatcherPriority.Loaded,
-                    new Action(() =>
-                    {
-                        if (TransformLogList.Items.Count == 0) return;
-                        if (TransformLogList.SelectedIndex >= 0) return;
-                        TransformLogList.SelectedIndex = TransformLogList.Items.Count - 1;
-                        TransformLogList.ScrollIntoView(TransformLogList.SelectedItem);
-                    }));
             UpdateNotation();
 
             // Schedule a low-impact UI prewarm at idle priority (do not instantiate the full catalog)
@@ -145,6 +135,10 @@ namespace CompositionToolbox.App
                 UpdateNotation();
             }
             else if (e.PropertyName == nameof(MainViewModel.WorkspacePreview))
+            {
+                UpdateNotation();
+            }
+            else if (e.PropertyName == nameof(MainViewModel.WorkspacePreviewNotationMode))
             {
                 UpdateNotation();
             }
@@ -182,20 +176,26 @@ namespace CompositionToolbox.App
             var preview = _vm.WorkspacePreview;
             var node = preview?.Node ?? _vm.Initialization.PreviewNode;
             if (node == null) return;
-            var renderMode = preview?.RenderMode ?? "line";
-            int[] midi;
-            if (preview?.MidiNotes != null)
+            var isChord = _vm.WorkspacePreviewNotationMode == NotationPreference.Chord;
+            var renderMode = isChord ? "chord" : "line";
+            var mode = isChord ? PcMode.Unordered : PcMode.Ordered;
+            var pcs = isChord
+                ? (node.Mode == PcMode.Unordered ? node.Unordered : MusicUtils.NormalizeUnordered(node.Ordered, node.Modulus))
+                : (node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered);
+            var config = _vm.GetRealizationConfig();
+            var midi = MusicUtils.RealizePcs(pcs, node.Modulus, mode, config);
+            var displayNode = new AtomicNode
             {
-                midi = preview.MidiNotes;
-            }
-            else
-            {
-                var config = _vm.GetRealizationConfig();
-                var pcs = node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered;
-                midi = MusicUtils.RealizePcs(pcs, node.Modulus, node.Mode, config);
-            }
+                Modulus = node.Modulus,
+                Mode = mode,
+                Ordered = pcs,
+                Unordered = pcs,
+                ValueType = node.ValueType,
+                Label = node.Label,
+                OpFromPrev = node.OpFromPrev
+            };
             _notation.RenderNode(
-                node,
+                displayNode,
                 _vm.SelectedAccidentalRule,
                 renderMode,
                 width: width,
@@ -203,7 +203,8 @@ namespace CompositionToolbox.App
                 maxNotes: 16,
                 clipToViewport: true,
                 showOverflowIndicator: true,
-                midiNotes: midi);
+                midiNotes: midi,
+                useMidiForEdo19: true);
         }
 
         private bool _lightPrewarmed;

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System;
+using System.ComponentModel;
 using CompositionToolbox.App.Stores;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Data;
 using Microsoft.VisualBasic;
 
 namespace CompositionToolbox.App.ViewModels
@@ -81,6 +83,7 @@ namespace CompositionToolbox.App.ViewModels
         private OrderedUnwrapMode _orderedUnwrapMode;
         private ChordVoicingMode _chordVoicingMode;
         private NotationPreference _defaultNotationMode;
+        private NotationPreference _workspacePreviewNotationMode;
         private int _pitchBendRangeSemitones;
         private CompositeTransformLogEntry? _selectedLogEntry;
         private WorkspacePreview? _workspacePreview;
@@ -89,6 +92,7 @@ namespace CompositionToolbox.App.ViewModels
         private string _logDetailsOpParams = "Op params: -";
         private string _logDetailsMeta = "Meta: -";
         private readonly Dictionary<Guid, Guid> _lastSelectedLogEntryByComposite = new();
+        public ICollectionView TransformLogView { get; }
 
         public MainViewModel(SettingsService settingsService, AppSettings appSettings, CompositeStore store, ProjectService projectService)
         {
@@ -96,6 +100,11 @@ namespace CompositionToolbox.App.ViewModels
             _appSettings = appSettings;
             Store = store;
             _projectService = projectService;
+            TransformLogView = CollectionViewSource.GetDefaultView(Store.LogEntries);
+            TransformLogView.Filter = entry =>
+                entry is CompositeTransformLogEntry logEntry
+                && Store.SelectedComposite != null
+                && logEntry.CompositeId == Store.SelectedComposite.CompositeId;
             _midiService = new MidiService();
             PresetCatalog = new PresetCatalogService();
             PresetState = new PresetStateService();
@@ -123,7 +132,8 @@ namespace CompositionToolbox.App.ViewModels
                     PlayCommand.NotifyCanExecuteChanged();
                     if (Store.SelectedState != null)
                     {
-                        var match = Store.CurrentLogEntries.FirstOrDefault(entry => entry.NewStateId == Store.SelectedState.StateId);
+                        var match = GetSelectedCompositeLogEntries()
+                            .FirstOrDefault(entry => entry.NewStateId == Store.SelectedState.StateId);
                         if (match != null && !ReferenceEquals(SelectedLogEntry, match))
                         {
                             SelectedLogEntry = match;
@@ -138,7 +148,7 @@ namespace CompositionToolbox.App.ViewModels
                     var app = System.Windows.Application.Current;
                     if (app == null || app.Dispatcher == null)
                     {
-                        if (Store.CurrentLogEntries.Contains(entry))
+                        if (Store.SelectedComposite != null && entry.CompositeId == Store.SelectedComposite.CompositeId)
                         {
                             SelectedLogEntry = entry;
                         }
@@ -147,7 +157,7 @@ namespace CompositionToolbox.App.ViewModels
                     {
                         app.Dispatcher.BeginInvoke(() =>
                         {
-                            if (Store.CurrentLogEntries.Contains(entry))
+                            if (Store.SelectedComposite != null && entry.CompositeId == Store.SelectedComposite.CompositeId)
                             {
                                 SelectedLogEntry = entry;
                             }
@@ -156,6 +166,7 @@ namespace CompositionToolbox.App.ViewModels
                 }
                 else if (e.PropertyName == nameof(Store.SelectedComposite))
                 {
+                    TransformLogView.Refresh();
                     SelectedLogEntry = GetCompositeSelectedLogEntry();
                     DuplicateCompositeCommand.NotifyCanExecuteChanged();
                     RenameCompositeCommand.NotifyCanExecuteChanged();
@@ -168,21 +179,27 @@ namespace CompositionToolbox.App.ViewModels
                 RenameCompositeCommand.NotifyCanExecuteChanged();
                 DeleteCompositeCommand.NotifyCanExecuteChanged();
             };
-            Store.CurrentLogEntries.CollectionChanged += (_, e) =>
+            Store.LogEntries.CollectionChanged += (_, e) =>
             {
                 if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
                 {
-                    SelectedLogEntry = Store.CurrentLogEntries.LastOrDefault();
+                    SelectedLogEntry = GetCompositeSelectedLogEntry();
                     return;
                 }
                 if (e.NewItems != null && e.NewItems.Count > 0)
                 {
-                    SelectedLogEntry = e.NewItems[^1] as CompositeTransformLogEntry;
-                    return;
+                    var entry = e.NewItems[^1] as CompositeTransformLogEntry;
+                    if (entry != null
+                        && Store.SelectedComposite != null
+                        && entry.CompositeId == Store.SelectedComposite.CompositeId)
+                    {
+                        SelectedLogEntry = entry;
+                        return;
+                    }
                 }
                 if (SelectedLogEntry == null)
                 {
-                    SelectedLogEntry = Store.CurrentLogEntries.LastOrDefault();
+                    SelectedLogEntry = GetCompositeSelectedLogEntry();
                 }
             };
 
@@ -347,8 +364,15 @@ namespace CompositionToolbox.App.ViewModels
                     Inspector.SelectedNotationMode = value == NotationPreference.Sequence
                         ? InspectorNotationMode.Sequence
                         : InspectorNotationMode.Chord;
+                    WorkspacePreviewNotationMode = value;
                 }
             }
+        }
+
+        public NotationPreference WorkspacePreviewNotationMode
+        {
+            get => _workspacePreviewNotationMode;
+            set => SetProperty(ref _workspacePreviewNotationMode, value);
         }
 
         public CompositeTransformLogEntry? SelectedLogEntry
@@ -436,23 +460,9 @@ namespace CompositionToolbox.App.ViewModels
             if (preview?.Node == null) return;
             var node = preview.Node;
 
-            if (preview.MidiNotes != null && preview.MidiNotes.Length > 0)
-            {
-                if (string.Equals(preview.RenderMode, "chord", StringComparison.OrdinalIgnoreCase))
-                {
-                    await _midiService.PlayMidiChord(preview.MidiNotes);
-                }
-                else
-                {
-                    await _midiService.PlayMidiSequence(preview.MidiNotes);
-                }
-                return;
-            }
-
-            var mode = string.Equals(preview.RenderMode, "chord", StringComparison.OrdinalIgnoreCase)
-                ? PcMode.Unordered
-                : PcMode.Ordered;
-            var pcs = mode == PcMode.Unordered
+            var isChord = WorkspacePreviewNotationMode == NotationPreference.Chord;
+            var mode = isChord ? PcMode.Unordered : PcMode.Ordered;
+            var pcs = isChord
                 ? (node.Mode == PcMode.Unordered ? node.Unordered : MusicUtils.NormalizeUnordered(node.Ordered, node.Modulus))
                 : (node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered);
             if (pcs.Length == 0) return;
@@ -541,6 +551,7 @@ namespace CompositionToolbox.App.ViewModels
             _orderedUnwrapMode = _appSettings.OrderedUnwrapMode;
             _chordVoicingMode = _appSettings.ChordVoicingMode;
             _defaultNotationMode = _appSettings.DefaultNotationMode;
+            _workspacePreviewNotationMode = _appSettings.DefaultNotationMode;
             _pitchBendRangeSemitones = _appSettings.PitchBendRangeSemitones;
         }
 
@@ -617,17 +628,27 @@ namespace CompositionToolbox.App.ViewModels
             var composite = Store.SelectedComposite;
             if (composite == null)
             {
-                return Store.CurrentLogEntries.LastOrDefault();
+                return null;
             }
             if (_lastSelectedLogEntryByComposite.TryGetValue(composite.CompositeId, out var entryId))
             {
-                var entry = Store.CurrentLogEntries.FirstOrDefault(e => e.EntryId == entryId);
+                var entry = GetSelectedCompositeLogEntries().FirstOrDefault(e => e.EntryId == entryId);
                 if (entry != null)
                 {
                     return entry;
                 }
             }
-            return Store.CurrentLogEntries.LastOrDefault();
+            return GetSelectedCompositeLogEntries().LastOrDefault();
+        }
+
+        private IEnumerable<CompositeTransformLogEntry> GetSelectedCompositeLogEntries()
+        {
+            var composite = Store.SelectedComposite;
+            if (composite == null)
+            {
+                return Enumerable.Empty<CompositeTransformLogEntry>();
+            }
+            return Store.LogEntries.Where(entry => entry.CompositeId == composite.CompositeId);
         }
 
         private string FormatStateSnapshot(CompositeState? state)
