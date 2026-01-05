@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CompositionToolbox.App.Models
 {
@@ -14,10 +15,15 @@ namespace CompositionToolbox.App.Models
         Instrument
     }
 
-    public class Composite
+    public class Composite : ObservableObject
     {
+        private string _title = "Default";
         public Guid CompositeId { get; set; } = Guid.NewGuid();
-        public string Title { get; set; } = "Default";
+        public string Title
+        {
+            get => _title;
+            set => SetProperty(ref _title, value);
+        }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public Guid? CurrentStateId { get; set; }
     }

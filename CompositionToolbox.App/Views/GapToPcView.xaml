@@ -20,7 +20,7 @@
 
             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                 <TextBlock Text="Preview:" FontWeight="Bold" Margin="0,0,6,0" />
-                <TextBlock Text="{Binding PreviewDisplay}" FontFamily="Consolas" Margin="0,0,12,0" />
+                <TextBlock Text="{Binding PreviewDisplay}" FontFamily="{DynamicResource App.MonoFontFamily}" Margin="0,0,12,0" />
                 <TextBlock Text="Count:" FontWeight="Bold" Margin="0,0,6,0" />
                 <TextBlock Text="{Binding PcCount}" />
             </StackPanel>

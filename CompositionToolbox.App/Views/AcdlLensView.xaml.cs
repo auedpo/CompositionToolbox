@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using CompositionToolbox.App.Converters;
 using CompositionToolbox.App.ViewModels;
 using WpfBinding = System.Windows.Data.Binding;
 
@@ -122,22 +123,71 @@ namespace CompositionToolbox.App.Views
             var anchorColumn = new DataGridTextColumn
             {
                 Header = "Anchor",
-                Binding = new WpfBinding(nameof(AcdlMultiResultRow.AnchorGapIndex)),
-                Width = 70
+                Binding = new WpfBinding(nameof(AcdlMultiResultRow.AnchorDisplay)),
+                Width = 110
             };
             MultiResultsGrid.Columns.Add(anchorColumn);
+            if (anchorColumn.Header is string)
+            {
+                anchorColumn.Header = new TextBlock
+                {
+                    Text = "Anchor",
+                    ToolTip = "Anchor gap index (Ⓢ = saturated across shown P values)."
+                };
+            }
+
+            var saturationColumn = new DataGridTextColumn
+            {
+                Header = "Saturates at",
+                Binding = new WpfBinding(nameof(AcdlMultiResultRow.SaturationAtDisplay)),
+                Width = 110
+            };
+            MultiResultsGrid.Columns.Add(saturationColumn);
+            if (saturationColumn.Header is string)
+            {
+                saturationColumn.Header = new TextBlock
+                {
+                    Text = "Saturates at",
+                    ToolTip = "First P where output stops changing (computed from P=1–16; P > 15 means not yet saturated)."
+                };
+            }
+
+            var sensitivityColumn = new DataGridTextColumn
+            {
+                Header = "Unique",
+                Binding = new WpfBinding(nameof(AcdlMultiResultRow.UniqueBeforeSaturationDisplay)),
+                Width = 120
+            };
+            MultiResultsGrid.Columns.Add(sensitivityColumn);
+            if (sensitivityColumn.Header is string)
+            {
+                sensitivityColumn.Header = new TextBlock
+                {
+                    Text = "Unique",
+                    ToolTip = "Number of distinct outputs up to saturation (P=1–16 if P > 15)."
+                };
+            }
 
             if (pValues == null) return;
 
             var monoStyle = TryFindResource("AcdlMonoText") as Style;
             foreach (var p in pValues)
             {
+                var cellStyle = monoStyle != null
+                    ? new Style(typeof(TextBlock), monoStyle)
+                    : new Style(typeof(TextBlock));
+                cellStyle.Setters.Add(new Setter(
+                    TextBlock.ToolTipProperty,
+                    new WpfBinding($"TracesByP[{p}]")
+                    {
+                        Converter = new AcdlProjectionTraceTooltipConverter()
+                    }));
                 var column = new DataGridTextColumn
                 {
                     Header = $"P={p}",
                     Binding = new WpfBinding($"[{p}]"),
                     Width = new DataGridLength(1, DataGridLengthUnitType.Star),
-                    ElementStyle = monoStyle
+                    ElementStyle = cellStyle
                 };
                 MultiResultsGrid.Columns.Add(column);
             }

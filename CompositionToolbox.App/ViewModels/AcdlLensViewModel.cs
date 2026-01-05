@@ -54,20 +54,152 @@ namespace CompositionToolbox.App.ViewModels
 
     public sealed class AcdlMultiResultRow
     {
-        public AcdlMultiResultRow(int anchorGapIndex, Dictionary<int, string> resultsByP)
+        public AcdlMultiResultRow(
+            int anchorGapIndex,
+            Dictionary<int, string> resultsByP,
+            Dictionary<int, AcdlProjectionTrace> tracesByP,
+            List<AcdlPlateau> plateaus,
+            Dictionary<string, int> firstOccurrenceBySignature,
+            int uniqueCount,
+            int uniqueBeforeSaturation,
+            int preSaturationRangeCount,
+            int maxPlateauLength,
+            string plateauSummary,
+            bool isFullySaturated,
+            string saturationTooltip,
+            string saturationReason,
+            string saturationAtDisplay,
+            string saturationAtTooltip,
+            string uniqueCountTooltip)
         {
             AnchorGapIndex = anchorGapIndex;
             ResultsByP = resultsByP ?? new Dictionary<int, string>();
+            TracesByP = tracesByP ?? new Dictionary<int, AcdlProjectionTrace>();
+            Plateaus = plateaus ?? new List<AcdlPlateau>();
+            FirstOccurrenceBySignature = firstOccurrenceBySignature ?? new Dictionary<string, int>();
+            UniqueCount = uniqueCount;
+            UniqueBeforeSaturation = uniqueBeforeSaturation;
+            PreSaturationRangeCount = preSaturationRangeCount;
+            MaxPlateauLength = maxPlateauLength;
+            PlateauSummary = plateauSummary;
+            IsFullySaturated = isFullySaturated;
+            SaturationTooltip = saturationTooltip;
+            SaturationReason = saturationReason;
+            SaturationAtDisplay = saturationAtDisplay;
+            SaturationAtTooltip = saturationAtTooltip;
+            UniqueCountTooltip = uniqueCountTooltip;
         }
 
         public int AnchorGapIndex { get; }
         public IReadOnlyDictionary<int, string> ResultsByP { get; }
+        public IReadOnlyDictionary<int, AcdlProjectionTrace> TracesByP { get; }
+        public IReadOnlyList<AcdlPlateau> Plateaus { get; }
+        public IReadOnlyDictionary<string, int> FirstOccurrenceBySignature { get; }
+        public int UniqueCount { get; }
+        public int UniqueBeforeSaturation { get; }
+        public int PreSaturationRangeCount { get; }
+        public int MaxPlateauLength { get; }
+        public string PlateauSummary { get; }
+        public bool IsFullySaturated { get; }
+        public string SaturationTooltip { get; }
+        public string SaturationReason { get; }
+        public string SaturationAtDisplay { get; }
+        public string SaturationAtTooltip { get; }
+        public string UniqueCountTooltip { get; }
+
+        public string AnchorDisplay => IsFullySaturated ? $"{AnchorGapIndex} Ⓢ" : AnchorGapIndex.ToString();
+        public string UniqueBeforeSaturationDisplay => UniqueBeforeSaturation.ToString();
 
         public string this[int p] => ResultsByP.TryGetValue(p, out var value) ? value : "-";
     }
 
+    public sealed class AcdlProjectionTrace
+    {
+        public AcdlProjectionTrace(
+            int p,
+            bool isValid,
+            string signature,
+            int[] projectedGaps,
+            int[] resultPitchList,
+            int fixedGap,
+            int scaledFreeSum,
+            int targetFreeSum,
+            AcdlProjectionDetails details)
+        {
+            P = p;
+            IsValid = isValid;
+            Signature = signature ?? string.Empty;
+            ProjectedGaps = projectedGaps ?? Array.Empty<int>();
+            ResultPitchList = resultPitchList ?? Array.Empty<int>();
+            FixedGap = fixedGap;
+            ScaledFreeSum = scaledFreeSum;
+            TargetFreeSum = targetFreeSum;
+            Details = details ?? new AcdlProjectionDetails();
+        }
+
+        public int P { get; }
+        public bool IsValid { get; }
+        public string Signature { get; }
+        public int[] ProjectedGaps { get; }
+        public int[] ResultPitchList { get; }
+        public int FixedGap { get; }
+        public int ScaledFreeSum { get; }
+        public int TargetFreeSum { get; }
+        public AcdlProjectionDetails Details { get; }
+    }
+
+    public sealed class AcdlPlateau
+    {
+        public AcdlPlateau(int pStart, int pEnd, string signature, int[] projectedGaps, int[] resultPitchList)
+        {
+            PStart = pStart;
+            PEnd = pEnd;
+            Signature = signature ?? string.Empty;
+            ProjectedGaps = projectedGaps ?? Array.Empty<int>();
+            ResultPitchList = resultPitchList ?? Array.Empty<int>();
+        }
+
+        public int PStart { get; }
+        public int PEnd { get; }
+        public string Signature { get; }
+        public int[] ProjectedGaps { get; }
+        public int[] ResultPitchList { get; }
+        public int Length => PEnd - PStart + 1;
+    }
+
     public sealed class AcdlLensViewModel : ObservableObject, ILensPreviewSource, ILensActivation
     {
+        private readonly record struct SaturationMetrics(
+            string SaturationAtDisplay,
+            int UniqueBeforeSaturation,
+            int PreSaturationRangeCount);
+        private readonly record struct MultiDescriptorCacheKey(
+            Guid? SourceNodeId,
+            int Modulus,
+            AcdlProjectionMode ProjectionMode,
+            bool RetainAnchorGapPcs,
+            int AnchorIndex,
+            string PRangeKey);
+
+        private sealed class AcdlMultiDescriptorCacheEntry
+        {
+            public Dictionary<int, string> ResultsByP { get; init; } = new();
+            public Dictionary<int, AcdlProjectionTrace> TracesByP { get; init; } = new();
+            public List<AcdlPlateau> Plateaus { get; init; } = new();
+            public Dictionary<string, int> FirstOccurrenceBySignature { get; init; } = new();
+            public int UniqueCount { get; init; }
+            public int UniqueBeforeSaturation { get; init; }
+            public int PreSaturationRangeCount { get; init; }
+            public int MaxPlateauLength { get; init; }
+            public string PlateauSummary { get; init; } = string.Empty;
+            public bool IsFullySaturated { get; init; }
+            public string SaturationTooltip { get; init; } = string.Empty;
+            public string SaturationReason { get; init; } = string.Empty;
+            public string SaturationAtDisplay { get; init; } = string.Empty;
+            public string SaturationAtTooltip { get; init; } = string.Empty;
+            public string UniqueCountTooltip { get; init; } = string.Empty;
+        }
+
         private readonly CompositeStore _store;
         private AtomicNode? _sourceNode;
         private int[] _sourceOrdered = Array.Empty<int>();
@@ -80,7 +212,7 @@ namespace CompositionToolbox.App.ViewModels
         private bool _isActive;
         private bool _pendingUpdate;
         private string _pInput = "2";
-        private string _multiPInput = string.Empty;
+        private string _multiPInput = "1-6";
         private int _p = 2;
         private AcdlProjectionMode _projectionMode = AcdlProjectionMode.TrimLargest;
         private bool _retainAnchorGapPcs = true;
@@ -92,6 +224,11 @@ namespace CompositionToolbox.App.ViewModels
         private int? _selectedMultiP;
         private WorkspacePreview? _workspacePreview;
         private List<int> _multiPValues = new();
+        private string _multiResultsSummary = string.Empty;
+        private string _selectedMultiSummary = string.Empty;
+        private readonly Dictionary<MultiDescriptorCacheKey, AcdlMultiDescriptorCacheEntry> _multiDescriptorCache = new();
+        private readonly Dictionary<int, SaturationMetrics> _saturationMetricsCache = new();
+        private static readonly int[] SaturationPValues = Enumerable.Range(1, 16).ToArray();
 
         public AcdlLensViewModel(CompositeStore store)
         {
@@ -111,6 +248,7 @@ namespace CompositionToolbox.App.ViewModels
                 }
             };
             _store.Nodes.CollectionChanged += (_, _) => UpdateFromSelectedState();
+            UpdateMultiPValues(_multiPInput);
         }
 
         public ObservableCollection<AcdlResultRow> Results { get; }
@@ -151,6 +289,18 @@ namespace CompositionToolbox.App.ViewModels
         public IReadOnlyList<int> MultiPValues => _multiPValues;
 
         public bool HasMultiPValues => _multiPValues.Count > 0;
+
+        public string MultiResultsSummary
+        {
+            get => _multiResultsSummary;
+            private set => SetProperty(ref _multiResultsSummary, value);
+        }
+
+        public string SelectedMultiSummary
+        {
+            get => _selectedMultiSummary;
+            private set => SetProperty(ref _selectedMultiSummary, value);
+        }
 
         public int P
         {
@@ -301,6 +451,7 @@ namespace CompositionToolbox.App.ViewModels
                 if (SetProperty(ref _selectedMultiAnchorIndex, value))
                 {
                     UpdateMultiSelectionPreview();
+                    UpdateSelectedMultiSummary();
                     CommitSelectedCommand.NotifyCanExecuteChanged();
                 }
             }
@@ -314,6 +465,7 @@ namespace CompositionToolbox.App.ViewModels
                 if (SetProperty(ref _selectedMultiP, value))
                 {
                     UpdateMultiSelectionPreview();
+                    UpdateSelectedMultiSummary();
                     CommitSelectedCommand.NotifyCanExecuteChanged();
                 }
             }
@@ -363,7 +515,12 @@ namespace CompositionToolbox.App.ViewModels
 
         private void SetSourceNode(AtomicNode? node)
         {
+            var previousNodeId = _sourceNode?.NodeId;
             _sourceNode = node;
+            if (previousNodeId != node?.NodeId)
+            {
+                _multiDescriptorCache.Clear();
+            }
             if (node == null || node.ValueType != AtomicValueType.PitchList)
             {
                 ClearSource();
@@ -371,15 +528,15 @@ namespace CompositionToolbox.App.ViewModels
             }
 
             HasPitchSource = true;
-            IsOrderedSource = node.Mode == PcMode.Ordered;
-            CreateOrderedFromUnorderedCommand.NotifyCanExecuteChanged();
             _modulus = node.Modulus;
             _sourceOrdered = node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered;
+            IsOrderedSource = IsAscending(_sourceOrdered);
+            CreateOrderedFromUnorderedCommand.NotifyCanExecuteChanged();
             SourceDisplay = _sourceOrdered.Length == 0 ? string.Empty : $"({string.Join(' ', _sourceOrdered)})";
 
             if (!IsOrderedSource)
             {
-                StatusText = "ACDL requires an ordered PitchList.";
+                StatusText = "ACDL requires a strictly ascending PitchList (no duplicates).";
                 HasUniqueSource = false;
                 HasValidSource = false;
                 InputCintDisplay = string.Empty;
@@ -423,7 +580,7 @@ namespace CompositionToolbox.App.ViewModels
             IsOrderedSource = false;
             HasUniqueSource = false;
             HasValidSource = false;
-            StatusText = "Select an ordered PitchList with unique pcs.";
+            StatusText = "Select a strictly ascending PitchList (no duplicates).";
             SourceDisplay = string.Empty;
             InputCintDisplay = string.Empty;
             ClearResults();
@@ -437,11 +594,14 @@ namespace CompositionToolbox.App.ViewModels
             OnPropertyChanged(nameof(WorkspacePreview));
             ClearMultiResults();
             ClearMultiSelection();
+            _saturationMetricsCache.Clear();
         }
 
         private void ClearMultiResults()
         {
             MultiResults.Clear();
+            MultiResultsSummary = string.Empty;
+            UpdateSelectedMultiSummary();
         }
 
         private void Recompute()
@@ -453,6 +613,7 @@ namespace CompositionToolbox.App.ViewModels
                 return;
             }
 
+            PrecomputeSaturationCache();
             RecomputeSingleResults();
             RecomputeMultiResults();
         }
@@ -517,16 +678,45 @@ namespace CompositionToolbox.App.ViewModels
             }
 
             MultiResults.Clear();
+            var orderedPs = _multiPValues.OrderBy(p => p).ToArray();
+            var pRangeKey = string.Join(",", orderedPs);
             var k = _inputCint.Length;
             for (int a = 0; a < k; a++)
             {
-                var resultMap = new Dictionary<int, string>();
-                foreach (var p in _multiPValues)
+                var cacheKey = new MultiDescriptorCacheKey(
+                    _sourceNode?.NodeId,
+                    _modulus,
+                    ProjectionMode,
+                    RetainAnchorGapPcs,
+                    a,
+                    pRangeKey);
+
+                if (!_multiDescriptorCache.TryGetValue(cacheKey, out var entry))
                 {
-                    resultMap[p] = BuildResultDisplay(a, p);
+                    entry = BuildMultiDescriptorCacheEntry(a, _multiPValues, orderedPs);
+                    _multiDescriptorCache[cacheKey] = entry;
                 }
-                MultiResults.Add(new AcdlMultiResultRow(a, resultMap));
+
+                MultiResults.Add(new AcdlMultiResultRow(
+                    a,
+                    entry.ResultsByP,
+                    entry.TracesByP,
+                    entry.Plateaus,
+                    entry.FirstOccurrenceBySignature,
+                    entry.UniqueCount,
+                    entry.UniqueBeforeSaturation,
+                    entry.PreSaturationRangeCount,
+                    entry.MaxPlateauLength,
+                    entry.PlateauSummary,
+                    entry.IsFullySaturated,
+                    entry.SaturationTooltip,
+                    entry.SaturationReason,
+                    entry.SaturationAtDisplay,
+                    entry.SaturationAtTooltip,
+                    entry.UniqueCountTooltip));
             }
+            UpdateMultiResultsSummary();
+            UpdateSelectedMultiSummary();
             OnPropertyChanged(nameof(ShowMultiResults));
         }
 
@@ -544,7 +734,7 @@ namespace CompositionToolbox.App.ViewModels
             return AcdlMath.BuildPitchListFromGaps(_sourceOrdered[0], projectedCint, _modulus);
         }
 
-        private string BuildResultDisplay(int anchorIndex, int p)
+        private AcdlProjectionTrace BuildProjectionTrace(int anchorIndex, int p)
         {
             var ok = AcdlMath.TryProjectGaps(
                 _inputCint,
@@ -552,19 +742,293 @@ namespace CompositionToolbox.App.ViewModels
                 anchorIndex,
                 p,
                 ProjectionMode,
-                out _,
+                out var fixedGap,
                 out var projectedCint,
+                out var scaledFreeSum,
+                out var targetFreeSum,
                 out _,
-                out _,
-                out _);
+                out var details);
 
             if (!ok)
+            {
+                return new AcdlProjectionTrace(
+                    p,
+                    false,
+                    "INVALID",
+                    Array.Empty<int>(),
+                    Array.Empty<int>(),
+                    fixedGap,
+                    scaledFreeSum,
+                    targetFreeSum,
+                    details);
+            }
+
+            var resultList = BuildResultList(anchorIndex, projectedCint);
+            var signature = string.Join(",", projectedCint);
+            return new AcdlProjectionTrace(
+                p,
+                true,
+                signature,
+                projectedCint,
+                resultList,
+                fixedGap,
+                scaledFreeSum,
+                targetFreeSum,
+                details);
+        }
+
+        private AcdlMultiDescriptorCacheEntry BuildMultiDescriptorCacheEntry(
+            int anchorIndex,
+            IReadOnlyList<int> pValues,
+            IReadOnlyList<int> orderedPs)
+        {
+            var resultsByP = new Dictionary<int, string>();
+            var tracesByP = new Dictionary<int, AcdlProjectionTrace>();
+            foreach (var p in pValues)
+            {
+                var trace = BuildProjectionTrace(anchorIndex, p);
+                tracesByP[p] = trace;
+                resultsByP[p] = trace.ResultPitchList.Length == 0 ? "-" : $"({string.Join(' ', trace.ResultPitchList)})";
+            }
+
+            var firstOccurrenceBySignature = new Dictionary<string, int>();
+            var plateaus = BuildPlateaus(orderedPs, tracesByP, firstOccurrenceBySignature);
+            var uniqueCount = firstOccurrenceBySignature.Count;
+
+            var maxPlateau = plateaus.OrderByDescending(p => p.Length).FirstOrDefault();
+            var maxPlateauLength = maxPlateau?.Length ?? 0;
+            var plateauSummary = maxPlateauLength >= 2 && maxPlateau != null
+                ? $"Plateau: P={maxPlateau.PStart}-{maxPlateau.PEnd}"
+                : string.Empty;
+
+            var isFullySaturated = maxPlateau != null
+                && maxPlateau.Length == orderedPs.Count
+                && orderedPs.Count > 0
+                && tracesByP[orderedPs[0]].IsValid;
+
+            var saturationReason = maxPlateauLength >= 2 && maxPlateau != null
+                ? BuildSaturationReason(orderedPs.Where(p => p >= maxPlateau.PStart && p <= maxPlateau.PEnd)
+                    .Select(p => tracesByP[p]))
+                : string.Empty;
+
+            var saturationTooltip = isFullySaturated && maxPlateau != null
+                ? $"Ⓢ Saturated: projected output is identical for all shown P values (P={maxPlateau.PStart}-{maxPlateau.PEnd}) under {ProjectionMode}."
+                : string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(saturationTooltip) && !string.IsNullOrWhiteSpace(saturationReason))
+            {
+                saturationTooltip = $"{saturationTooltip} {saturationReason}.";
+            }
+
+            var saturationAtDisplay = "-";
+            var uniqueBeforeSaturation = 0;
+            var preSaturationRangeCount = 0;
+            if (_saturationMetricsCache.TryGetValue(anchorIndex, out var metrics))
+            {
+                saturationAtDisplay = metrics.SaturationAtDisplay;
+                uniqueBeforeSaturation = metrics.UniqueBeforeSaturation;
+                preSaturationRangeCount = metrics.PreSaturationRangeCount;
+            }
+            var saturationAtTooltip = "Computed from P=1-16. If P=16 differs from P=15, shown as P > 15.";
+            var uniqueCountTooltip = "Distinct outputs up to saturation. If P > 15, count reflects P=1-16.";
+
+            return new AcdlMultiDescriptorCacheEntry
+            {
+                ResultsByP = resultsByP,
+                TracesByP = tracesByP,
+                Plateaus = plateaus,
+                FirstOccurrenceBySignature = firstOccurrenceBySignature,
+                UniqueCount = uniqueCount,
+                UniqueBeforeSaturation = uniqueBeforeSaturation,
+                PreSaturationRangeCount = preSaturationRangeCount,
+                MaxPlateauLength = maxPlateauLength,
+                PlateauSummary = plateauSummary,
+                IsFullySaturated = isFullySaturated,
+                SaturationTooltip = saturationTooltip,
+                SaturationReason = saturationReason,
+                SaturationAtDisplay = saturationAtDisplay,
+                SaturationAtTooltip = saturationAtTooltip,
+                UniqueCountTooltip = uniqueCountTooltip
+            };
+        }
+
+        private static List<AcdlPlateau> BuildPlateaus(
+            IReadOnlyList<int> orderedPs,
+            IReadOnlyDictionary<int, AcdlProjectionTrace> tracesByP,
+            Dictionary<string, int> firstOccurrenceBySignature)
+        {
+            var plateaus = new List<AcdlPlateau>();
+            if (orderedPs.Count == 0) return plateaus;
+
+            var startP = orderedPs[0];
+            var currentTrace = tracesByP[startP];
+            var currentSignature = currentTrace.Signature;
+            firstOccurrenceBySignature[currentSignature] = startP;
+            var lastP = startP;
+
+            for (int i = 1; i < orderedPs.Count; i++)
+            {
+                var p = orderedPs[i];
+                var trace = tracesByP[p];
+                var signature = trace.Signature;
+                if (!firstOccurrenceBySignature.ContainsKey(signature))
+                {
+                    firstOccurrenceBySignature[signature] = p;
+                }
+
+                if (!string.Equals(signature, currentSignature, StringComparison.Ordinal))
+                {
+                    plateaus.Add(new AcdlPlateau(
+                        startP,
+                        lastP,
+                        currentSignature,
+                        currentTrace.ProjectedGaps,
+                        currentTrace.ResultPitchList));
+                    startP = p;
+                    currentSignature = signature;
+                    currentTrace = trace;
+                }
+
+                lastP = p;
+            }
+
+            plateaus.Add(new AcdlPlateau(
+                startP,
+                lastP,
+                currentSignature,
+                currentTrace.ProjectedGaps,
+                currentTrace.ResultPitchList));
+            return plateaus;
+        }
+
+        private static string BuildSaturationReason(IEnumerable<AcdlProjectionTrace> traces)
+        {
+            var list = traces.Where(t => t.IsValid).ToList();
+            if (list.Count == 0) return string.Empty;
+
+            var clampTotal = list.Sum(t => t.Details.NumClampsToMin);
+            var trimCounts = new int[list[0].Details.TrimCountByIndex.Length];
+            foreach (var trace in list)
+            {
+                var counts = trace.Details.TrimCountByIndex;
+                for (int i = 0; i < counts.Length; i++)
+                {
+                    trimCounts[i] += counts[i];
+                }
+            }
+
+            var trimmedIndices = trimCounts
+                .Select((count, index) => new { count, index })
+                .Where(entry => entry.count > 0)
+                .OrderByDescending(entry => entry.count)
+                .Select(entry => entry.index)
+                .Take(3)
+                .ToList();
+
+            var parts = new List<string>();
+            if (trimmedIndices.Count > 0)
+            {
+                parts.Add($"Trimmed indices {{{string.Join(",", trimmedIndices)}}}");
+            }
+            if (clampTotal > 0)
+            {
+                parts.Add($"min clamps {clampTotal}");
+            }
+            return string.Join("; ", parts);
+        }
+
+        private static string BuildSaturationAtDisplay(
+            IReadOnlyList<int> saturationPs,
+            IReadOnlyDictionary<int, AcdlProjectionTrace> tracesByP)
+        {
+            if (saturationPs.Count == 0) return "-";
+
+            var ordered = saturationPs.OrderBy(p => p).ToArray();
+            if (ordered.Any(p => !tracesByP.TryGetValue(p, out var trace) || !trace.IsValid))
             {
                 return "-";
             }
 
-            var resultList = BuildResultList(anchorIndex, projectedCint);
-            return resultList.Length == 0 ? "-" : $"({string.Join(' ', resultList)})";
+            var lastChangeP = 0;
+            for (int i = 1; i < ordered.Length; i++)
+            {
+                var current = tracesByP[ordered[i]];
+                var previous = tracesByP[ordered[i - 1]];
+                if (!string.Equals(current.Signature, previous.Signature, StringComparison.Ordinal))
+                {
+                    lastChangeP = ordered[i];
+                }
+            }
+
+            var lastP = ordered[^1];
+            var secondLastP = ordered.Length >= 2 ? ordered[^2] : 0;
+            if (ordered.Length >= 2)
+            {
+                var lastSig = tracesByP[lastP].Signature;
+                var prevSig = tracesByP[secondLastP].Signature;
+                if (!string.Equals(lastSig, prevSig, StringComparison.Ordinal))
+                {
+                    return $"P > {secondLastP}";
+                }
+            }
+
+            if (lastChangeP == 0)
+            {
+                return "P=1";
+            }
+
+            if (lastChangeP < lastP)
+            {
+                return $"P={lastChangeP + 1}";
+            }
+
+            return $"P > {lastP - 1}";
+        }
+
+        private void PrecomputeSaturationCache()
+        {
+            _saturationMetricsCache.Clear();
+            if (!HasValidSource || _inputCint.Length == 0) return;
+
+            var ordered = SaturationPValues.OrderBy(p => p).ToArray();
+            for (int a = 0; a < _inputCint.Length; a++)
+            {
+                var tracesByP = new Dictionary<int, AcdlProjectionTrace>();
+                foreach (var p in ordered)
+                {
+                    tracesByP[p] = BuildProjectionTrace(a, p);
+                }
+                var saturationAtDisplay = BuildSaturationAtDisplay(ordered, tracesByP);
+                var preSaturationRangeCount = ordered.Length;
+                var saturationAtP = ParseSaturationAtP(saturationAtDisplay);
+                if (saturationAtP.HasValue && saturationAtP.Value >= ordered[0])
+                {
+                    preSaturationRangeCount = ordered.Count(p => p <= saturationAtP.Value);
+                }
+
+                var uniqueBeforeSaturation = tracesByP
+                    .Where(kvp => kvp.Value.IsValid)
+                    .Where(kvp => !saturationAtP.HasValue || kvp.Key <= saturationAtP.Value)
+                    .Select(kvp => kvp.Value.Signature)
+                    .Distinct()
+                    .Count();
+
+                _saturationMetricsCache[a] = new SaturationMetrics(
+                    saturationAtDisplay,
+                    uniqueBeforeSaturation,
+                    preSaturationRangeCount);
+            }
+        }
+
+        private static int? ParseSaturationAtP(string saturationAtDisplay)
+        {
+            if (string.IsNullOrWhiteSpace(saturationAtDisplay)) return null;
+            if (saturationAtDisplay.StartsWith("P=", StringComparison.OrdinalIgnoreCase))
+            {
+                var value = saturationAtDisplay.Substring(2).Trim();
+                if (int.TryParse(value, out var p)) return p;
+            }
+            return null;
         }
 
         private void UpdateMultiPValues(string input)
@@ -579,6 +1043,44 @@ namespace CompositionToolbox.App.ViewModels
                 ClearMultiSelection();
             }
             Recompute();
+        }
+
+        private void UpdateMultiResultsSummary()
+        {
+            if (MultiResults.Count == 0)
+            {
+                MultiResultsSummary = string.Empty;
+                return;
+            }
+
+            var fullySaturated = MultiResults.Count(r => r.IsFullySaturated);
+            var avgUniqueBefore = MultiResults.Average(r => r.UniqueBeforeSaturation);
+            MultiResultsSummary = $"Avg Unique: {avgUniqueBefore:0.##} | Fully Saturated: {fullySaturated}/{MultiResults.Count}";
+        }
+
+        private void UpdateSelectedMultiSummary()
+        {
+            if (!_selectedMultiAnchorIndex.HasValue)
+            {
+                SelectedMultiSummary = string.Empty;
+                return;
+            }
+
+            var row = MultiResults.FirstOrDefault(r => r.AnchorGapIndex == _selectedMultiAnchorIndex.Value);
+            if (row == null)
+            {
+                SelectedMultiSummary = string.Empty;
+                return;
+            }
+
+            var baseSummary = $"Unique: {row.UniqueBeforeSaturation}";
+            if (!string.IsNullOrWhiteSpace(row.SaturationReason))
+            {
+                SelectedMultiSummary = $"{baseSummary} | {row.SaturationReason}";
+                return;
+            }
+
+            SelectedMultiSummary = baseSummary;
         }
 
         private static List<int> ParsePValues(string input)
@@ -865,6 +1367,7 @@ namespace CompositionToolbox.App.ViewModels
             OnPropertyChanged(nameof(SelectedMultiAnchorIndex));
             OnPropertyChanged(nameof(SelectedMultiP));
             UpdateMultiSelectionPreview();
+            UpdateSelectedMultiSummary();
             CommitSelectedCommand.NotifyCanExecuteChanged();
         }
 
@@ -1017,6 +1520,16 @@ namespace CompositionToolbox.App.ViewModels
                 ["Ordered"] = source.ToArray()
             };
             _store.TransformState("ACDL - Ordered from Unordered", opParams, nextState);
+        }
+
+        private static bool IsAscending(int[] values)
+        {
+            if (values == null || values.Length < 2) return true;
+            for (int i = 1; i < values.Length; i++)
+            {
+                if (values[i] <= values[i - 1]) return false;
+            }
+            return true;
         }
     }
 }

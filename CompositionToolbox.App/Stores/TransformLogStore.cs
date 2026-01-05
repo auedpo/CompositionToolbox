@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using CompositionToolbox.App.Models;
 using System.Linq;
 using System.Diagnostics;
+using CompositionToolbox.App.Services;
 
 namespace CompositionToolbox.App.Stores
 {
@@ -97,11 +98,9 @@ namespace CompositionToolbox.App.Stores
 #if DEBUG
                 throw new InvalidOperationException("OpFromPrev is required for all node-creating transforms.");
 #else
-                System.Windows.MessageBox.Show(
-                    "Unable to create node: missing operation provenance (OpFromPrev).",
+                DialogService.Warning(
                     "Transform Log",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Warning);
+                    "Unable to create node: missing operation provenance (OpFromPrev).");
                 return false;
 #endif
             }
@@ -112,11 +111,9 @@ namespace CompositionToolbox.App.Stores
 #if DEBUG
                 throw new InvalidOperationException("SourceNodeId is required for non-root transforms.");
 #else
-                System.Windows.MessageBox.Show(
-                    "Unable to create node: missing SourceNodeId provenance.",
+                DialogService.Warning(
                     "Transform Log",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Warning);
+                    "Unable to create node: missing SourceNodeId provenance.");
                 return false;
 #endif
             }

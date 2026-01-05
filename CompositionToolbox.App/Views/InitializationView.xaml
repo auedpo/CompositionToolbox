@@ -23,7 +23,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="InputBox"
                          Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
-                         FontFamily="Consolas"
+                         FontFamily="{DynamicResource App.MonoFontFamily}"
                          Grid.Column="0"
                          Width="270"
                          ToolTip="PC list (space or comma separated)" />
@@ -32,7 +32,7 @@
                         Grid.Column="1"
                         Margin="4,0,0,0" />
                 <Button Command="{Binding RandomizePcCommand}" Grid.Column="2" Margin="4,0,0,0" Padding="6,0">
-                    <TextBlock Text="??"
+                    <TextBlock Text="🎲"
                                FontFamily="Segoe UI Emoji"
                                FontSize="14"
                                VerticalAlignment="Center"
@@ -120,7 +120,7 @@
                 <TextBlock Text="Preview:" />
                 <Button Content="Play" Command="{Binding PlayPreviewCommand}" Margin="8,0,0,0" />
             </StackPanel>
-            <TextBlock Text="{Binding Preview}" FontFamily="Consolas" Margin="0,4,0,12" />
+            <TextBlock Text="{Binding Preview}" FontFamily="{DynamicResource App.MonoFontFamily}" Margin="0,4,0,12" />
 
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                 <Button Content="Create PitchList" Command="{Binding CreatePitchListCommand}" />

@@ -5126,3 +5126,897 @@
 2026-01-04T05:25:09.7548535Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
 2026-01-04T05:25:09.9539764Z PresetItemCache: precreated 223 items in 1ms
 2026-01-04T05:25:10.5014266Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T00:09:44.5107682Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T00:09:44.7226120Z PresetItemCache: precreated 223 items in 0ms
+2026-01-05T00:09:45.3470139Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T00:23:43.2992108Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T00:23:43.4943926Z PresetItemCache: precreated 223 items in 0ms
+2026-01-05T00:23:44.0354774Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T00:45:31.7610388Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T00:45:31.9574728Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T00:45:32.5819523Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T01:00:35.1486238Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T01:00:35.3263326Z PresetItemCache: precreated 223 items in 0ms
+2026-01-05T01:00:35.8637537Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T01:06:42.0922294Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T01:06:42.2902378Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T01:06:42.8851028Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T01:12:56.8056366Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T01:12:56.9838531Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T01:12:57.5807019Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T01:18:58.8475051Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T01:18:59.0496952Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T01:18:59.6250525Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T01:23:20.6518173Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T01:23:20.8547735Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T01:23:21.4950851Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T01:26:06.2771481Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T01:26:06.4443048Z PresetItemCache: precreated 223 items in 0ms
+2026-01-05T01:26:07.1154684Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T01:29:53.8031819Z PitchListCatalogViewModel: built _itemsById with 223 items in 0ms
+2026-01-05T01:29:53.8072309Z PitchListCatalogViewModel: background created 223 items in 0ms
+2026-01-05T01:29:53.8105247Z PitchListCatalogViewModel: initial 50 model items added in 0ms
+2026-01-05T01:29:53.8427021Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:29:53.8456558Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T01:29:53.8483489Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T01:29:53.8509063Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T01:29:53.8532372Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T01:29:53.8559325Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T01:29:53.8588002Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T01:29:53.8616613Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T01:29:53.8654995Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T01:29:53.8702268Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T01:29:53.8731455Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T01:29:53.8760823Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T01:29:53.8789441Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetPcSet
+2026-01-05T01:29:53.8816454Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetPcSet
+2026-01-05T01:29:54.1058669Z PitchListCatalogWindow: Loaded after 293ms; ResultsGrid.Items=51
+2026-01-05T01:29:54.1586054Z PitchListCatalogWindow: PostRender invoked
+2026-01-05T01:29:54.1601380Z PitchListCatalogWindow: PostRender after 293ms; VisibleContainers=14; Items=151
+2026-01-05T01:29:54.1847268Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T01:29:54.1880607Z PitchListCatalogViewModel: Materialized preset 1-1 at index 0
+2026-01-05T01:29:54.2242007Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetItemViewModel
+2026-01-05T01:29:54.2254547Z PitchListCatalogViewModel: Materialized preset 2-1 at index 1
+2026-01-05T01:29:54.2361918Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T01:29:54.2375373Z PitchListCatalogViewModel: Materialized preset 2-2 at index 2
+2026-01-05T01:29:54.2480983Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T01:29:54.2494128Z PitchListCatalogViewModel: Materialized preset 2-3 at index 3
+2026-01-05T01:29:54.2565908Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T01:29:54.2577619Z PitchListCatalogViewModel: Materialized preset 2-4 at index 4
+2026-01-05T01:29:54.2647498Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T01:29:54.2663917Z PitchListCatalogViewModel: Materialized preset 2-5 at index 5
+2026-01-05T01:29:54.2712299Z PitchListCatalogViewModel: finished populating 223 results (models only)
+2026-01-05T01:29:54.2742685Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T01:29:54.2754426Z PitchListCatalogViewModel: Materialized preset 2-6 at index 6
+2026-01-05T01:29:54.2960349Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T01:29:54.2972914Z PitchListCatalogViewModel: Materialized preset 3-1 at index 7
+2026-01-05T01:29:54.3256723Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T01:29:54.3270819Z PitchListCatalogViewModel: Materialized preset 3-10 at index 8
+2026-01-05T01:29:54.3454946Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T01:29:54.3469851Z PitchListCatalogViewModel: Materialized preset 3-11 at index 9
+2026-01-05T01:29:54.3931375Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T01:29:54.3945126Z PitchListCatalogViewModel: Materialized preset 3-12 at index 10
+2026-01-05T01:29:54.4099949Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T01:29:54.4112481Z PitchListCatalogViewModel: Materialized preset 3-2 at index 11
+2026-01-05T01:29:54.4202441Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetItemViewModel
+2026-01-05T01:29:54.4214427Z PitchListCatalogViewModel: Materialized preset 3-3 at index 12
+2026-01-05T01:29:54.4390805Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetItemViewModel
+2026-01-05T01:29:54.4402692Z PitchListCatalogViewModel: Materialized preset 3-4 at index 13
+2026-01-05T01:29:57.4669973Z DataGridLazyVmLoader: LoadingRow idx=14 itemType=PresetPcSet
+2026-01-05T01:29:57.4734349Z DataGridLazyVmLoader: LoadingRow idx=15 itemType=PresetPcSet
+2026-01-05T01:29:57.4990059Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T01:29:57.5009730Z DataGridLazyVmLoader: LoadingRow idx=16 itemType=PresetPcSet
+2026-01-05T01:29:57.5264389Z DataGridLazyVmLoader: LoadingRow idx=17 itemType=PresetPcSet
+2026-01-05T01:29:57.5327100Z DataGridLazyVmLoader: LoadingRow idx=18 itemType=PresetPcSet
+2026-01-05T01:29:57.5520164Z DataGridLazyVmLoader: LoadingRow idx=19 itemType=PresetPcSet
+2026-01-05T01:29:57.5658506Z DataGridLazyVmLoader: LoadingRow idx=20 itemType=PresetPcSet
+2026-01-05T01:29:57.5720059Z DataGridLazyVmLoader: LoadingRow idx=21 itemType=PresetPcSet
+2026-01-05T01:29:57.5952479Z DataGridLazyVmLoader: LoadingRow idx=14 itemType=PresetItemViewModel
+2026-01-05T01:29:57.5964566Z PitchListCatalogViewModel: Materialized preset 3-5 at index 14
+2026-01-05T01:29:57.6100365Z DataGridLazyVmLoader: LoadingRow idx=15 itemType=PresetItemViewModel
+2026-01-05T01:29:57.6112878Z PitchListCatalogViewModel: Materialized preset 3-6 at index 15
+2026-01-05T01:29:57.6226301Z DataGridLazyVmLoader: LoadingRow idx=22 itemType=PresetPcSet
+2026-01-05T01:29:57.6291621Z DataGridLazyVmLoader: LoadingRow idx=23 itemType=PresetPcSet
+2026-01-05T01:29:57.6356190Z DataGridLazyVmLoader: LoadingRow idx=24 itemType=PresetPcSet
+2026-01-05T01:29:57.6639273Z DataGridLazyVmLoader: LoadingRow idx=25 itemType=PresetPcSet
+2026-01-05T01:29:57.6715490Z DataGridLazyVmLoader: LoadingRow idx=26 itemType=PresetPcSet
+2026-01-05T01:29:57.6773718Z DataGridLazyVmLoader: LoadingRow idx=27 itemType=PresetPcSet
+2026-01-05T01:29:57.7044231Z DataGridLazyVmLoader: LoadingRow idx=17 itemType=PresetItemViewModel
+2026-01-05T01:29:57.7056058Z PitchListCatalogViewModel: Materialized preset 3-8 at index 17
+2026-01-05T01:29:57.7195086Z DataGridLazyVmLoader: LoadingRow idx=16 itemType=PresetItemViewModel
+2026-01-05T01:29:57.7207579Z PitchListCatalogViewModel: Materialized preset 3-7 at index 16
+2026-01-05T01:29:57.7399858Z DataGridLazyVmLoader: LoadingRow idx=28 itemType=PresetPcSet
+2026-01-05T01:29:57.7463752Z DataGridLazyVmLoader: LoadingRow idx=29 itemType=PresetPcSet
+2026-01-05T01:29:57.7523020Z DataGridLazyVmLoader: LoadingRow idx=30 itemType=PresetPcSet
+2026-01-05T01:29:57.7892523Z DataGridLazyVmLoader: LoadingRow idx=31 itemType=PresetPcSet
+2026-01-05T01:29:57.8116253Z DataGridLazyVmLoader: LoadingRow idx=32 itemType=PresetPcSet
+2026-01-05T01:29:57.8175780Z DataGridLazyVmLoader: LoadingRow idx=33 itemType=PresetPcSet
+2026-01-05T01:29:57.8465659Z PitchListCatalogViewModel: Materialized preset 3-9 at index 18
+2026-01-05T01:29:57.8483617Z PitchListCatalogViewModel: Materialized preset 4-1 at index 19
+2026-01-05T01:29:57.8546523Z DataGridLazyVmLoader: LoadingRow idx=34 itemType=PresetPcSet
+2026-01-05T01:29:57.8739973Z DataGridLazyVmLoader: LoadingRow idx=20 itemType=PresetItemViewModel
+2026-01-05T01:29:57.8753493Z PitchListCatalogViewModel: Materialized preset 4-10 at index 20
+2026-01-05T01:29:57.8929674Z DataGridLazyVmLoader: LoadingRow idx=21 itemType=PresetItemViewModel
+2026-01-05T01:29:57.8944028Z PitchListCatalogViewModel: Materialized preset 4-11 at index 21
+2026-01-05T01:29:57.9277280Z DataGridLazyVmLoader: LoadingRow idx=35 itemType=PresetPcSet
+2026-01-05T01:29:57.9345077Z DataGridLazyVmLoader: LoadingRow idx=36 itemType=PresetPcSet
+2026-01-05T01:29:57.9515389Z DataGridLazyVmLoader: LoadingRow idx=29 itemType=PresetItemViewModel
+2026-01-05T01:29:57.9528568Z PitchListCatalogViewModel: Materialized preset 4-19 at index 29
+2026-01-05T01:29:57.9673677Z DataGridLazyVmLoader: LoadingRow idx=30 itemType=PresetItemViewModel
+2026-01-05T01:29:57.9688253Z PitchListCatalogViewModel: Materialized preset 4-2 at index 30
+2026-01-05T01:29:57.9843523Z PitchListCatalogViewModel: Materialized preset 4-12 at index 22
+2026-01-05T01:29:57.9858181Z DataGridLazyVmLoader: LoadingRow idx=23 itemType=PresetItemViewModel
+2026-01-05T01:29:57.9871507Z PitchListCatalogViewModel: Materialized preset 4-13 at index 23
+2026-01-05T01:29:57.9993077Z DataGridLazyVmLoader: LoadingRow idx=24 itemType=PresetItemViewModel
+2026-01-05T01:29:58.0006501Z PitchListCatalogViewModel: Materialized preset 4-14 at index 24
+2026-01-05T01:29:58.0175863Z DataGridLazyVmLoader: LoadingRow idx=25 itemType=PresetItemViewModel
+2026-01-05T01:29:58.0188400Z PitchListCatalogViewModel: Materialized preset 4-15 at index 25
+2026-01-05T01:29:58.0364608Z DataGridLazyVmLoader: LoadingRow idx=26 itemType=PresetItemViewModel
+2026-01-05T01:29:58.0377391Z PitchListCatalogViewModel: Materialized preset 4-16 at index 26
+2026-01-05T01:29:58.0455018Z DataGridLazyVmLoader: LoadingRow idx=27 itemType=PresetItemViewModel
+2026-01-05T01:29:58.0470811Z PitchListCatalogViewModel: Materialized preset 4-17 at index 27
+2026-01-05T01:29:58.0656455Z DataGridLazyVmLoader: LoadingRow idx=32 itemType=PresetItemViewModel
+2026-01-05T01:29:58.0671070Z PitchListCatalogViewModel: Materialized preset 4-21 at index 32
+2026-01-05T01:29:58.0762131Z DataGridLazyVmLoader: LoadingRow idx=31 itemType=PresetItemViewModel
+2026-01-05T01:29:58.0772515Z PitchListCatalogViewModel: Materialized preset 4-20 at index 31
+2026-01-05T01:29:58.0962899Z DataGridLazyVmLoader: LoadingRow idx=28 itemType=PresetItemViewModel
+2026-01-05T01:29:58.0977933Z PitchListCatalogViewModel: Materialized preset 4-18 at index 28
+2026-01-05T01:29:58.1109373Z DataGridLazyVmLoader: LoadingRow idx=33 itemType=PresetItemViewModel
+2026-01-05T01:29:58.1120056Z PitchListCatalogViewModel: Materialized preset 4-22 at index 33
+2026-01-05T01:29:58.1279714Z DataGridLazyVmLoader: LoadingRow idx=37 itemType=PresetPcSet
+2026-01-05T01:29:58.1435884Z DataGridLazyVmLoader: LoadingRow idx=34 itemType=PresetItemViewModel
+2026-01-05T01:29:58.1446939Z PitchListCatalogViewModel: Materialized preset 4-23 at index 34
+2026-01-05T01:29:58.1609320Z DataGridLazyVmLoader: LoadingRow idx=35 itemType=PresetItemViewModel
+2026-01-05T01:29:58.1624777Z PitchListCatalogViewModel: Materialized preset 4-24 at index 35
+2026-01-05T01:29:58.1885489Z DataGridLazyVmLoader: LoadingRow idx=36 itemType=PresetItemViewModel
+2026-01-05T01:29:58.1898200Z PitchListCatalogViewModel: Materialized preset 4-25 at index 36
+2026-01-05T01:29:58.2016671Z DataGridLazyVmLoader: LoadingRow idx=37 itemType=PresetItemViewModel
+2026-01-05T01:29:58.2031034Z PitchListCatalogViewModel: Materialized preset 4-26 at index 37
+2026-01-05T01:29:58.6180284Z DataGridLazyVmLoader: LoadingRow idx=38 itemType=PresetPcSet
+2026-01-05T01:29:58.6238199Z DataGridLazyVmLoader: LoadingRow idx=39 itemType=PresetPcSet
+2026-01-05T01:29:58.6419740Z DataGridLazyVmLoader: LoadingRow idx=40 itemType=PresetPcSet
+2026-01-05T01:29:58.6488601Z DataGridLazyVmLoader: LoadingRow idx=41 itemType=PresetPcSet
+2026-01-05T01:29:58.6549648Z DataGridLazyVmLoader: LoadingRow idx=42 itemType=PresetPcSet
+2026-01-05T01:29:58.6741350Z DataGridLazyVmLoader: LoadingRow idx=43 itemType=PresetPcSet
+2026-01-05T01:29:58.6817960Z DataGridLazyVmLoader: LoadingRow idx=44 itemType=PresetPcSet
+2026-01-05T01:29:58.6885886Z DataGridLazyVmLoader: LoadingRow idx=45 itemType=PresetPcSet
+2026-01-05T01:29:58.7264857Z DataGridLazyVmLoader: LoadingRow idx=46 itemType=PresetPcSet
+2026-01-05T01:29:58.7460623Z DataGridLazyVmLoader: LoadingRow idx=47 itemType=PresetPcSet
+2026-01-05T01:29:58.7524048Z DataGridLazyVmLoader: LoadingRow idx=48 itemType=PresetPcSet
+2026-01-05T01:29:58.7719942Z DataGridLazyVmLoader: LoadingRow idx=49 itemType=PresetPcSet
+2026-01-05T01:29:58.7854297Z DataGridLazyVmLoader: LoadingRow idx=38 itemType=PresetItemViewModel
+2026-01-05T01:29:58.7869093Z PitchListCatalogViewModel: Materialized preset 4-27 at index 38
+2026-01-05T01:29:58.7963623Z DataGridLazyVmLoader: LoadingRow idx=39 itemType=PresetItemViewModel
+2026-01-05T01:29:58.7975719Z PitchListCatalogViewModel: Materialized preset 4-28 at index 39
+2026-01-05T01:29:58.8097859Z DataGridLazyVmLoader: LoadingRow idx=50 itemType=PresetPcSet
+2026-01-05T01:29:58.8158242Z DataGridLazyVmLoader: LoadingRow idx=51 itemType=PresetPcSet
+2026-01-05T01:29:58.8264096Z DataGridLazyVmLoader: LoadingRow idx=40 itemType=PresetItemViewModel
+2026-01-05T01:29:58.8275486Z PitchListCatalogViewModel: Materialized preset 4-29 at index 40
+2026-01-05T01:29:58.8454391Z DataGridLazyVmLoader: LoadingRow idx=41 itemType=PresetItemViewModel
+2026-01-05T01:29:58.8468256Z PitchListCatalogViewModel: Materialized preset 4-3 at index 41
+2026-01-05T01:29:58.8605961Z DataGridLazyVmLoader: LoadingRow idx=42 itemType=PresetItemViewModel
+2026-01-05T01:29:58.8620839Z PitchListCatalogViewModel: Materialized preset 4-4 at index 42
+2026-01-05T01:29:58.8753146Z DataGridLazyVmLoader: LoadingRow idx=43 itemType=PresetItemViewModel
+2026-01-05T01:29:58.8772907Z PitchListCatalogViewModel: Materialized preset 4-5 at index 43
+2026-01-05T01:29:58.8956305Z DataGridLazyVmLoader: LoadingRow idx=44 itemType=PresetItemViewModel
+2026-01-05T01:29:58.8988818Z PitchListCatalogViewModel: Materialized preset 4-6 at index 44
+2026-01-05T01:29:58.9218157Z DataGridLazyVmLoader: LoadingRow idx=45 itemType=PresetItemViewModel
+2026-01-05T01:29:58.9239499Z PitchListCatalogViewModel: Materialized preset 4-7 at index 45
+2026-01-05T01:29:58.9404297Z DataGridLazyVmLoader: LoadingRow idx=46 itemType=PresetItemViewModel
+2026-01-05T01:29:58.9417410Z PitchListCatalogViewModel: Materialized preset 4-8 at index 46
+2026-01-05T01:29:58.9515163Z DataGridLazyVmLoader: LoadingRow idx=47 itemType=PresetItemViewModel
+2026-01-05T01:29:58.9526767Z PitchListCatalogViewModel: Materialized preset 4-9 at index 47
+2026-01-05T01:29:58.9714121Z DataGridLazyVmLoader: LoadingRow idx=48 itemType=PresetItemViewModel
+2026-01-05T01:29:58.9725755Z PitchListCatalogViewModel: Materialized preset 5-1 at index 48
+2026-01-05T01:29:58.9884865Z DataGridLazyVmLoader: LoadingRow idx=52 itemType=PresetPcSet
+2026-01-05T01:29:59.0196652Z DataGridLazyVmLoader: LoadingRow idx=49 itemType=PresetItemViewModel
+2026-01-05T01:29:59.0209074Z PitchListCatalogViewModel: Materialized preset 5-10 at index 49
+2026-01-05T01:29:59.0290416Z DataGridLazyVmLoader: LoadingRow idx=50 itemType=PresetItemViewModel
+2026-01-05T01:29:59.0304566Z PitchListCatalogViewModel: Materialized preset 5-11 at index 50
+2026-01-05T01:29:59.0452926Z DataGridLazyVmLoader: LoadingRow idx=51 itemType=PresetItemViewModel
+2026-01-05T01:29:59.0466124Z PitchListCatalogViewModel: Materialized preset 5-12 at index 51
+2026-01-05T01:29:59.0630745Z DataGridLazyVmLoader: LoadingRow idx=52 itemType=PresetItemViewModel
+2026-01-05T01:29:59.0645527Z PitchListCatalogViewModel: Materialized preset 5-13 at index 52
+2026-01-05T01:29:59.0991000Z DataGridLazyVmLoader: LoadingRow idx=36 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1003840Z DataGridLazyVmLoader: LoadingRow idx=37 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1240934Z DataGridLazyVmLoader: LoadingRow idx=35 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1331565Z DataGridLazyVmLoader: LoadingRow idx=33 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1347572Z DataGridLazyVmLoader: LoadingRow idx=34 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1553698Z DataGridLazyVmLoader: LoadingRow idx=30 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1576742Z DataGridLazyVmLoader: LoadingRow idx=31 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1590636Z DataGridLazyVmLoader: LoadingRow idx=32 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1754818Z DataGridLazyVmLoader: LoadingRow idx=27 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1768898Z DataGridLazyVmLoader: LoadingRow idx=28 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1783492Z DataGridLazyVmLoader: LoadingRow idx=29 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1871312Z DataGridLazyVmLoader: LoadingRow idx=24 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1883729Z DataGridLazyVmLoader: LoadingRow idx=25 itemType=PresetItemViewModel
+2026-01-05T01:29:59.1895257Z DataGridLazyVmLoader: LoadingRow idx=26 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2019506Z DataGridLazyVmLoader: LoadingRow idx=23 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2137034Z DataGridLazyVmLoader: LoadingRow idx=21 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2160860Z DataGridLazyVmLoader: LoadingRow idx=22 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2291223Z DataGridLazyVmLoader: LoadingRow idx=18 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2318691Z DataGridLazyVmLoader: LoadingRow idx=19 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2337996Z DataGridLazyVmLoader: LoadingRow idx=20 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2498754Z DataGridLazyVmLoader: LoadingRow idx=17 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2610201Z DataGridLazyVmLoader: LoadingRow idx=15 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2625381Z DataGridLazyVmLoader: LoadingRow idx=16 itemType=PresetItemViewModel
+2026-01-05T01:29:59.2829725Z DataGridLazyVmLoader: LoadingRow idx=14 itemType=PresetItemViewModel
+2026-01-05T01:29:59.5433382Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetItemViewModel
+2026-01-05T01:29:59.5453474Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetItemViewModel
+2026-01-05T01:29:59.5643168Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T01:29:59.5872002Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T01:29:59.5892512Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6032875Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6057737Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6078028Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6209832Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6233435Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6245309Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6373876Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6396705Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetItemViewModel
+2026-01-05T01:29:59.6407346Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T01:30:00.5153338Z PitchListCatalogViewModel: initial 38 model items added in 8ms
+2026-01-05T01:30:00.5248936Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:30:00.5283788Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T01:30:00.5320509Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T01:30:00.5353695Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T01:30:00.5381899Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T01:30:00.5405603Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T01:30:00.5431756Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T01:30:00.5457004Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T01:30:00.5489114Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T01:30:00.5515080Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T01:30:00.5538049Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T01:30:00.5563353Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T01:30:00.5590798Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetPcSet
+2026-01-05T01:30:00.6847932Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T01:30:00.6877005Z PitchListCatalogViewModel: Materialized preset 5-1 at index 0
+2026-01-05T01:30:00.6942343Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetPcSet
+2026-01-05T01:30:00.7124555Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetItemViewModel
+2026-01-05T01:30:00.7136576Z PitchListCatalogViewModel: Materialized preset 5-10 at index 1
+2026-01-05T01:30:00.7203785Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T01:30:00.7214384Z PitchListCatalogViewModel: Materialized preset 5-11 at index 2
+2026-01-05T01:30:00.7950468Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T01:30:00.7962841Z PitchListCatalogViewModel: Materialized preset 5-12 at index 3
+2026-01-05T01:30:00.8265849Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T01:30:00.8277012Z PitchListCatalogViewModel: Materialized preset 5-13 at index 4
+2026-01-05T01:30:00.8588881Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T01:30:00.8601056Z PitchListCatalogViewModel: Materialized preset 5-14 at index 5
+2026-01-05T01:30:00.8730910Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T01:30:00.8745137Z PitchListCatalogViewModel: Materialized preset 5-15 at index 6
+2026-01-05T01:30:00.8933398Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T01:30:00.8949917Z PitchListCatalogViewModel: Materialized preset 5-16 at index 7
+2026-01-05T01:30:00.9118955Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T01:30:00.9132579Z PitchListCatalogViewModel: Materialized preset 5-17 at index 8
+2026-01-05T01:30:00.9393519Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T01:30:00.9405627Z PitchListCatalogViewModel: Materialized preset 5-18 at index 9
+2026-01-05T01:30:00.9520483Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T01:30:00.9531917Z PitchListCatalogViewModel: Materialized preset 5-19 at index 10
+2026-01-05T01:30:00.9705432Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T01:30:00.9717426Z PitchListCatalogViewModel: Materialized preset 5-2 at index 11
+2026-01-05T01:30:00.9980123Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetItemViewModel
+2026-01-05T01:30:00.9994384Z PitchListCatalogViewModel: Materialized preset 5-20 at index 12
+2026-01-05T01:30:01.0169992Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetItemViewModel
+2026-01-05T01:30:01.0182843Z PitchListCatalogViewModel: Materialized preset 5-21 at index 13
+2026-01-05T01:30:01.5374576Z PitchListCatalogViewModel: initial 1 model items added in 8ms
+2026-01-05T01:30:01.5470851Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:30:01.5507300Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=NamedObject
+2026-01-05T01:30:01.5818541Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T01:30:01.5842635Z PitchListCatalogViewModel: Materialized preset 1-1 at index 0
+2026-01-05T01:30:01.6175086Z PitchListCatalogViewModel: initial 6 model items added in 1ms
+2026-01-05T01:30:01.6267172Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:30:01.6293826Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T01:30:01.6330707Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T01:30:01.6359962Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T01:30:01.6390691Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T01:30:01.6414446Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T01:30:01.6442026Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=NamedObject
+2026-01-05T01:30:01.7158644Z PitchListCatalogViewModel: initial 38 model items added in 5ms
+2026-01-05T01:30:01.7250886Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:30:01.7284466Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T01:30:01.7316820Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T01:30:01.7349446Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T01:30:01.7381325Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T01:30:01.7412437Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T01:30:01.7440367Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T01:30:01.7470024Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T01:30:01.7500518Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T01:30:01.7527093Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T01:30:01.7551856Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T01:30:01.7576444Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T01:30:01.7600934Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetPcSet
+2026-01-05T01:30:01.8991292Z PitchListCatalogViewModel: initial 29 model items added in 10ms
+2026-01-05T01:30:01.9095880Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:30:01.9234222Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T01:30:01.9269177Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T01:30:01.9301638Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T01:30:01.9331765Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T01:30:01.9360923Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T01:30:01.9387839Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T01:30:01.9418610Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T01:30:01.9447573Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T01:30:01.9479283Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T01:30:01.9508066Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T01:30:01.9535306Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T01:30:01.9564087Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetPcSet
+2026-01-05T01:30:02.1002882Z PitchListCatalogViewModel: initial 12 model items added in 8ms
+2026-01-05T01:30:02.1096913Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:30:02.1128797Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T01:30:02.1166354Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T01:30:02.1195910Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T01:30:02.1222865Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T01:30:02.1245451Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T01:30:02.1274457Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T01:30:02.1374699Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T01:30:02.1423173Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T01:30:02.1463539Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T01:30:02.1513208Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T01:30:02.1552123Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T01:30:02.1615077Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=NamedObject
+2026-01-05T01:30:02.2971306Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T01:30:02.2996103Z PitchListCatalogViewModel: Materialized preset 9-1 at index 0
+2026-01-05T01:30:02.3278507Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetItemViewModel
+2026-01-05T01:30:02.3290300Z PitchListCatalogViewModel: Materialized preset 9-10 at index 1
+2026-01-05T01:30:02.3444145Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T01:30:02.3455132Z PitchListCatalogViewModel: Materialized preset 9-11 at index 2
+2026-01-05T01:30:02.3598648Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T01:30:02.3610629Z PitchListCatalogViewModel: Materialized preset 9-12 at index 3
+2026-01-05T01:30:02.3750860Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T01:30:02.3761795Z PitchListCatalogViewModel: Materialized preset 9-2 at index 4
+2026-01-05T01:30:02.3954458Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T01:30:02.3965929Z PitchListCatalogViewModel: Materialized preset 9-3 at index 5
+2026-01-05T01:30:02.4050789Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T01:30:02.4062525Z PitchListCatalogViewModel: Materialized preset 9-4 at index 6
+2026-01-05T01:30:02.4416381Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T01:30:02.4429115Z PitchListCatalogViewModel: Materialized preset 9-5 at index 7
+2026-01-05T01:30:02.4513873Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T01:30:02.4524229Z PitchListCatalogViewModel: Materialized preset 9-6 at index 8
+2026-01-05T01:30:02.4682054Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T01:30:02.4693362Z PitchListCatalogViewModel: Materialized preset 9-7 at index 9
+2026-01-05T01:30:02.4838577Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T01:30:02.4849453Z PitchListCatalogViewModel: Materialized preset 9-8 at index 10
+2026-01-05T01:30:02.4987205Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T01:30:02.4999916Z PitchListCatalogViewModel: Materialized preset 9-9 at index 11
+2026-01-05T01:30:02.7228525Z PitchListCatalogViewModel: initial 29 model items added in 7ms
+2026-01-05T01:30:02.7326525Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:30:02.7363133Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T01:30:02.7394921Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T01:30:02.7426652Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T01:30:02.7450093Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T01:30:02.7479474Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T01:30:02.7507467Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T01:30:02.7531532Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T01:30:02.7557716Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T01:30:02.7582243Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T01:30:02.7604897Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T01:30:02.7633695Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T01:30:02.7665316Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetPcSet
+2026-01-05T01:30:02.9126825Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T01:30:02.9151922Z PitchListCatalogViewModel: Materialized preset 8-1 at index 0
+2026-01-05T01:30:02.9402053Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetPcSet
+2026-01-05T01:30:02.9691179Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetItemViewModel
+2026-01-05T01:30:02.9706282Z PitchListCatalogViewModel: Materialized preset 8-10 at index 1
+2026-01-05T01:30:02.9846201Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T01:30:02.9861128Z PitchListCatalogViewModel: Materialized preset 8-11 at index 2
+2026-01-05T01:30:03.0202510Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T01:30:03.0213438Z PitchListCatalogViewModel: Materialized preset 8-12 at index 3
+2026-01-05T01:30:03.0341965Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T01:30:03.0353515Z PitchListCatalogViewModel: Materialized preset 8-13 at index 4
+2026-01-05T01:30:03.0457311Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T01:30:03.0472193Z PitchListCatalogViewModel: Materialized preset 8-14 at index 5
+2026-01-05T01:30:03.0635318Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T01:30:03.0646349Z PitchListCatalogViewModel: Materialized preset 8-15 at index 6
+2026-01-05T01:30:03.0776207Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T01:30:03.0792563Z PitchListCatalogViewModel: Materialized preset 8-16 at index 7
+2026-01-05T01:30:03.0974288Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T01:30:03.0988366Z PitchListCatalogViewModel: Materialized preset 8-17 at index 8
+2026-01-05T01:30:03.1072788Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T01:30:03.1087445Z PitchListCatalogViewModel: Materialized preset 8-18 at index 9
+2026-01-05T01:30:03.1707365Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T01:30:03.1718264Z PitchListCatalogViewModel: Materialized preset 8-19 at index 10
+2026-01-05T01:30:03.1896054Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T01:30:03.1911895Z PitchListCatalogViewModel: Materialized preset 8-2 at index 11
+2026-01-05T01:30:03.2023280Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetItemViewModel
+2026-01-05T01:30:03.2033949Z PitchListCatalogViewModel: Materialized preset 8-20 at index 12
+2026-01-05T01:30:03.2214272Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetItemViewModel
+2026-01-05T01:30:03.2230437Z PitchListCatalogViewModel: Materialized preset 8-21 at index 13
+2026-01-05T01:30:04.0601120Z PitchListCatalogViewModel: initial 38 model items added in 7ms
+2026-01-05T01:30:04.0703867Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T01:30:04.0735262Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T01:30:04.0763428Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T01:30:04.0789165Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T01:30:04.0817795Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T01:30:04.0850276Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T01:30:04.0877114Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T01:30:04.0902270Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T01:30:04.0928700Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T01:30:04.0954482Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T01:30:04.0982184Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T01:30:04.1091586Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T01:30:04.1127207Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetPcSet
+2026-01-05T01:30:04.2661340Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T01:30:04.2684166Z PitchListCatalogViewModel: Materialized preset 7-1 at index 0
+2026-01-05T01:30:04.2857730Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetPcSet
+2026-01-05T01:30:04.3159803Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetItemViewModel
+2026-01-05T01:30:04.3171808Z PitchListCatalogViewModel: Materialized preset 7-10 at index 1
+2026-01-05T01:30:04.3262933Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T01:30:04.3275795Z PitchListCatalogViewModel: Materialized preset 7-11 at index 2
+2026-01-05T01:30:04.3467851Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T01:30:04.3481103Z PitchListCatalogViewModel: Materialized preset 7-12 at index 3
+2026-01-05T01:30:04.3601038Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T01:30:04.3612375Z PitchListCatalogViewModel: Materialized preset 7-13 at index 4
+2026-01-05T01:30:04.3925475Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T01:30:04.3937767Z PitchListCatalogViewModel: Materialized preset 7-14 at index 5
+2026-01-05T01:30:04.4123165Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T01:30:04.4135271Z PitchListCatalogViewModel: Materialized preset 7-15 at index 6
+2026-01-05T01:30:04.4671416Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T01:30:04.4683535Z PitchListCatalogViewModel: Materialized preset 7-16 at index 7
+2026-01-05T01:30:04.4840543Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T01:30:04.4852634Z PitchListCatalogViewModel: Materialized preset 7-17 at index 8
+2026-01-05T01:30:04.4982542Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T01:30:04.4994038Z PitchListCatalogViewModel: Materialized preset 7-18 at index 9
+2026-01-05T01:30:04.5357322Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T01:30:04.5370513Z PitchListCatalogViewModel: Materialized preset 7-19 at index 10
+2026-01-05T01:30:04.5446717Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T01:30:04.5457848Z PitchListCatalogViewModel: Materialized preset 7-2 at index 11
+2026-01-05T01:30:04.5642496Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetItemViewModel
+2026-01-05T01:30:04.5654551Z PitchListCatalogViewModel: Materialized preset 7-20 at index 12
+2026-01-05T01:30:04.5766933Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetItemViewModel
+2026-01-05T01:30:04.5780593Z PitchListCatalogViewModel: Materialized preset 7-21 at index 13
+2026-01-05T01:30:05.4561370Z DataGridLazyVmLoader: LoadingRow idx=14 itemType=PresetPcSet
+2026-01-05T01:30:05.4700164Z DataGridLazyVmLoader: LoadingRow idx=15 itemType=PresetPcSet
+2026-01-05T01:30:05.4822227Z DataGridLazyVmLoader: LoadingRow idx=16 itemType=PresetPcSet
+2026-01-05T01:30:05.4941152Z DataGridLazyVmLoader: LoadingRow idx=17 itemType=PresetPcSet
+2026-01-05T01:30:05.5066868Z DataGridLazyVmLoader: LoadingRow idx=18 itemType=PresetPcSet
+2026-01-05T01:30:05.5202322Z DataGridLazyVmLoader: LoadingRow idx=19 itemType=PresetPcSet
+2026-01-05T01:30:05.5267229Z DataGridLazyVmLoader: LoadingRow idx=20 itemType=PresetPcSet
+2026-01-05T01:30:05.5332082Z DataGridLazyVmLoader: LoadingRow idx=21 itemType=PresetPcSet
+2026-01-05T01:30:05.5515770Z DataGridLazyVmLoader: LoadingRow idx=22 itemType=PresetPcSet
+2026-01-05T01:30:05.5648030Z DataGridLazyVmLoader: LoadingRow idx=23 itemType=PresetPcSet
+2026-01-05T01:30:05.5713664Z DataGridLazyVmLoader: LoadingRow idx=24 itemType=PresetPcSet
+2026-01-05T01:30:05.5768927Z DataGridLazyVmLoader: LoadingRow idx=25 itemType=PresetPcSet
+2026-01-05T01:30:05.5831173Z DataGridLazyVmLoader: LoadingRow idx=26 itemType=PresetPcSet
+2026-01-05T01:30:05.6030302Z DataGridLazyVmLoader: LoadingRow idx=27 itemType=PresetPcSet
+2026-01-05T01:30:05.6086224Z DataGridLazyVmLoader: LoadingRow idx=28 itemType=PresetPcSet
+2026-01-05T01:30:05.6238464Z DataGridLazyVmLoader: LoadingRow idx=29 itemType=PresetPcSet
+2026-01-05T01:30:05.6302880Z DataGridLazyVmLoader: LoadingRow idx=30 itemType=PresetPcSet
+2026-01-05T01:30:05.6365862Z DataGridLazyVmLoader: LoadingRow idx=31 itemType=PresetPcSet
+2026-01-05T01:30:05.6556741Z DataGridLazyVmLoader: LoadingRow idx=32 itemType=PresetPcSet
+2026-01-05T01:30:05.6614817Z DataGridLazyVmLoader: LoadingRow idx=33 itemType=PresetPcSet
+2026-01-05T01:30:05.6768518Z DataGridLazyVmLoader: LoadingRow idx=34 itemType=PresetPcSet
+2026-01-05T01:30:05.6908015Z DataGridLazyVmLoader: LoadingRow idx=35 itemType=PresetPcSet
+2026-01-05T01:30:05.7051423Z DataGridLazyVmLoader: LoadingRow idx=36 itemType=PresetPcSet
+2026-01-05T01:30:05.7215641Z DataGridLazyVmLoader: LoadingRow idx=37 itemType=PresetPcSet
+2026-01-05T01:30:05.7463697Z DataGridLazyVmLoader: LoadingRow idx=38 itemType=NamedObject
+2026-01-05T01:30:05.8270107Z DataGridLazyVmLoader: LoadingRow idx=28 itemType=PresetItemViewModel
+2026-01-05T01:30:05.8281215Z PitchListCatalogViewModel: Materialized preset 7-35 at index 28
+2026-01-05T01:30:05.8454966Z DataGridLazyVmLoader: LoadingRow idx=29 itemType=PresetItemViewModel
+2026-01-05T01:30:05.8469960Z PitchListCatalogViewModel: Materialized preset 7-36 at index 29
+2026-01-05T01:30:05.8740351Z DataGridLazyVmLoader: LoadingRow idx=30 itemType=PresetItemViewModel
+2026-01-05T01:30:05.8752455Z PitchListCatalogViewModel: Materialized preset 7-37 at index 30
+2026-01-05T01:30:05.8922261Z DataGridLazyVmLoader: LoadingRow idx=31 itemType=PresetItemViewModel
+2026-01-05T01:30:05.8935266Z PitchListCatalogViewModel: Materialized preset 7-38 at index 31
+2026-01-05T01:30:05.9110710Z DataGridLazyVmLoader: LoadingRow idx=32 itemType=PresetItemViewModel
+2026-01-05T01:30:05.9122811Z PitchListCatalogViewModel: Materialized preset 7-4 at index 32
+2026-01-05T01:30:05.9212667Z DataGridLazyVmLoader: LoadingRow idx=33 itemType=PresetItemViewModel
+2026-01-05T01:30:05.9226280Z PitchListCatalogViewModel: Materialized preset 7-5 at index 33
+2026-01-05T01:30:05.9397362Z DataGridLazyVmLoader: LoadingRow idx=34 itemType=PresetItemViewModel
+2026-01-05T01:30:05.9410445Z PitchListCatalogViewModel: Materialized preset 7-6 at index 34
+2026-01-05T01:30:05.9518778Z DataGridLazyVmLoader: LoadingRow idx=35 itemType=PresetItemViewModel
+2026-01-05T01:30:05.9533806Z PitchListCatalogViewModel: Materialized preset 7-7 at index 35
+2026-01-05T01:30:05.9676167Z DataGridLazyVmLoader: LoadingRow idx=36 itemType=PresetItemViewModel
+2026-01-05T01:30:05.9691782Z PitchListCatalogViewModel: Materialized preset 7-8 at index 36
+2026-01-05T01:30:05.9842217Z DataGridLazyVmLoader: LoadingRow idx=37 itemType=PresetItemViewModel
+2026-01-05T01:30:05.9855217Z PitchListCatalogViewModel: Materialized preset 7-9 at index 37
+2026-01-05T01:30:05.9993282Z DataGridLazyVmLoader: LoadingRow idx=26 itemType=PresetItemViewModel
+2026-01-05T01:30:06.0004390Z PitchListCatalogViewModel: Materialized preset 7-33 at index 26
+2026-01-05T01:30:06.0202713Z DataGridLazyVmLoader: LoadingRow idx=27 itemType=PresetItemViewModel
+2026-01-05T01:30:06.0215362Z PitchListCatalogViewModel: Materialized preset 7-34 at index 27
+2026-01-05T01:30:15.5248884Z PitchListCatalogViewModel: initial 50 model items added in 9ms
+2026-01-05T01:30:15.5337514Z DataGridLazyVmLoader: LoadingRow idx=27 itemType=PresetPcSet
+2026-01-05T01:30:15.5370917Z DataGridLazyVmLoader: LoadingRow idx=28 itemType=PresetPcSet
+2026-01-05T01:30:15.5400208Z DataGridLazyVmLoader: LoadingRow idx=29 itemType=PresetPcSet
+2026-01-05T01:30:15.5424892Z DataGridLazyVmLoader: LoadingRow idx=30 itemType=PresetPcSet
+2026-01-05T01:30:15.5446727Z DataGridLazyVmLoader: LoadingRow idx=31 itemType=PresetPcSet
+2026-01-05T01:30:15.5475504Z DataGridLazyVmLoader: LoadingRow idx=32 itemType=PresetPcSet
+2026-01-05T01:30:15.5507263Z DataGridLazyVmLoader: LoadingRow idx=33 itemType=PresetPcSet
+2026-01-05T01:30:15.5531686Z DataGridLazyVmLoader: LoadingRow idx=34 itemType=PresetPcSet
+2026-01-05T01:30:15.5560001Z DataGridLazyVmLoader: LoadingRow idx=35 itemType=PresetPcSet
+2026-01-05T01:30:15.5588549Z DataGridLazyVmLoader: LoadingRow idx=36 itemType=PresetPcSet
+2026-01-05T01:30:15.5613717Z DataGridLazyVmLoader: LoadingRow idx=37 itemType=PresetPcSet
+2026-01-05T01:30:15.5639885Z DataGridLazyVmLoader: LoadingRow idx=38 itemType=PresetPcSet
+2026-01-05T01:30:15.5667424Z DataGridLazyVmLoader: LoadingRow idx=39 itemType=PresetPcSet
+2026-01-05T01:30:15.7361804Z PitchListCatalogViewModel: Materialized preset 6-1 at index 0
+2026-01-05T01:30:15.7477280Z DataGridLazyVmLoader: LoadingRow idx=26 itemType=PresetPcSet
+2026-01-05T01:30:15.7509059Z DataGridLazyVmLoader: LoadingRow idx=40 itemType=PresetPcSet
+2026-01-05T01:30:15.7830134Z DataGridLazyVmLoader: LoadingRow idx=27 itemType=PresetItemViewModel
+2026-01-05T01:30:15.7843651Z PitchListCatalogViewModel: Materialized preset 6-34 at index 27
+2026-01-05T01:30:15.7962583Z DataGridLazyVmLoader: LoadingRow idx=28 itemType=PresetItemViewModel
+2026-01-05T01:30:15.7974693Z PitchListCatalogViewModel: Materialized preset 6-35 at index 28
+2026-01-05T01:30:15.8162252Z DataGridLazyVmLoader: LoadingRow idx=29 itemType=PresetItemViewModel
+2026-01-05T01:30:15.8175432Z PitchListCatalogViewModel: Materialized preset 6-36 at index 29
+2026-01-05T01:30:15.8275737Z DataGridLazyVmLoader: LoadingRow idx=30 itemType=PresetItemViewModel
+2026-01-05T01:30:15.8286080Z PitchListCatalogViewModel: Materialized preset 6-37 at index 30
+2026-01-05T01:30:15.8473459Z DataGridLazyVmLoader: LoadingRow idx=31 itemType=PresetItemViewModel
+2026-01-05T01:30:15.8486381Z PitchListCatalogViewModel: Materialized preset 6-38 at index 31
+2026-01-05T01:30:15.8572038Z DataGridLazyVmLoader: LoadingRow idx=32 itemType=PresetItemViewModel
+2026-01-05T01:30:15.8586427Z PitchListCatalogViewModel: Materialized preset 6-39 at index 32
+2026-01-05T01:30:15.8745861Z DataGridLazyVmLoader: LoadingRow idx=33 itemType=PresetItemViewModel
+2026-01-05T01:30:15.8760049Z PitchListCatalogViewModel: Materialized preset 6-4 at index 33
+2026-01-05T01:30:15.8943907Z DataGridLazyVmLoader: LoadingRow idx=34 itemType=PresetItemViewModel
+2026-01-05T01:30:15.8956885Z PitchListCatalogViewModel: Materialized preset 6-40 at index 34
+2026-01-05T01:30:15.9122837Z DataGridLazyVmLoader: LoadingRow idx=35 itemType=PresetItemViewModel
+2026-01-05T01:30:15.9137631Z PitchListCatalogViewModel: Materialized preset 6-41 at index 35
+2026-01-05T01:30:15.9417304Z DataGridLazyVmLoader: LoadingRow idx=36 itemType=PresetItemViewModel
+2026-01-05T01:30:15.9429908Z PitchListCatalogViewModel: Materialized preset 6-42 at index 36
+2026-01-05T01:30:15.9521260Z DataGridLazyVmLoader: LoadingRow idx=37 itemType=PresetItemViewModel
+2026-01-05T01:30:15.9532484Z PitchListCatalogViewModel: Materialized preset 6-43 at index 37
+2026-01-05T01:30:15.9715044Z DataGridLazyVmLoader: LoadingRow idx=38 itemType=PresetItemViewModel
+2026-01-05T01:30:15.9726114Z PitchListCatalogViewModel: Materialized preset 6-44 at index 38
+2026-01-05T01:30:15.9851985Z DataGridLazyVmLoader: LoadingRow idx=39 itemType=PresetItemViewModel
+2026-01-05T01:30:15.9867972Z PitchListCatalogViewModel: Materialized preset 6-45 at index 39
+2026-01-05T01:30:15.9992028Z DataGridLazyVmLoader: LoadingRow idx=26 itemType=PresetItemViewModel
+2026-01-05T01:30:16.0003147Z PitchListCatalogViewModel: Materialized preset 6-33 at index 26
+2026-01-05T01:30:16.0185754Z DataGridLazyVmLoader: LoadingRow idx=40 itemType=PresetItemViewModel
+2026-01-05T01:30:16.0199425Z PitchListCatalogViewModel: Materialized preset 6-46 at index 40
+2026-01-05T01:41:14.3756976Z PresetCatalogService.LoadCatalog: loaded 223 presets in 17ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T01:41:14.5745181Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T01:41:15.2155429Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T01:46:25.2481579Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T01:46:25.4677228Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T01:46:26.1241766Z MainWindow: Light UI prewarm skipped - required resources not available
+2026-01-05T02:10:40.3556497Z PresetCatalogService.LoadCatalog: loaded 223 presets in 68ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T02:10:40.9531085Z PresetItemCache: precreated 223 items in 3ms
+2026-01-05T02:10:57.1302489Z PitchListCatalogViewModel: built _itemsById with 223 items in 0ms
+2026-01-05T02:10:57.1541918Z PitchListCatalogViewModel: background created 223 items in 0ms
+2026-01-05T02:10:57.1666747Z PitchListCatalogViewModel: initial 50 model items added in 1ms
+2026-01-05T02:10:57.2614829Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T02:10:57.2788570Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T02:10:57.2944620Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T02:10:57.3220449Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T02:10:57.3320493Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T02:10:57.3429345Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T02:10:57.3528381Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T02:10:57.3620265Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T02:10:57.4065158Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T02:10:57.4137478Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T02:10:57.4438123Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T02:10:57.4638983Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T02:10:57.4711147Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetPcSet
+2026-01-05T02:10:57.4797221Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetPcSet
+2026-01-05T02:10:57.8813286Z PitchListCatalogWindow: Loaded after 705ms; ResultsGrid.Items=51
+2026-01-05T02:10:57.9548382Z PitchListCatalogWindow: PostRender invoked
+2026-01-05T02:10:57.9575377Z PitchListCatalogWindow: PostRender after 705ms; VisibleContainers=14; Items=101
+2026-01-05T02:10:57.9782338Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T02:10:57.9868608Z PitchListCatalogViewModel: Materialized preset 1-1 at index 0
+2026-01-05T02:10:58.0553004Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetItemViewModel
+2026-01-05T02:10:58.0580989Z PitchListCatalogViewModel: Materialized preset 2-1 at index 1
+2026-01-05T02:10:58.1406609Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T02:10:58.1454071Z PitchListCatalogViewModel: Materialized preset 2-2 at index 2
+2026-01-05T02:10:58.1727955Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T02:10:58.1785532Z PitchListCatalogViewModel: Materialized preset 2-3 at index 3
+2026-01-05T02:10:58.2024144Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T02:10:58.2086825Z PitchListCatalogViewModel: Materialized preset 2-4 at index 4
+2026-01-05T02:10:58.2369310Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T02:10:58.2392428Z PitchListCatalogViewModel: Materialized preset 2-5 at index 5
+2026-01-05T02:10:58.2646223Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T02:10:58.2680291Z PitchListCatalogViewModel: Materialized preset 2-6 at index 6
+2026-01-05T02:10:58.2966214Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T02:10:58.2992166Z PitchListCatalogViewModel: Materialized preset 3-1 at index 7
+2026-01-05T02:10:58.3115577Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T02:10:58.3139932Z PitchListCatalogViewModel: Materialized preset 3-10 at index 8
+2026-01-05T02:10:58.3273477Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T02:10:58.3296627Z PitchListCatalogViewModel: Materialized preset 3-11 at index 9
+2026-01-05T02:10:58.3467142Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T02:10:58.3509155Z PitchListCatalogViewModel: Materialized preset 3-12 at index 10
+2026-01-05T02:10:58.3745851Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T02:10:58.3782885Z PitchListCatalogViewModel: Materialized preset 3-2 at index 11
+2026-01-05T02:10:58.3918248Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetItemViewModel
+2026-01-05T02:10:58.3947859Z PitchListCatalogViewModel: Materialized preset 3-3 at index 12
+2026-01-05T02:10:58.4084241Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetItemViewModel
+2026-01-05T02:10:58.4108788Z PitchListCatalogViewModel: Materialized preset 3-4 at index 13
+2026-01-05T02:10:59.7911719Z PitchListCatalogViewModel: finished populating 223 results (models only)
+2026-01-05T02:11:00.7650457Z DataGridLazyVmLoader: LoadingRow idx=14 itemType=PresetPcSet
+2026-01-05T02:11:00.7785726Z DataGridLazyVmLoader: LoadingRow idx=15 itemType=PresetPcSet
+2026-01-05T02:11:00.8147830Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T02:11:00.8192720Z DataGridLazyVmLoader: LoadingRow idx=16 itemType=PresetPcSet
+2026-01-05T02:11:00.8711339Z DataGridLazyVmLoader: LoadingRow idx=17 itemType=PresetPcSet
+2026-01-05T02:11:00.8812743Z DataGridLazyVmLoader: LoadingRow idx=18 itemType=PresetPcSet
+2026-01-05T02:11:00.9145151Z DataGridLazyVmLoader: LoadingRow idx=19 itemType=PresetPcSet
+2026-01-05T02:11:00.9350337Z DataGridLazyVmLoader: LoadingRow idx=20 itemType=PresetPcSet
+2026-01-05T02:11:00.9493864Z DataGridLazyVmLoader: LoadingRow idx=21 itemType=PresetPcSet
+2026-01-05T02:11:00.9859473Z DataGridLazyVmLoader: LoadingRow idx=22 itemType=PresetPcSet
+2026-01-05T02:11:01.0045003Z DataGridLazyVmLoader: LoadingRow idx=23 itemType=PresetPcSet
+2026-01-05T02:11:01.0174246Z DataGridLazyVmLoader: LoadingRow idx=24 itemType=PresetPcSet
+2026-01-05T02:11:01.0494758Z DataGridLazyVmLoader: LoadingRow idx=25 itemType=PresetPcSet
+2026-01-05T02:11:01.0637523Z DataGridLazyVmLoader: LoadingRow idx=26 itemType=PresetPcSet
+2026-01-05T02:11:01.0760110Z DataGridLazyVmLoader: LoadingRow idx=27 itemType=PresetPcSet
+2026-01-05T02:11:01.1618577Z DataGridLazyVmLoader: LoadingRow idx=28 itemType=PresetPcSet
+2026-01-05T02:11:01.1745219Z DataGridLazyVmLoader: LoadingRow idx=29 itemType=PresetPcSet
+2026-01-05T02:11:01.1902970Z DataGridLazyVmLoader: LoadingRow idx=30 itemType=PresetPcSet
+2026-01-05T02:11:01.2268930Z DataGridLazyVmLoader: LoadingRow idx=15 itemType=PresetPcSet
+2026-01-05T02:11:01.2496573Z DataGridLazyVmLoader: LoadingRow idx=16 itemType=PresetPcSet
+2026-01-05T02:11:01.3140620Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetItemViewModel
+2026-01-05T02:11:01.3177833Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetItemViewModel
+2026-01-05T02:11:01.3306878Z DataGridLazyVmLoader: LoadingRow idx=14 itemType=PresetPcSet
+2026-01-05T02:11:01.3538926Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T02:11:01.3577677Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T02:11:01.3634312Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T02:11:01.3952602Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T02:11:01.3995303Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T02:11:01.4024051Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T02:11:01.4356447Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T02:11:01.4403921Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T02:11:01.4470065Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T02:11:01.4844730Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T02:11:01.5185829Z DataGridLazyVmLoader: LoadingRow idx=14 itemType=PresetItemViewModel
+2026-01-05T02:11:01.5216530Z PitchListCatalogViewModel: Materialized preset 3-5 at index 14
+2026-01-05T02:11:01.5461254Z DataGridLazyVmLoader: LoadingRow idx=16 itemType=PresetItemViewModel
+2026-01-05T02:11:01.5517861Z PitchListCatalogViewModel: Materialized preset 3-7 at index 16
+2026-01-05T02:11:01.5775586Z PitchListCatalogViewModel: Materialized preset 3-8 at index 17
+2026-01-05T02:11:01.5807627Z DataGridLazyVmLoader: LoadingRow idx=15 itemType=PresetItemViewModel
+2026-01-05T02:11:01.5871201Z PitchListCatalogViewModel: Materialized preset 3-6 at index 15
+2026-01-05T02:11:01.7089268Z DataGridLazyVmLoader: LoadingRow idx=17 itemType=PresetItemViewModel
+2026-01-05T02:11:01.7468420Z DataGridLazyVmLoader: LoadingRow idx=18 itemType=PresetPcSet
+2026-01-05T02:11:01.8140559Z DataGridLazyVmLoader: LoadingRow idx=19 itemType=PresetPcSet
+2026-01-05T02:11:01.8409419Z DataGridLazyVmLoader: LoadingRow idx=20 itemType=PresetPcSet
+2026-01-05T02:11:01.8923518Z DataGridLazyVmLoader: LoadingRow idx=21 itemType=PresetPcSet
+2026-01-05T02:11:02.2829001Z DataGridLazyVmLoader: LoadingRow idx=22 itemType=PresetPcSet
+2026-01-05T02:11:02.3496575Z DataGridLazyVmLoader: LoadingRow idx=23 itemType=PresetPcSet
+2026-01-05T02:11:02.4727650Z DataGridLazyVmLoader: LoadingRow idx=24 itemType=PresetPcSet
+2026-01-05T02:11:02.5673752Z DataGridLazyVmLoader: LoadingRow idx=25 itemType=PresetPcSet
+2026-01-05T02:11:02.5979773Z DataGridLazyVmLoader: LoadingRow idx=18 itemType=PresetItemViewModel
+2026-01-05T02:11:02.7114728Z PitchListCatalogViewModel: Materialized preset 3-9 at index 18
+2026-01-05T02:11:02.7639839Z DataGridLazyVmLoader: LoadingRow idx=19 itemType=PresetItemViewModel
+2026-01-05T02:11:02.7681709Z PitchListCatalogViewModel: Materialized preset 4-1 at index 19
+2026-01-05T02:11:02.7968254Z DataGridLazyVmLoader: LoadingRow idx=20 itemType=PresetItemViewModel
+2026-01-05T02:11:02.7999062Z PitchListCatalogViewModel: Materialized preset 4-10 at index 20
+2026-01-05T02:11:02.8267391Z DataGridLazyVmLoader: LoadingRow idx=21 itemType=PresetItemViewModel
+2026-01-05T02:11:02.8385584Z PitchListCatalogViewModel: Materialized preset 4-11 at index 21
+2026-01-05T02:11:03.0419480Z DataGridLazyVmLoader: LoadingRow idx=22 itemType=PresetItemViewModel
+2026-01-05T02:11:03.0452795Z PitchListCatalogViewModel: Materialized preset 4-12 at index 22
+2026-01-05T02:11:03.0623328Z DataGridLazyVmLoader: LoadingRow idx=23 itemType=PresetItemViewModel
+2026-01-05T02:11:03.0645283Z PitchListCatalogViewModel: Materialized preset 4-13 at index 23
+2026-01-05T02:11:03.0778916Z DataGridLazyVmLoader: LoadingRow idx=24 itemType=PresetItemViewModel
+2026-01-05T02:11:03.0802053Z PitchListCatalogViewModel: Materialized preset 4-14 at index 24
+2026-01-05T02:11:03.0938239Z DataGridLazyVmLoader: LoadingRow idx=25 itemType=PresetItemViewModel
+2026-01-05T02:11:03.0987886Z PitchListCatalogViewModel: Materialized preset 4-15 at index 25
+2026-01-05T02:45:46.7801744Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T02:45:47.0804167Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T02:47:11.3118296Z PitchListCatalogViewModel: built _itemsById with 223 items in 0ms
+2026-01-05T02:47:11.3120265Z PitchListCatalogViewModel: background created 223 items in 0ms
+2026-01-05T02:47:11.3166109Z PitchListCatalogViewModel: initial 50 model items added in 0ms
+2026-01-05T02:47:11.3476342Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetPcSet
+2026-01-05T02:47:11.3506487Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetPcSet
+2026-01-05T02:47:11.3532199Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetPcSet
+2026-01-05T02:47:11.3560505Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetPcSet
+2026-01-05T02:47:11.3591185Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetPcSet
+2026-01-05T02:47:11.3618560Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetPcSet
+2026-01-05T02:47:11.3652102Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetPcSet
+2026-01-05T02:47:11.3682122Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetPcSet
+2026-01-05T02:47:11.3710417Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetPcSet
+2026-01-05T02:47:11.3737402Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetPcSet
+2026-01-05T02:47:11.3763816Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetPcSet
+2026-01-05T02:47:11.3792594Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetPcSet
+2026-01-05T02:47:11.3818438Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetPcSet
+2026-01-05T02:47:11.3844886Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetPcSet
+2026-01-05T02:47:11.5663903Z PitchListCatalogWindow: Loaded after 247ms; ResultsGrid.Items=51
+2026-01-05T02:47:11.5900201Z PitchListCatalogWindow: PostRender invoked
+2026-01-05T02:47:11.5916022Z PitchListCatalogWindow: PostRender after 247ms; VisibleContainers=14; Items=101
+2026-01-05T02:47:11.6356729Z DataGridLazyVmLoader: LoadingRow idx=0 itemType=PresetItemViewModel
+2026-01-05T02:47:11.6385121Z PitchListCatalogViewModel: Materialized preset 1-1 at index 0
+2026-01-05T02:47:11.6581499Z DataGridLazyVmLoader: LoadingRow idx=1 itemType=PresetItemViewModel
+2026-01-05T02:47:11.6594902Z PitchListCatalogViewModel: Materialized preset 2-1 at index 1
+2026-01-05T02:47:11.6667790Z DataGridLazyVmLoader: LoadingRow idx=2 itemType=PresetItemViewModel
+2026-01-05T02:47:11.6683935Z PitchListCatalogViewModel: Materialized preset 2-2 at index 2
+2026-01-05T02:47:11.6921685Z DataGridLazyVmLoader: LoadingRow idx=3 itemType=PresetItemViewModel
+2026-01-05T02:47:11.6935872Z PitchListCatalogViewModel: Materialized preset 2-3 at index 3
+2026-01-05T02:47:11.7028039Z DataGridLazyVmLoader: LoadingRow idx=4 itemType=PresetItemViewModel
+2026-01-05T02:47:11.7043394Z PitchListCatalogViewModel: Materialized preset 2-4 at index 4
+2026-01-05T02:47:11.7175084Z DataGridLazyVmLoader: LoadingRow idx=5 itemType=PresetItemViewModel
+2026-01-05T02:47:11.7204225Z PitchListCatalogViewModel: Materialized preset 2-5 at index 5
+2026-01-05T02:47:11.7239211Z PitchListCatalogViewModel: finished populating 223 results (models only)
+2026-01-05T02:47:11.7310034Z DataGridLazyVmLoader: LoadingRow idx=6 itemType=PresetItemViewModel
+2026-01-05T02:47:11.7323581Z PitchListCatalogViewModel: Materialized preset 2-6 at index 6
+2026-01-05T02:47:11.7498921Z DataGridLazyVmLoader: LoadingRow idx=7 itemType=PresetItemViewModel
+2026-01-05T02:47:11.7511325Z PitchListCatalogViewModel: Materialized preset 3-1 at index 7
+2026-01-05T02:47:11.7605214Z DataGridLazyVmLoader: LoadingRow idx=8 itemType=PresetItemViewModel
+2026-01-05T02:47:11.7623975Z PitchListCatalogViewModel: Materialized preset 3-10 at index 8
+2026-01-05T02:47:11.7739633Z DataGridLazyVmLoader: LoadingRow idx=9 itemType=PresetItemViewModel
+2026-01-05T02:47:11.7753459Z PitchListCatalogViewModel: Materialized preset 3-11 at index 9
+2026-01-05T02:47:11.7903769Z DataGridLazyVmLoader: LoadingRow idx=10 itemType=PresetItemViewModel
+2026-01-05T02:47:11.7916987Z PitchListCatalogViewModel: Materialized preset 3-12 at index 10
+2026-01-05T02:47:11.8075089Z DataGridLazyVmLoader: LoadingRow idx=11 itemType=PresetItemViewModel
+2026-01-05T02:47:11.8088043Z PitchListCatalogViewModel: Materialized preset 3-2 at index 11
+2026-01-05T02:47:11.8240587Z DataGridLazyVmLoader: LoadingRow idx=12 itemType=PresetItemViewModel
+2026-01-05T02:47:11.8252838Z PitchListCatalogViewModel: Materialized preset 3-3 at index 12
+2026-01-05T02:47:11.8410584Z DataGridLazyVmLoader: LoadingRow idx=13 itemType=PresetItemViewModel
+2026-01-05T02:47:11.8422507Z PitchListCatalogViewModel: Materialized preset 3-4 at index 13
+2026-01-05T03:05:01.6371519Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:05:01.8478185Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:12:06.1544831Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:12:06.3546681Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:23:40.2845229Z PresetCatalogService.LoadCatalog: loaded 223 presets in 18ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:23:40.4830011Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:29:19.1219712Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:29:19.2928899Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:31:43.1829087Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:31:43.3821812Z PresetItemCache: precreated 223 items in 2ms
+2026-01-05T03:34:25.6203918Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:34:25.7923087Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:37:04.3746057Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:37:04.5408458Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:37:24.4117862Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:37:24.5714775Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:38:33.7633435Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:38:33.9462965Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:39:13.2051451Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:39:13.3339912Z PresetItemCache: precreated 223 items in 0ms
+2026-01-05T03:39:18.9338005Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:39:19.0698206Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:40:52.2505666Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:40:52.4336869Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:42:44.1879038Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:42:44.4001707Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:44:55.8170516Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:44:55.9852693Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:46:31.1506854Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:46:31.3378600Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:48:53.2368913Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:48:53.4381329Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:52:33.7077750Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:52:33.9353025Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:54:58.9106695Z PresetCatalogService.LoadCatalog: loaded 223 presets in 17ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:54:59.1555150Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T03:57:15.4248842Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T03:57:15.6012251Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:00:05.3385703Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:00:05.5361729Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:01:09.1884912Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:01:09.3808964Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:08:15.3090064Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:08:15.5095943Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:09:34.4349826Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:09:34.6335069Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:09:48.9242233Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:09:49.1118206Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:11:33.1074361Z PresetCatalogService.LoadCatalog: loaded 223 presets in 13ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:11:33.2982970Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:12:25.8676717Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:12:26.0612136Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:14:56.5202102Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:14:56.7087567Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:18:20.8454842Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:18:21.0718566Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:42:18.2527857Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:42:18.6824030Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:43:15.1159854Z PresetCatalogService.LoadCatalog: loaded 223 presets in 17ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:43:15.3091011Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:43:46.2106645Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:43:46.4088099Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:46:02.3375004Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:46:02.5315558Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:47:45.1653340Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:47:45.3390053Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:55:10.4617160Z PresetCatalogService.LoadCatalog: loaded 223 presets in 4ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:55:10.6820393Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T04:57:16.1990439Z PresetCatalogService.LoadCatalog: loaded 223 presets in 17ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T04:57:16.3711648Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:00:27.1253930Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:00:27.3006939Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:07:14.5511938Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:07:14.7533879Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:10:44.2898128Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:10:44.4579045Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:12:10.2926491Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:12:10.4818147Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:44:47.1342499Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:44:47.5879228Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:47:45.4576368Z PresetCatalogService.LoadCatalog: loaded 223 presets in 19ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:47:45.6373710Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:48:11.7430510Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:48:11.9246268Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:49:14.2825960Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:49:14.4519913Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:50:42.9929465Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:50:43.1947248Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:53:19.7535308Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:53:19.9500340Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T05:58:32.9726001Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T05:58:33.1688981Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:01:09.1827148Z PresetCatalogService.LoadCatalog: loaded 223 presets in 4ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:01:09.3750276Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:02:42.0392443Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:02:42.2274256Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:07:24.8020494Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:07:24.9948452Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:10:19.7045162Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:10:19.8961297Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:24:27.6475407Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:24:27.8284477Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:25:19.0305420Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:25:19.2418734Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:26:05.9727197Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:26:06.1365986Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:28:38.9325828Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:28:39.1003019Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:30:09.4957659Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:30:09.6804001Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:30:39.9557034Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:30:40.1060521Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:31:05.1495758Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:31:05.3216353Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:32:16.8661029Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:32:17.0409531Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:32:53.8256950Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:32:54.0248148Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:33:21.7724557Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:33:21.9515263Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:36:30.9141961Z PresetCatalogService.LoadCatalog: loaded 223 presets in 3ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:36:31.0965174Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:37:15.8936894Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:37:16.0850464Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:40:23.0873935Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:40:23.2700651Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T06:42:04.1963998Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T06:42:04.4029110Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T14:57:13.9119705Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T14:57:14.3055271Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T15:01:28.6311190Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T15:01:28.8102456Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T15:05:51.0605989Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T15:05:51.2680481Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:14:55.0451886Z PresetCatalogService.LoadCatalog: loaded 223 presets in 5ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:14:55.2420434Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:26:13.4711077Z PresetCatalogService.LoadCatalog: loaded 223 presets in 4ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:26:13.6597780Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:29:30.0265207Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:29:30.1870232Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:31:56.3424866Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:31:56.5554958Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:36:11.2904256Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:36:11.4599172Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:39:05.9012955Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:39:06.1161456Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:41:58.9478353Z PresetCatalogService.LoadCatalog: loaded 223 presets in 17ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:41:59.1530373Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:44:59.1221294Z PresetCatalogService.LoadCatalog: loaded 223 presets in 4ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:44:59.3326048Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:47:56.7804846Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:47:57.1760922Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:50:09.1709103Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:50:09.3699820Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:51:47.0089768Z PresetCatalogService.LoadCatalog: loaded 223 presets in 4ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:51:47.2239383Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:52:55.0154877Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:52:55.2117606Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:54:36.6516253Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:54:36.8466972Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:56:20.9371217Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:56:21.1172917Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T16:58:21.5759955Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T16:58:21.8355770Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:00:49.7788438Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:00:49.9580186Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:01:47.5343812Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:01:47.7235924Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:03:32.3994408Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:03:32.5657896Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:04:54.9760003Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:04:55.2007443Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:06:18.0161101Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:06:18.1798730Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:07:13.4930631Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:07:13.6536807Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:08:54.8823397Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:08:55.0631187Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:10:41.1840625Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:10:41.3582265Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:12:52.9346456Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:12:53.1323168Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:14:10.8016108Z PresetCatalogService.LoadCatalog: loaded 223 presets in 16ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:14:10.9930867Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:16:27.1300611Z PresetCatalogService.LoadCatalog: loaded 223 presets in 15ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:16:27.3829570Z PresetItemCache: precreated 223 items in 1ms
+2026-01-05T17:17:14.8047154Z PresetCatalogService.LoadCatalog: loaded 223 presets in 14ms (path=C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json)
+2026-01-05T17:17:15.0065339Z PresetItemCache: precreated 223 items in 1ms

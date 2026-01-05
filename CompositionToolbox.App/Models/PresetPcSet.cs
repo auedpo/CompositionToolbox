@@ -26,6 +26,7 @@ namespace CompositionToolbox.App.Models
         // Lightweight display helpers so the UI can bind to models before a heavy VM is created
         public string NameDisplay => string.IsNullOrWhiteSpace(DisplayName) ? Id : DisplayName!;
         public string CardinalityValue => Cardinality.ToString();
+        public string CardinalityDisplay => $"|S| = {Cardinality}";
         public int IC1 => IntervalVector.Length > 0 ? IntervalVector[0] : 0;
         public int IC2 => IntervalVector.Length > 1 ? IntervalVector[1] : 0;
         public int IC3 => IntervalVector.Length > 2 ? IntervalVector[2] : 0;

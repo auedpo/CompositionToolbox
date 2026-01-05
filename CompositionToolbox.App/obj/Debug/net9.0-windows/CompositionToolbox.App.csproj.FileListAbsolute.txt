@@ -48,8 +48,6 @@ C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Ap
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\InspectorView.g.cs
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\InspectorView.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\presets.json
-C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\PresetPickerDialog.g.cs
-C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\PresetPickerDialog.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\InspectorNotationWindow.g.cs
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\InspectorNotationWindow.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\PitchListCatalogWindow.baml
@@ -72,3 +70,12 @@ C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Ap
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\CompositionToolbox.App.sourcelink.json
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\SwirlingMistsLensView.g.cs
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\SwirlingMistsLensView.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\Styles.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\Dialogs\ConfirmDialog.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\Dialogs\MessageDialog.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\Dialogs\TextPromptDialog.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\Dialogs\ConfirmDialog.g.cs
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\Dialogs\MessageDialog.g.cs
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\Dialogs\TextPromptDialog.g.cs
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\NecklaceEntryLensView.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\NecklaceEntryLensView.g.cs

@@ -22,144 +22,239 @@
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
         </Style>
-        <Style x:Key="TransformLogMonoTextStyle" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Consolas,Cascadia Mono,Courier New" />
+        <Style x:Key="RowSplitterPreviewStyle" TargetType="Control">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Control">
+                        <Rectangle Fill="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                                   Height="2"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Center" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
+        <Style x:Key="LeftRowSplitterPreviewStyle" TargetType="Control" BasedOn="{StaticResource RowSplitterPreviewStyle}">
+            <Setter Property="Width" Value="{Binding ActualWidth, ElementName=LeftColumnGrid}" />
+        </Style>
+        <Style x:Key="InspectorRowSplitterPreviewStyle" TargetType="Control" BasedOn="{StaticResource RowSplitterPreviewStyle}">
+            <Setter Property="Width" Value="{Binding ActualWidth, ElementName=InspectorGrid}" />
+        </Style>
+        <Style x:Key="HorizontalGridSplitterStyle" TargetType="GridSplitter">
+            <Setter Property="Height" Value="{DynamicResource App.PanelGapSize}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="ResizeDirection" Value="Rows" />
+            <Setter Property="ResizeBehavior" Value="PreviousAndNext" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GridSplitter">
+                        <Grid Background="{TemplateBinding Background}">
+                            <UniformGrid Rows="1"
+                                         Columns="3"
+                                         Width="24"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center">
+                                <Ellipse Width="4" Height="4"
+                                         Fill="{DynamicResource App.GripperDotBrush}"
+                                         Margin="{DynamicResource App.GripperDotMarginHorizontal}" />
+                                <Ellipse Width="4" Height="4"
+                                         Fill="{DynamicResource App.GripperDotBrush}"
+                                         Margin="{DynamicResource App.GripperDotMarginHorizontal}" />
+                                <Ellipse Width="4" Height="4"
+                                         Fill="{DynamicResource App.GripperDotBrush}"
+                                         Margin="{DynamicResource App.GripperDotMarginHorizontal}" />
+                            </UniformGrid>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="TransformLogMonoTextStyle" TargetType="TextBlock" BasedOn="{StaticResource App.MonoTextStyle}" />
         <Style x:Key="PanelBorderStyle" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource SystemControlPageBackgroundChromeLowBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundBaseMediumLowBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource App.PanelBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="8" />
+            <Setter Property="Padding" Value="{DynamicResource App.PanelPadding}" />
         </Style>
         <Style x:Key="PanelBorderNoPaddingStyle" TargetType="Border" BasedOn="{StaticResource PanelBorderStyle}">
             <Setter Property="Padding" Value="0" />
         </Style>
         <Style x:Key="HeaderBarBorderStyle" TargetType="Border" BasedOn="{StaticResource PanelBorderStyle}">
-            <Setter Property="Padding" Value="8" />
+            <Setter Property="Padding" Value="{DynamicResource App.PanelPadding}" />
         </Style>
     </Window.Resources>
 
-    <Window.InputBindings>
-        <KeyBinding Key="P" Modifiers="Control" Command="{Binding OpenPresetPickerCommand}" />
-    </Window.InputBindings>
+    <Border Margin="{DynamicResource App.PanelMargin}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" MinHeight="56" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" MinHeight="56" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <!-- Header Bar -->
-        <Border Grid.Row="0" Margin="8" Style="{StaticResource HeaderBarBorderStyle}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,6,0">Modulus</TextBlock>
-                        <ComboBox Width="140"
-                                  ItemsSource="{Binding Moduli}"
-                                  SelectedItem="{Binding SelectedModulus}" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,6,0">MIDI Out</TextBlock>
-                        <ComboBox Width="220"
-                                  ItemsSource="{Binding MidiDevices}"
-                                  SelectedIndex="{Binding SelectedMidiDeviceIndex}"
-                                  DisplayMemberPath="Name" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="Test MIDI"
-                                Command="{Binding TestMidiCommand}"
-                                Margin="0,0,8,0" />
-                        <Button Content="Test Microtone"
-                                Command="{Binding TestMicrotoneCommand}"
-                                Margin="0,0,8,0" />
-                        <Button x:Name="MidiDragButton"
-                                Content="Drag MIDI"
-                                ToolTip="Drag to export MIDI (.mid)"
-                                PreviewMouseLeftButtonDown="MidiDragButton_PreviewMouseLeftButtonDown"
-                                PreviewMouseLeftButtonUp="MidiDragButton_PreviewMouseLeftButtonUp"
-                                PreviewMouseMove="MidiDragButton_PreviewMouseMove" />
-                    </StackPanel>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="1">
-                    <Button Content="Play"
-                            Command="{Binding PlayCommand}"
-                            Click="Play_Click" />
-                    <Button Content="Settings"
-                            Click="Settings_Click"
-                            Margin="8,0,0,0" />
-                    <Button Content="MIDI Monitor"
-                            Click="MidiMonitor_Click"
-                            Margin="8,0,0,0" />
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- Body -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="CompositesColumn" Width="*" MinWidth="220" />
-                <ColumnDefinition Width="6" />
-                <ColumnDefinition x:Name="MiddleColumn" Width="*" MinWidth="360" />
-                <ColumnDefinition Width="6" />
-                <ColumnDefinition x:Name="WorkspaceColumn" Width="*" />
-                <ColumnDefinition Width="6" />
-                <ColumnDefinition x:Name="InspectorColumn" Width="*" MinWidth="260" />
-            </Grid.ColumnDefinitions>
-
-            <!-- Left: Composites -->
-            <Border Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+            <!-- Header Bar -->
+            <Border Grid.Row="0"
+                    Style="{StaticResource HeaderBarBorderStyle}"
+                    Padding="{DynamicResource App.PanelPadding}"
+                    Margin="{DynamicResource App.SectionSpacingBottom}">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <DockPanel Margin="0,0,0,8">
-                        <TextBlock Style="{StaticResource SectionHeaderTextStyle}" DockPanel.Dock="Left">Composites</TextBlock>
-                    </DockPanel>
-                    <ListBox Grid.Row="1"
-                             ItemsSource="{Binding Store.Composites}"
-                             SelectedItem="{Binding Store.SelectedComposite}"
-                             DisplayMemberPath="Title"
-                             Margin="0,0,0,8" />
-                    <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Left">
-                        <Button Content="New" Command="{Binding NewCompositeCommand}" Margin="0,0,0,6" />
-                        <Button Content="Duplicate" Command="{Binding DuplicateCompositeCommand}" Margin="0,0,0,6" />
-                        <Button Content="Rename" Command="{Binding RenameCompositeCommand}" Margin="0,0,0,6" />
-                        <Button Content="Delete" Command="{Binding DeleteCompositeCommand}" />
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                            <TextBlock VerticalAlignment="Center" Margin="0,0,6,0">Modulus</TextBlock>
+                            <ComboBox Width="140"
+                                      ItemsSource="{Binding Moduli}"
+                                      SelectedItem="{Binding SelectedModulus}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                            <TextBlock VerticalAlignment="Center" Margin="0,0,6,0">MIDI Out</TextBlock>
+                            <ComboBox Width="220"
+                                      ItemsSource="{Binding MidiDevices}"
+                                      SelectedIndex="{Binding SelectedMidiDeviceIndex}"
+                                      DisplayMemberPath="Name" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Test MIDI"
+                                    Command="{Binding TestMidiCommand}"
+                                    Margin="0,0,8,0" />
+                            <Button Content="Test Microtone"
+                                    Command="{Binding TestMicrotoneCommand}"
+                                    Margin="0,0,8,0" />
+                            <Button x:Name="MidiDragButton"
+                                    Content="Drag MIDI"
+                                    ToolTip="Drag to export MIDI (.mid)"
+                                    PreviewMouseLeftButtonDown="MidiDragButton_PreviewMouseLeftButtonDown"
+                                    PreviewMouseLeftButtonUp="MidiDragButton_PreviewMouseLeftButtonUp"
+                                    PreviewMouseMove="MidiDragButton_PreviewMouseMove" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="1">
+                        <Button Content="Play"
+                                Command="{Binding PlayCommand}"
+                                Click="Play_Click" />
+                        <Button Content="Settings"
+                                Click="Settings_Click"
+                                Margin="8,0,0,0" />
+                        <Button Content="MIDI Monitor"
+                                Click="MidiMonitor_Click"
+                                Margin="8,0,0,0" />
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" />
+            <!-- Body -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="MiddleColumn" Width="*" MinWidth="360" />
+                    <ColumnDefinition Width="6" />
+                    <ColumnDefinition x:Name="WorkspaceColumn" Width="*" />
+                    <ColumnDefinition Width="6" />
+                    <ColumnDefinition x:Name="InspectorColumn" Width="*" MinWidth="260" />
+                </Grid.ColumnDefinitions>
 
-            <!-- Middle column: Lenses, Transform Log, Workspace Preview -->
-            <Grid Grid.Column="2">
+            <!-- Left: Composites, Lenses, Transform Log -->
+            <Grid Grid.Column="0" x:Name="LeftColumnGrid">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
+                    <RowDefinition x:Name="LeftTopRow" Height="*" />
+                    <RowDefinition Height="{DynamicResource App.PanelGap}" />
+                    <RowDefinition x:Name="LeftBottomRow" Height="*" />
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
+                <Grid Grid.Row="0" x:Name="CompositesLensGrid">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition x:Name="LensSelectorColumn" Width="*" MinWidth="170" />
+                        <ColumnDefinition x:Name="CompositesColumn" Width="*" MinWidth="20" />
                         <ColumnDefinition Width="6" />
-                        <ColumnDefinition x:Name="TransformLogColumn" Width="*" MinWidth="320" />
+                        <ColumnDefinition x:Name="LensSelectorColumn" Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Lens Selector -->
-                    <Border Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                    <!-- Composites -->
+                    <Border Grid.Column="0" Style="{StaticResource PanelBorderStyle}" x:Name="CompositesPanel">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                    <StackPanel Margin="{DynamicResource App.SectionSpacingBottom}">
+                        <TextBlock>
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource SectionHeaderTextStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCompositesCollapsed, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                            <Setter Property="LayoutTransform">
+                                                <Setter.Value>
+                                                    <RotateTransform Angle="90" />
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="HorizontalAlignment" Value="Left" />
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                            Composites
+                        </TextBlock>
+                        <StackPanel Orientation="Horizontal" Margin="{DynamicResource App.SectionSpacingTop}">
+                            <ToggleButton x:Name="CompositesPinToggle"
+                                          ToolTip="Pin the composites panel open"
+                                          IsChecked="False"
+                                          Margin="0,0,6,0"
+                                          Checked="CompositesPinToggle_Checked"
+                                          Unchecked="CompositesPinToggle_Unchecked">
+                                <TextBlock FontFamily="Segoe MDL2 Assets">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="&#xE718;" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="False">
+                                                    <Setter Property="Text" Value="&#xE77A;" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </ToggleButton>
+                            <ComboBox x:Name="CompositeActionsSelector"
+                                      Width="140"
+                                      SelectedIndex="0"
+                                      SelectionChanged="CompositeActions_SelectionChanged"
+                                      DropDownOpened="CompositeActionsSelector_DropDownOpened"
+                                      DropDownClosed="CompositeActionsSelector_DropDownClosed">
+                                <ComboBoxItem Content="Actions" Tag="None" />
+                                <ComboBoxItem Content="New" Tag="New" />
+                                <ComboBoxItem Content="Duplicate" Tag="Duplicate" />
+                                <ComboBoxItem Content="Rename" Tag="Rename" />
+                                <ComboBoxItem Content="Delete" Tag="Delete" />
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding Store.Composites}"
+                             SelectedItem="{Binding Store.SelectedComposite}"
+                             DisplayMemberPath="Title"
+                             Margin="{DynamicResource App.SectionSpacingBottom}" />
+                        </Grid>
+                    </Border>
+
+                    <GridSplitter Grid.Column="1"
+                                  Width="{DynamicResource App.PanelGapSize}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Stretch"
+                                  ShowsPreview="True" />
+
+                    <!-- Lenses -->
+                    <Border Grid.Column="2" Style="{StaticResource PanelBorderStyle}">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-                            <DockPanel Margin="0,0,0,8">
+                            <DockPanel Margin="{DynamicResource App.SectionSpacingBottom}">
                                 <TextBlock Style="{StaticResource SectionHeaderTextStyle}" DockPanel.Dock="Left">Lenses</TextBlock>
                             </DockPanel>
                             <ListBox x:Name="LensSelectorList"
@@ -170,110 +265,151 @@
                                 <ListBoxItem Content="Focus Affine" Tag="FocusAffine" />
                                 <ListBoxItem Content="ACDL" Tag="ACDL" />
                                 <ListBoxItem Content="Gap -> PC" Tag="GapToPc" />
+                                <ListBoxItem Content="Necklace Entry" Tag="NecklaceEntry" />
                                 <ListBoxItem Content="Swirling Mists" Tag="SwirlingMists" />
                                 <ListBoxItem Content="Test Lens" Tag="Test" />
                             </ListBox>
                         </Grid>
                     </Border>
-
-                    <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" />
-
-                    <!-- Transform Log -->
-                    <Border Grid.Column="2" Style="{StaticResource PanelBorderStyle}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <DockPanel Margin="0,0,0,8">
-                                <TextBlock Style="{StaticResource SectionHeaderTextStyle}" DockPanel.Dock="Left">Transform Log</TextBlock>
-                            </DockPanel>
-                            <DataGrid x:Name="TransformLogList"
-                                      Grid.Row="1"
-                                      ItemsSource="{Binding TransformLogView}"
-                                      SelectedItem="{Binding SelectedLogEntry}"
-                                      Loaded="TransformLogList_Loaded"
-                                      SelectionChanged="TransformLog_SelectionChanged"
-                                      AutoGenerateColumns="False"
-                                      HeadersVisibility="Column"
-                                      GridLinesVisibility="None"
-                                      CanUserAddRows="False"
-                                      CanUserDeleteRows="False"
-                                      IsReadOnly="True"
-                                      SelectionMode="Single"
-                                      SelectionUnit="FullRow"
-                                      RowHeight="24"
-                                      Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
-                                      RowBackground="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
-                                      AlternatingRowBackground="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
-                                      BorderThickness="1">
-                                <DataGrid.RowStyle>
-                                    <Style TargetType="DataGridRow">
-                                        <EventSetter Event="PreviewMouseRightButtonDown" Handler="TransformLogRow_PreviewMouseRightButtonDown" />
-                                        <Setter Property="ContextMenu">
-                                            <Setter.Value>
-                                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                                                    <MenuItem Header="Details..."
-                                                              Command="{x:Static local:MainWindow.ShowTransformLogDetailsCommand}"
-                                                              CommandParameter="{Binding}" />
-                                                </ContextMenu>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </DataGrid.RowStyle>
-                                <DataGrid.Columns>
-                                    <DataGridTemplateColumn Header="Step" Width="60">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Style="{StaticResource TransformLogMonoTextStyle}">
-                                                    <TextBlock.Text>
-                                                        <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="StepIndex">
-                                                            <Binding />
-                                                            <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTextColumn Header="Op" Width="120" Binding="{Binding Op}" ElementStyle="{StaticResource TransformLogMonoTextStyle}" />
-                                    <DataGridTemplateColumn Header="Badge" Width="60">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Style="{StaticResource TransformLogMonoTextStyle}" HorizontalAlignment="Right">
-                                                    <TextBlock.Text>
-                                                        <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="Badges">
-                                                            <Binding />
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="PitchList" Width="300">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Style="{StaticResource TransformLogMonoTextStyle}" TextWrapping="Wrap">
-                                                    <TextBlock.Text>
-                                                        <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="PitchListValue">
-                                                            <Binding />
-                                                            <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Grid>
-                    </Border>
                 </Grid>
 
-                <!-- Workspace Preview -->
-                <Border Grid.Row="1" Style="{StaticResource PanelBorderStyle}" Margin="0,6,0,0">
+                <GridSplitter Grid.Row="1"
+                              Style="{StaticResource HorizontalGridSplitterStyle}"
+                              PreviewStyle="{StaticResource LeftRowSplitterPreviewStyle}"
+                              ShowsPreview="False" />
+
+                <!-- Transform Log -->
+                <Border Grid.Row="2" Style="{StaticResource PanelBorderStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <DockPanel Margin="{DynamicResource App.SectionSpacingBottom}">
+                            <TextBlock Style="{StaticResource SectionHeaderTextStyle}" DockPanel.Dock="Left">Transform Log</TextBlock>
+                        </DockPanel>
+                        <DataGrid x:Name="TransformLogList"
+                                  Grid.Row="1"
+                                  ItemsSource="{Binding TransformLogView}"
+                                  SelectedItem="{Binding SelectedLogEntry}"
+                                  Loaded="TransformLogList_Loaded"
+                                  SelectionChanged="TransformLog_SelectionChanged"
+                                  AutoGenerateColumns="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="None"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  IsReadOnly="True"
+                                  SelectionMode="Single"
+                                  SelectionUnit="FullRow"
+                                  RowHeight="24"
+                                  Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
+                                  RowBackground="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
+                                  AlternatingRowBackground="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
+                                  BorderThickness="1">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <EventSetter Event="PreviewMouseRightButtonDown" Handler="TransformLogRow_PreviewMouseRightButtonDown" />
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                                <MenuItem Header="Details..."
+                                                          Command="{x:Static local:MainWindow.ShowTransformLogDetailsCommand}"
+                                                          CommandParameter="{Binding}" />
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="Step" Width="60">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource TransformLogMonoTextStyle}">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="StepIndex">
+                                                        <Binding />
+                                                        <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Op" Width="120" Binding="{Binding Op}" ElementStyle="{StaticResource TransformLogMonoTextStyle}" />
+                                <DataGridTemplateColumn Header="Badge" Width="60">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource TransformLogMonoTextStyle}" HorizontalAlignment="Right">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="Badges">
+                                                        <Binding />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="PitchList" Width="300">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource TransformLogMonoTextStyle}" TextWrapping="Wrap">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="PitchListValue">
+                                                        <Binding />
+                                                        <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <GridSplitter Grid.Column="1"
+                          Width="{DynamicResource App.PanelGapSize}"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          ShowsPreview="True" />
+
+            <!-- Center: Workspace -->
+            <Border Grid.Column="2" Style="{StaticResource PanelBorderStyle}">
+                <Grid x:Name="WorkspacePanel">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ContentControl x:Name="WorkspaceHost" Content="" />
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="3"
+                          Width="{DynamicResource App.PanelGapSize}"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          ShowsPreview="True" />
+
+            <!-- Right: Inspector -->
+            <Grid Grid.Column="4" x:Name="InspectorGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="InspectorTopRow" Height="*" />
+                    <RowDefinition Height="{DynamicResource App.PanelGap}" />
+                    <RowDefinition x:Name="InspectorBottomRow" Height="*" />
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0"
+                        Style="{StaticResource PanelBorderNoPaddingStyle}"
+                        Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
+                    <views:InspectorView DataContext="{Binding Inspector}" />
+                </Border>
+                <GridSplitter Grid.Row="1"
+                              Style="{StaticResource HorizontalGridSplitterStyle}"
+                              PreviewStyle="{StaticResource InspectorRowSplitterPreviewStyle}"
+                              ShowsPreview="False" />
+                <Border Grid.Row="2" Style="{StaticResource PanelBorderStyle}">
                     <StackPanel>
-                        <DockPanel Margin="0,0,0,6">
+                        <DockPanel Margin="{DynamicResource App.SectionSpacingBottom}">
                             <TextBlock Style="{StaticResource SectionHeaderTextStyle}" Text="Workspace Preview" DockPanel.Dock="Left" />
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                                 <RadioButton Content="Chord"
@@ -287,7 +423,7 @@
                             </StackPanel>
                         </DockPanel>
                         <views:NotationView x:Name="WorkspaceNotation" Height="240" />
-                        <ItemsControl ItemsSource="{Binding WorkspacePreview.Attributes}" Margin="0,6,0,0">
+                        <ItemsControl ItemsSource="{Binding WorkspacePreview.Attributes}" Margin="{DynamicResource App.SectionSpacingTop}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -317,26 +453,7 @@
                     </StackPanel>
                 </Border>
             </Grid>
-
-            <GridSplitter Grid.Column="3" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" />
-
-            <!-- Center: Workspace -->
-            <Border Grid.Column="4" Style="{StaticResource PanelBorderStyle}">
-                <Grid x:Name="WorkspacePanel">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <ContentControl x:Name="WorkspaceHost" Content="" />
-                    </ScrollViewer>
-                </Grid>
-            </Border>
-
-            <GridSplitter Grid.Column="5" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ShowsPreview="True" />
-
-            <!-- Right: Inspector -->
-            <Border Grid.Column="6"
-                    Style="{StaticResource PanelBorderNoPaddingStyle}"
-                    Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
-                <views:InspectorView DataContext="{Binding Inspector}" />
-            </Border>
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
 </Window>

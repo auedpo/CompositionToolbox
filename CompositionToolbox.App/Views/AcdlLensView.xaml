@@ -2,9 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>
-        <Style x:Key="AcdlMonoText" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Consolas" />
-        </Style>
+        <Style x:Key="AcdlMonoText" TargetType="TextBlock" BasedOn="{StaticResource App.MonoTextStyle}" />
     </UserControl.Resources>
     <Border Padding="12">
         <StackPanel>
@@ -12,23 +10,22 @@
 
             <StackPanel Margin="0,0,0,8">
                 <WrapPanel Margin="0,0,0,6">
-                    <TextBlock Text="P:" Margin="0,0,6,0" />
-                    <TextBox Width="80"
-                             Text="{Binding PInput, UpdateSourceTrigger=PropertyChanged}" />
-                </WrapPanel>
-                <WrapPanel Margin="0,0,0,6">
                     <TextBlock Text="Multi P:" Margin="0,0,6,0" />
                     <TextBox Width="160"
+                             FontFamily="{DynamicResource App.MonoFontFamily}"
+                             ToolTip="Comma/range list of P values to evaluate (e.g. 1-6,8)."
                              Text="{Binding MultiPInput, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Text="(e.g. 1-5,8)" Margin="6,0,0,0" />
                 </WrapPanel>
                 <WrapPanel Margin="0,0,0,6">
                     <CheckBox Content="Retain anchor PCs"
+                              ToolTip="Preserve the anchor pitch as the first pitch in each output."
                               IsChecked="{Binding RetainAnchorGapPcs}" />
                 </WrapPanel>
                 <WrapPanel>
                     <TextBlock Text="Projection:" Margin="0,0,6,0" />
                     <ComboBox Width="160"
+                              ToolTip="How excess is trimmed back into the valid simplex."
                               ItemsSource="{Binding ProjectionModes}"
                               SelectedItem="{Binding ProjectionMode}" />
                 </WrapPanel>
@@ -53,7 +50,7 @@
                         </Style.Triggers>
                     </Style>
                 </WrapPanel.Style>
-                <TextBlock Text="Unordered source detected." Margin="0,0,8,0" />
+                <TextBlock Text="Non-ascending or duplicate source detected." Margin="0,0,8,0" />
                 <Button Content="Create ordered PitchList"
                         Command="{Binding CreateOrderedFromUnorderedCommand}" />
             </WrapPanel>
@@ -74,48 +71,15 @@
                 </WrapPanel>
             </StackPanel>
 
-            <DockPanel Margin="0,0,0,4">
-                <TextBlock FontWeight="Bold" Text="Results" DockPanel.Dock="Left" />
+            <DockPanel Margin="0,0,0,4" Visibility="{Binding ShowMultiResults, Converter={StaticResource BoolToVis}}">
+                <TextBlock FontWeight="Bold" Text="Multi-P Results" DockPanel.Dock="Left" />
                 <Button Content="Commit Selected" Command="{Binding CommitSelectedCommand}" DockPanel.Dock="Right" />
             </DockPanel>
 
-            <DataGrid x:Name="ResultsGrid"
-                      ItemsSource="{Binding Results}"
-                      SelectedItem="{Binding SelectedResult}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False"
-                      CanUserDeleteRows="False"
-                      IsReadOnly="True"
-                      SelectionMode="Single"
-                      SelectionUnit="FullRow"
-                      SelectionChanged="ResultsGrid_SelectionChanged"
-                      MouseDoubleClick="ResultsGrid_MouseDoubleClick"
-                      PreviewKeyDown="ResultsGrid_PreviewKeyDown"
-                      Height="260"
-                      Margin="0,0,0,8"
-                      Visibility="{Binding ShowSingleResults, Converter={StaticResource BoolToVis}}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Anchor" Binding="{Binding AnchorGapIndex}" Width="70" />
-                    <DataGridTextColumn Header="Fixed" Binding="{Binding FixedGap}" Width="60" />
-                    <DataGridTextColumn Header="SumV" Binding="{Binding ScaledFreeSum}" Width="70" />
-                    <DataGridTextColumn Header="Target" Binding="{Binding TargetFreeSum}" Width="70" />
-                    <DataGridTextColumn Header="Projected CINT" Binding="{Binding ProjectedCintDisplay}" Width="160" ElementStyle="{StaticResource AcdlMonoText}" />
-                    <DataGridTextColumn Header="Result" Binding="{Binding ResultDisplay}" Width="*" ElementStyle="{StaticResource AcdlMonoText}" />
-                    <DataGridTemplateColumn Header="Commit" Width="90">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Content="Commit"
-                                        Command="{Binding DataContext.CommitRowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
-
-            <DockPanel Margin="0,0,0,4" Visibility="{Binding ShowMultiResults, Converter={StaticResource BoolToVis}}">
-                <TextBlock FontWeight="Bold" Text="Multi-P Results" DockPanel.Dock="Left" />
-            </DockPanel>
+            <WrapPanel Margin="0,0,0,4" Visibility="{Binding ShowMultiResults, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding MultiResultsSummary}" />
+                <TextBlock Text="{Binding SelectedMultiSummary}" Margin="12,0,0,0" />
+            </WrapPanel>
 
             <DataGrid x:Name="MultiResultsGrid"
                       ItemsSource="{Binding MultiResults}"

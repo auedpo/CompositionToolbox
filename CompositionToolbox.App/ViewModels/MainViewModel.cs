@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Data;
-using Microsoft.VisualBasic;
 
 namespace CompositionToolbox.App.ViewModels
 {
@@ -116,7 +115,6 @@ namespace CompositionToolbox.App.ViewModels
             PlayWorkspacePreviewCommand = new RelayCommand(async () => await PlayWorkspacePreviewAsync(), () => WorkspacePreview?.Node != null);
             TestMidiCommand = new RelayCommand(async () => await TestMidiAsync(), () => SelectedMidiDeviceIndex >= 0);
             TestMicrotoneCommand = new RelayCommand(async () => await TestMicrotoneAsync(), () => SelectedMidiDeviceIndex >= 0);
-            OpenPresetPickerCommand = new RelayCommand(() => PresetPickerRequested?.Invoke(this, EventArgs.Empty));
             OpenPitchListCatalogCommand = new RelayCommand(() => PitchListCatalogRequested?.Invoke(this, EventArgs.Empty));
             OpenPitchListCatalogModalCommand = new RelayCommand(() => PitchListCatalogModalRequested?.Invoke(this, EventArgs.Empty));
             NewCompositeCommand = new RelayCommand(CreateComposite);
@@ -218,7 +216,6 @@ namespace CompositionToolbox.App.ViewModels
         public IRelayCommand PlayWorkspacePreviewCommand { get; }
         public IRelayCommand TestMidiCommand { get; }
         public IRelayCommand TestMicrotoneCommand { get; }
-        public IRelayCommand OpenPresetPickerCommand { get; }
         public IRelayCommand OpenPitchListCatalogCommand { get; }
         public IRelayCommand OpenPitchListCatalogModalCommand { get; }
         public IRelayCommand NewCompositeCommand { get; }
@@ -226,7 +223,6 @@ namespace CompositionToolbox.App.ViewModels
         public IRelayCommand RenameCompositeCommand { get; }
         public IRelayCommand DeleteCompositeCommand { get; }
         public IRelayCommand CopySnapshotCommand { get; }
-        public event EventHandler? PresetPickerRequested;
         public event EventHandler? PitchListCatalogRequested;
         public event EventHandler? PitchListCatalogModalRequested;
 
@@ -487,11 +483,9 @@ namespace CompositionToolbox.App.ViewModels
         {
             if (!_midiService.IsOpen)
             {
-                System.Windows.MessageBox.Show(
-                    "No MIDI output device is open. Select a device and try again.",
+                DialogService.Info(
                     "MIDI Output",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    "No MIDI output device is open. Select a device and try again.");
                 return;
             }
             await _midiService.TestOutput();
@@ -501,11 +495,9 @@ namespace CompositionToolbox.App.ViewModels
         {
             if (!_midiService.IsOpen)
             {
-                System.Windows.MessageBox.Show(
-                    "No MIDI output device is open. Select a device and try again.",
+                DialogService.Info(
                     "MIDI Output",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    "No MIDI output device is open. Select a device and try again.");
                 return;
             }
             await _midiService.TestMicrotoneSweep(SelectedModulus, _appSettings.Pc0RefMidi);
@@ -710,7 +702,7 @@ namespace CompositionToolbox.App.ViewModels
 
         private void CreateComposite()
         {
-            var name = Interaction.InputBox("Composite name:", "New Composite", "Untitled");
+            var name = DialogService.PromptText("New Composite", "Composite name:", "Untitled");
             if (string.IsNullOrWhiteSpace(name)) return;
             var composite = new Composite { Title = name.Trim() };
             var state = new CompositeState { CompositeId = composite.CompositeId };
@@ -726,7 +718,7 @@ namespace CompositionToolbox.App.ViewModels
             if (Store.SelectedComposite == null) return;
             var sourceComposite = Store.SelectedComposite;
             var sourceState = Store.GetCurrentState(sourceComposite);
-            var name = Interaction.InputBox("Composite name:", "Duplicate Composite", $"{sourceComposite.Title} Copy");
+            var name = DialogService.PromptText("Duplicate Composite", "Composite name:", $"{sourceComposite.Title} Copy");
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var composite = new Composite { Title = name.Trim() };
@@ -815,7 +807,7 @@ namespace CompositionToolbox.App.ViewModels
         {
             if (Store.SelectedComposite == null) return;
             var current = Store.SelectedComposite.Title;
-            var name = Interaction.InputBox("Composite name:", "Rename Composite", current);
+            var name = DialogService.PromptText("Rename Composite", "Composite name:", current);
             if (string.IsNullOrWhiteSpace(name)) return;
             var selected = Store.SelectedComposite;
             if (selected == null) return;
@@ -827,12 +819,10 @@ namespace CompositionToolbox.App.ViewModels
         {
             if (Store.SelectedComposite == null || Store.Composites.Count <= 1) return;
             var composite = Store.SelectedComposite;
-            var result = System.Windows.MessageBox.Show(
-                $"Delete composite \"{composite.Title}\"?",
+            var confirmed = DialogService.Confirm(
                 "Delete Composite",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes) return;
+                $"Delete composite \"{composite.Title}\"?");
+            if (!confirmed) return;
 
             var statesToRemove = Store.States.Where(s => s.CompositeId == composite.CompositeId).ToList();
             var logsToRemove = Store.LogEntries.Where(e => e.CompositeId == composite.CompositeId).ToList();

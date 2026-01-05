@@ -18,18 +18,18 @@
             </DockPanel>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <TextBlock FontFamily="Consolas,Cascadia Mono,Courier New"
+                    <TextBlock FontFamily="{DynamicResource App.MonoFontFamily}"
                                TextWrapping="Wrap"
                                Text="{Binding LogDetailsAfter}" />
-                    <TextBlock FontFamily="Consolas,Cascadia Mono,Courier New"
+                    <TextBlock FontFamily="{DynamicResource App.MonoFontFamily}"
                                TextWrapping="Wrap"
                                Text="{Binding LogDetailsBefore}"
                                Margin="0,12,0,0" />
-                    <TextBlock FontFamily="Consolas,Cascadia Mono,Courier New"
+                    <TextBlock FontFamily="{DynamicResource App.MonoFontFamily}"
                                TextWrapping="Wrap"
                                Text="{Binding LogDetailsMeta}"
                                Margin="0,12,0,0" />
-                    <TextBlock FontFamily="Consolas,Cascadia Mono,Courier New"
+                    <TextBlock FontFamily="{DynamicResource App.MonoFontFamily}"
                                TextWrapping="Wrap"
                                Text="{Binding LogDetailsOpParams}"
                                Margin="0,12,0,0" />

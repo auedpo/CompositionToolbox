@@ -4,7 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Threading;
+using System.Windows.Controls.Primitives;
 using System.Diagnostics;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
@@ -20,6 +20,14 @@ namespace CompositionToolbox.App
         public static readonly RoutedUICommand ShowTransformLogDetailsCommand =
             new RoutedUICommand("Show Transform Log Details", nameof(ShowTransformLogDetailsCommand), typeof(MainWindow));
 
+        private static readonly Dictionary<string, string> TransformLogColumnKeys = new()
+        {
+            ["Step"] = "Main.TransformLog.Column.Step",
+            ["Op"] = "Main.TransformLog.Column.Op",
+            ["Badge"] = "Main.TransformLog.Column.Badge",
+            ["PitchList"] = "Main.TransformLog.Column.PitchList"
+        };
+
         private readonly MainViewModel _vm;
         private NotationView? _notation;
         private InitializationView? _initView;
@@ -31,11 +39,12 @@ namespace CompositionToolbox.App
         private AcdlLensViewModel? _acdlViewModel;
         private GapToPcView? _gapToPcView;
         private GapToPcViewModel? _gapToPcViewModel;
+        private NecklaceEntryLensView? _necklaceEntryView;
+        private NecklaceEntryLensViewModel? _necklaceEntryViewModel;
         private SwirlingMistsLensView? _swirlingMistsView;
         private SwirlingMistsLensViewModel? _swirlingMistsViewModel;
         private TestLensView? _testLensView;
         private SettingsWindow? _settingsWindow;
-        private PresetPickerDialog? _presetPickerDialog;
         private Views.PitchListCatalogWindow? _pitchListCatalogWindow;
         private PitchListCatalogViewModel? _pitchListCatalogViewModel;
         private Views.MidiMonitorWindow? _midiMonitorWindow;
@@ -46,16 +55,33 @@ namespace CompositionToolbox.App
         private readonly DragOutFileService _dragOutFileService;
         private readonly IMidiExportService _midiExportService;
         private bool _transformLogSelectionHooked;
+        private bool _transformLogColumnWidthsHooked;
         private ILensPreviewSource? _activeLensPreview;
         private ILensActivation? _activeLensActivation;
         private System.Windows.Point _dragStartPoint;
         private bool _dragPending;
         private CompositeSnapshot? _dragSnapshot;
         private MidiExportOptions? _dragOptions;
+        private const double CompositesCollapsedWidth = 35;
+        private const int CompositesSlideMs = 150;
+        private double _compositesExpandedWidth = 220;
+        private bool _compositesPinned = true;
+        private bool _compositesMenuOpen;
+        private System.Windows.Threading.DispatcherTimer? _compositesCollapseTimer;
+
+        public static readonly DependencyProperty IsCompositesCollapsedProperty =
+            DependencyProperty.Register(nameof(IsCompositesCollapsed), typeof(bool), typeof(MainWindow), new PropertyMetadata(false));
+
+        public bool IsCompositesCollapsed
+        {
+            get => (bool)GetValue(IsCompositesCollapsedProperty);
+            set => SetValue(IsCompositesCollapsedProperty, value);
+        }
 
         public MainWindow()
         {
             InitializeComponent();
+            Loaded += MainWindow_Loaded;
             _settingsService = new SettingsService();
             _appSettings = _settingsService.Load();
             var projectPath = EnsureProjectFolder();
@@ -66,17 +92,12 @@ namespace CompositionToolbox.App
             store.Load(_projectService.LoadOrCreate());
             DataContext = new MainViewModel(_settingsService, _appSettings, store, _projectService);
             _vm = (MainViewModel)DataContext;
-            _vm.PresetPickerRequested += (_, _) => OpenPresetPicker();
             _vm.PitchListCatalogRequested += (_, _) => OpenPitchListCatalog();
             _vm.PitchListCatalogModalRequested += (_, _) => OpenPitchListCatalogModal();
             _vm.RealizationConfigChanged += (_, _) =>
             {
                 UpdateNotation();
                 _vm.Inspector.RefreshRealization();
-                if (_presetPickerDialog?.DataContext is PresetPickerViewModel presetVm)
-                {
-                    presetVm.RefreshRealization();
-                }
             };
             if (System.Windows.Application.Current is App app)
             {
@@ -103,9 +124,6 @@ namespace CompositionToolbox.App
             _vm.Initialization.PropertyChanged += Initialization_PropertyChanged;
             _vm.PropertyChanged += MainViewModel_PropertyChanged;
             UpdateNotation();
-
-            // Schedule a low-impact UI prewarm at idle priority (do not instantiate the full catalog)
-            Dispatcher.BeginInvoke(new Action(() => PrewarmLightUi()), DispatcherPriority.ApplicationIdle);
 
             // Start background precreation of PresetItemViewModels (off-thread, non-UI) so VM items are ready when user opens catalogs
             Task.Run(() => PresetItemCache.PrecreateAll(_vm.PresetCatalog, _vm.PresetState));
@@ -145,6 +163,7 @@ namespace CompositionToolbox.App
             else if (e.PropertyName == nameof(MainViewModel.SelectedModulus))
             {
                 _gapToPcViewModel?.RefreshForModulusChange();
+                _necklaceEntryViewModel?.RefreshForModulusChange();
             }
         }
 
@@ -207,73 +226,34 @@ namespace CompositionToolbox.App
                 useMidiForEdo19: true);
         }
 
-        private bool _lightPrewarmed;
-        private bool _lightPrewarmFailed;
-        private void PrewarmLightUi()
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (_lightPrewarmed || _lightPrewarmFailed) return;
-            try
+            _compositesExpandedWidth = Math.Max(CompositesColumn.ActualWidth, CompositesCollapsedWidth);
+            _compositesPinned = _appSettings.IsCompositesPinned;
+            CompositesPinToggle.IsChecked = _compositesPinned;
+            if (!_compositesPinned)
             {
-                // Check that required resources exist before scheduling work (quietly fail once if not present)
-                var style = TryFindResource("PresetListViewStyle");
-                var itemStyle = TryFindResource("PresetGridItemStyle");
-                if (style == null || itemStyle == null)
+                CollapseCompositesPanel();
+            }
+
+            _compositesCollapseTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(120)
+            };
+            _compositesCollapseTimer.Tick += (_, _) =>
+            {
+                _compositesCollapseTimer.Stop();
+                if (_compositesPinned || _compositesMenuOpen || IsMouseInCompositesColumn())
                 {
-                    _lightPrewarmFailed = true;
-                    TimingLogger.Log("MainWindow: Light UI prewarm skipped - required resources not available");
                     return;
                 }
+                CollapseCompositesPanel();
+            };
 
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    if (_lightPrewarmed) return;
-                    try
-                    {
-                        // Create a tiny hidden ListView using existing styles to warm templates and virtualization
-                        var list = new System.Windows.Controls.ListView
-                        {
-                            Style = (Style)style,
-                            ItemContainerStyle = (Style)itemStyle,
-                            Visibility = System.Windows.Visibility.Collapsed,
-                        };
-
-                        // Add one lightweight item (no heavy rendering)
-                        var sample = new ViewModels.PresetItemViewModel(_vm.PresetCatalog.All[0], _vm.PresetState);
-                        list.ItemsSource = new[] { sample };
-
-                        // Temporarily add to the workspace to force template/application load, then remove it quickly
-                        WorkspacePanel.Children.Add(list);
-                        list.UpdateLayout();
-                        WorkspacePanel.Children.Remove(list);
-
-                        _lightPrewarmed = true;
-                        TimingLogger.Log("MainWindow: Completed light UI prewarm");
-                    }
-                    catch (Exception ex)
-                    {
-                        _lightPrewarmFailed = true;
-                        TimingLogger.Log($"MainWindow: Light UI prewarm failed: {ex.Message}");
-                    }
-                }), DispatcherPriority.ApplicationIdle);
-
-                // Fallback: if idle doesn't run soon, run once after 3s to ensure prewarm happens before many user actions
-                var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-                timer.Tick += (_, __) =>
-                {
-                    timer.Stop();
-                    if (!_lightPrewarmed && !_lightPrewarmFailed)
-                    {
-                        PrewarmLightUi();
-                    }
-                };
-                timer.Start();
-            }
-            catch (Exception ex)
-            {
-                _lightPrewarmFailed = true;
-                TimingLogger.Log($"MainWindow: Prewarm scheduling failed: {ex.Message}");
-            }
+            MouseMove += MainWindow_MouseMove;
+            MouseLeave += MainWindow_MouseLeave;
         }
+
 
         private void LensSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -315,6 +295,15 @@ namespace CompositionToolbox.App
                 {
                     ShowLens(_gapToPcView);
                 }
+                else if (string.Equals(tag, "NecklaceEntry", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (_necklaceEntryView == null)
+                    {
+                        _necklaceEntryViewModel = new NecklaceEntryLensViewModel(_vm.Store, () => _vm.SelectedModulus);
+                        _necklaceEntryView = new NecklaceEntryLensView { DataContext = _necklaceEntryViewModel };
+                    }
+                    ShowLens(_necklaceEntryView);
+                }
                 else if (string.Equals(tag, "SwirlingMists", StringComparison.OrdinalIgnoreCase))
                 {
                     if (_swirlingMistsView == null)
@@ -341,6 +330,15 @@ namespace CompositionToolbox.App
 
         private void TransformLogList_Loaded(object sender, RoutedEventArgs e)
         {
+            if (!_transformLogColumnWidthsHooked)
+            {
+                _transformLogColumnWidthsHooked = true;
+                ApplyTransformLogColumnWidths();
+                ApplyTransformLogColumnOrder();
+                TransformLogList.AddHandler(SizeChangedEvent, new SizeChangedEventHandler(TransformLogList_SizeChanged));
+                TransformLogList.ColumnReordered += TransformLogList_ColumnReordered;
+            }
+
             if (TransformLogList.Items.Count == 0) return;
             if (TransformLogList.SelectedIndex >= 0) return;
             TransformLogList.SelectedIndex = TransformLogList.Items.Count - 1;
@@ -348,6 +346,89 @@ namespace CompositionToolbox.App
             if (_transformLogSelectionHooked) return;
             _transformLogSelectionHooked = true;
             TransformLogList.ItemContainerGenerator.StatusChanged += TransformLogList_ItemContainerGeneratorStatusChanged;
+        }
+
+        private void TransformLogList_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (e.OriginalSource is not DataGridColumnHeader header)
+            {
+                return;
+            }
+
+            var name = header.Column?.Header?.ToString() ?? string.Empty;
+            if (!TransformLogColumnKeys.TryGetValue(name, out var key))
+            {
+                return;
+            }
+
+            var column = header.Column;
+            if (column == null)
+            {
+                return;
+            }
+
+            if (column.ActualWidth > 0)
+            {
+                _appSettings.PanelWidths[key] = column.ActualWidth;
+            }
+        }
+
+        private void ApplyTransformLogColumnWidths()
+        {
+            foreach (var column in TransformLogList.Columns)
+            {
+                var header = column.Header?.ToString() ?? string.Empty;
+                if (!TransformLogColumnKeys.TryGetValue(header, out var key))
+                {
+                    continue;
+                }
+
+                if (_appSettings.PanelWidths.TryGetValue(key, out var width) && width > 0)
+                {
+                    column.Width = new DataGridLength(width, DataGridLengthUnitType.Pixel);
+                }
+            }
+        }
+
+        private void TransformLogList_ColumnReordered(object? sender, DataGridColumnEventArgs e)
+        {
+            foreach (var column in TransformLogList.Columns)
+            {
+                var header = column.Header?.ToString() ?? string.Empty;
+                if (!TransformLogColumnKeys.TryGetValue(header, out var key))
+                {
+                    continue;
+                }
+
+                _appSettings.PanelOrders[key] = column.DisplayIndex;
+            }
+        }
+
+        private void ApplyTransformLogColumnOrder()
+        {
+            if (_appSettings.PanelOrders.Count == 0) return;
+
+            var ordered = TransformLogList.Columns
+                .Select((column, idx) =>
+                {
+                    var header = column.Header?.ToString() ?? string.Empty;
+                    var index = int.MaxValue;
+                    if (TransformLogColumnKeys.TryGetValue(header, out var key)
+                        && _appSettings.PanelOrders.TryGetValue(key, out var savedIndex))
+                    {
+                        index = savedIndex;
+                    }
+                    return new { column, index, idx };
+                })
+                .OrderBy(item => item.index)
+                .ThenBy(item => item.idx)
+                .ToList();
+
+            var displayIndex = 0;
+            foreach (var item in ordered)
+            {
+                item.column.DisplayIndex = displayIndex++;
+            }
         }
 
         private void TransformLogList_ItemContainerGeneratorStatusChanged(object? sender, EventArgs e)
@@ -514,11 +595,9 @@ namespace CompositionToolbox.App
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(
-                    $"Unable to export MIDI: {ex.Message}",
+                DialogService.Warning(
                     "MIDI Export",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    $"Unable to export MIDI: {ex.Message}");
             }
             finally
             {
@@ -534,30 +613,6 @@ namespace CompositionToolbox.App
             _dragPending = false;
             _dragSnapshot = null;
             _dragOptions = null;
-        }
-
-        private void OpenPresetPicker()
-        {
-            if (_presetPickerDialog != null)
-            {
-                _presetPickerDialog.Activate();
-                return;
-            }
-
-            _presetPickerDialog = new PresetPickerDialog
-            {
-                Owner = this,
-                DataContext = new PresetPickerViewModel(
-                    _vm.PresetCatalog,
-                    _vm.PresetState,
-                    _vm.Initialization,
-                    _vm.MidiService,
-                    _vm.SelectedAccidentalRule,
-                    _vm.GetRealizationConfig)
-            };
-            _presetPickerDialog.Initialize(_settingsService, _appSettings);
-            _presetPickerDialog.Closed += (_, _) => _presetPickerDialog = null;
-            _presetPickerDialog.ShowDialog();
         }
 
         private void OpenPitchListCatalog()
@@ -639,24 +694,13 @@ namespace CompositionToolbox.App
                     WindowState = state;
             }
 
-            if (_appSettings.InspectorPanelWidth > 0)
-            {
-                InspectorColumn.Width = new System.Windows.GridLength(_appSettings.InspectorPanelWidth);
-            }
             UiPersistenceHelper.ApplyColumnWidth(CompositesColumn, _appSettings, "Main.Composites");
-            UiPersistenceHelper.ApplyColumnWidth(LensSelectorColumn, _appSettings, "Main.LensSelector");
-            UiPersistenceHelper.ApplyColumnWidth(TransformLogColumn, _appSettings, "Main.TransformLog");
-            UiPersistenceHelper.ApplyColumnWidth(MiddleColumn, _appSettings, "Main.Middle");
-            UiPersistenceHelper.ApplyColumnWidth(WorkspaceColumn, _appSettings, "Main.Workspace");
-            UiPersistenceHelper.ApplyColumnWidth(InspectorColumn, _appSettings, "Main.Inspector", _appSettings.InspectorPanelWidth);
+            ApplyStarColumnWidths();
+            ApplyStarRowHeights();
         }
 
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
-            if (_presetPickerDialog != null)
-            {
-                _presetPickerDialog.Close();
-            }
             if (_settingsWindow != null)
             {
                 _settingsWindow.Close();
@@ -668,14 +712,188 @@ namespace CompositionToolbox.App
             _appSettings.WindowLeft = Left;
             _appSettings.WindowTop = Top;
             _appSettings.WindowState = WindowState.ToString();
-            _appSettings.InspectorPanelWidth = InspectorColumn.ActualWidth;
             UiPersistenceHelper.SaveColumnWidth(CompositesColumn, _appSettings, "Main.Composites");
-            UiPersistenceHelper.SaveColumnWidth(LensSelectorColumn, _appSettings, "Main.LensSelector");
-            UiPersistenceHelper.SaveColumnWidth(TransformLogColumn, _appSettings, "Main.TransformLog");
             UiPersistenceHelper.SaveColumnWidth(MiddleColumn, _appSettings, "Main.Middle");
             UiPersistenceHelper.SaveColumnWidth(WorkspaceColumn, _appSettings, "Main.Workspace");
             UiPersistenceHelper.SaveColumnWidth(InspectorColumn, _appSettings, "Main.Inspector");
+            if (!_compositesPinned && _compositesExpandedWidth > 0)
+            {
+                _appSettings.PanelWidths["Main.Composites"] = _compositesExpandedWidth;
+            }
+            _appSettings.IsCompositesPinned = _compositesPinned;
+            _appSettings.PanelWidths["Main.LeftTop"] = LeftTopRow.ActualHeight;
+            _appSettings.PanelWidths["Main.LeftBottom"] = LeftBottomRow.ActualHeight;
+            _appSettings.PanelWidths["Main.InspectorTop"] = InspectorTopRow.ActualHeight;
+            _appSettings.PanelWidths["Main.InspectorBottom"] = InspectorBottomRow.ActualHeight;
             _settingsService.Save(_appSettings);
+        }
+
+        private void ApplyStarColumnWidths()
+        {
+            if (!_appSettings.PanelWidths.TryGetValue("Main.Middle", out var middle) || middle <= 0)
+            {
+                return;
+            }
+            if (!_appSettings.PanelWidths.TryGetValue("Main.Workspace", out var workspace) || workspace <= 0)
+            {
+                return;
+            }
+            if (!_appSettings.PanelWidths.TryGetValue("Main.Inspector", out var inspector) || inspector <= 0)
+            {
+                return;
+            }
+
+            MiddleColumn.Width = new System.Windows.GridLength(middle, System.Windows.GridUnitType.Star);
+            WorkspaceColumn.Width = new System.Windows.GridLength(workspace, System.Windows.GridUnitType.Star);
+            InspectorColumn.Width = new System.Windows.GridLength(inspector, System.Windows.GridUnitType.Star);
+        }
+
+        private void ApplyStarRowHeights()
+        {
+            if (_appSettings.PanelWidths.TryGetValue("Main.LeftTop", out var leftTop) && leftTop > 0
+                && _appSettings.PanelWidths.TryGetValue("Main.LeftBottom", out var leftBottom) && leftBottom > 0)
+            {
+                LeftTopRow.Height = new System.Windows.GridLength(leftTop, System.Windows.GridUnitType.Star);
+                LeftBottomRow.Height = new System.Windows.GridLength(leftBottom, System.Windows.GridUnitType.Star);
+            }
+
+            if (_appSettings.PanelWidths.TryGetValue("Main.InspectorTop", out var inspectorTop) && inspectorTop > 0
+                && _appSettings.PanelWidths.TryGetValue("Main.InspectorBottom", out var inspectorBottom) && inspectorBottom > 0)
+            {
+                InspectorTopRow.Height = new System.Windows.GridLength(inspectorTop, System.Windows.GridUnitType.Star);
+                InspectorBottomRow.Height = new System.Windows.GridLength(inspectorBottom, System.Windows.GridUnitType.Star);
+            }
+        }
+
+        private void MainWindow_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            UpdateCompositesHoverState();
+        }
+
+        private void MainWindow_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (_compositesPinned || _compositesMenuOpen)
+            {
+                return;
+            }
+            _compositesCollapseTimer?.Stop();
+            _compositesCollapseTimer?.Start();
+        }
+
+        private void CompositesPinToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            _compositesPinned = true;
+            ExpandCompositesPanel();
+        }
+
+        private void CompositesPinToggle_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _compositesPinned = false;
+            CollapseCompositesPanel();
+        }
+
+        private void CompositeActionsSelector_DropDownOpened(object sender, EventArgs e)
+        {
+            _compositesMenuOpen = true;
+            _compositesCollapseTimer?.Stop();
+            if (!_compositesPinned)
+            {
+                ExpandCompositesPanel();
+            }
+        }
+
+        private void CompositeActionsSelector_DropDownClosed(object sender, EventArgs e)
+        {
+            _compositesMenuOpen = false;
+            if (_compositesPinned) return;
+            UpdateCompositesHoverState();
+        }
+
+        private void UpdateCompositesHoverState()
+        {
+            if (_compositesPinned || _compositesMenuOpen)
+            {
+                return;
+            }
+
+            if (IsMouseInCompositesColumn())
+            {
+                _compositesCollapseTimer?.Stop();
+                ExpandCompositesPanel();
+                return;
+            }
+
+            _compositesCollapseTimer?.Stop();
+            _compositesCollapseTimer?.Start();
+        }
+
+        private bool IsMouseInCompositesColumn()
+        {
+            if (CompositesLensGrid == null)
+            {
+                return false;
+            }
+
+            var position = System.Windows.Input.Mouse.GetPosition(CompositesLensGrid);
+            return position.X >= 0 && position.X <= CompositesColumn.ActualWidth;
+        }
+
+        private void ExpandCompositesPanel()
+        {
+            var targetWidth = Math.Max(_compositesExpandedWidth, CompositesCollapsedWidth);
+            AnimateCompositesWidth(targetWidth);
+            IsCompositesCollapsed = false;
+        }
+
+        private void CollapseCompositesPanel()
+        {
+            _compositesExpandedWidth = Math.Max(CompositesColumn.ActualWidth, _compositesExpandedWidth);
+            AnimateCompositesWidth(CompositesCollapsedWidth);
+            IsCompositesCollapsed = true;
+        }
+
+        private void AnimateCompositesWidth(double targetWidth)
+        {
+            var animation = new GridLengthAnimation
+            {
+                From = CompositesColumn.Width,
+                To = new GridLength(targetWidth, GridUnitType.Pixel),
+                Duration = TimeSpan.FromMilliseconds(CompositesSlideMs)
+            };
+            CompositesColumn.BeginAnimation(ColumnDefinition.WidthProperty, animation);
+        }
+
+        private void CompositeActions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CompositeActionsSelector.SelectedItem is not ComboBoxItem item)
+            {
+                return;
+            }
+
+            var tag = item.Tag?.ToString();
+            if (string.Equals(tag, "None", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (string.Equals(tag, "New", StringComparison.OrdinalIgnoreCase))
+            {
+                _vm.NewCompositeCommand.Execute(null);
+            }
+            else if (string.Equals(tag, "Duplicate", StringComparison.OrdinalIgnoreCase))
+            {
+                _vm.DuplicateCompositeCommand.Execute(null);
+            }
+            else if (string.Equals(tag, "Rename", StringComparison.OrdinalIgnoreCase))
+            {
+                _vm.RenameCompositeCommand.Execute(null);
+            }
+            else if (string.Equals(tag, "Delete", StringComparison.OrdinalIgnoreCase))
+            {
+                _vm.DeleteCompositeCommand.Execute(null);
+            }
+
+            CompositeActionsSelector.SelectedIndex = 0;
         }
 
         private void ShowLens(System.Windows.Controls.UserControl? lens)

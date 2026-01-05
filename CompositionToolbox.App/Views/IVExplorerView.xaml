@@ -4,9 +4,7 @@
              xmlns:converters="clr-namespace:CompositionToolbox.App.Converters">
     <UserControl.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
-        <Style x:Key="IvMonoText" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Consolas" />
-        </Style>
+        <Style x:Key="IvMonoText" TargetType="TextBlock" BasedOn="{StaticResource App.MonoTextStyle}" />
     </UserControl.Resources>
     <Border Padding="12">
         <StackPanel>
@@ -15,13 +13,13 @@
             <StackPanel Margin="0,0,0,8">
                 <WrapPanel Margin="0,0,0,4">
                     <TextBlock Text="Base Set (U): " FontWeight="Bold" />
-                    <TextBlock Text="{Binding BaseSetDisplay}" FontFamily="Consolas" Margin="0,0,12,0" />
+                    <TextBlock Text="{Binding BaseSetDisplay}" Style="{StaticResource IvMonoText}" Margin="0,0,12,0" />
                     <TextBlock Text="k=" FontWeight="Bold" />
                     <TextBlock Text="{Binding Cardinality}" Margin="0,0,12,0" />
                     <TextBlock Text="n=" FontWeight="Bold" />
                     <TextBlock Text="{Binding Modulus}" Margin="0,0,12,0" />
                     <TextBlock Text="Base IV: " FontWeight="Bold" />
-                    <TextBlock Text="{Binding BaseIvDisplay}" FontFamily="Consolas" />
+                    <TextBlock Text="{Binding BaseIvDisplay}" Style="{StaticResource IvMonoText}" />
                 </WrapPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Equivalence:" Margin="0,0,6,0" />
@@ -143,7 +141,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <DockPanel Margin="0,2,0,2">
-                                    <TextBlock Text="{Binding DisplaySet}" FontFamily="Consolas" DockPanel.Dock="Left" />
+                                    <TextBlock Text="{Binding DisplaySet}" Style="{StaticResource IvMonoText}" DockPanel.Dock="Left" />
                                     <Button Content="Unpin"
                                             DockPanel.Dock="Right"
                                             Command="{Binding DataContext.UnpinCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"

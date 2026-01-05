@@ -4,9 +4,7 @@
              xmlns:converters="clr-namespace:CompositionToolbox.App.Converters">
     <UserControl.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
-        <Style x:Key="AffineMonoText" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Consolas" />
-        </Style>
+        <Style x:Key="AffineMonoText" TargetType="TextBlock" BasedOn="{StaticResource App.MonoTextStyle}" />
     </UserControl.Resources>
     <Border Padding="12">
         <StackPanel>

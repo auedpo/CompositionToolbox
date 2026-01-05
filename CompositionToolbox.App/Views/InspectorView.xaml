@@ -11,7 +11,7 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                 <TextBlock Text="{Binding Badge}" FontWeight="Bold" Margin="0,0,8,0" />
                 <TextBlock Text="{Binding PrimaryDisplay}" FontWeight="Bold"
-                           FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                           FontFamily="{DynamicResource App.MonoFontFamily}" TextWrapping="Wrap" />
             </StackPanel>
 
             <Grid Margin="0,0,0,4">
@@ -54,7 +54,7 @@
                 </TextBlock>
                 <TextBox Grid.Column="1"
                          Text="{Binding LabelEdit, UpdateSourceTrigger=PropertyChanged}"
-                         FontFamily="Consolas,Cascadia Mono,Courier New"
+                         FontFamily="{DynamicResource App.MonoFontFamily}"
                          IsVisibleChanged="LabelEdit_IsVisibleChanged"
                          LostKeyboardFocus="LabelEdit_LostKeyboardFocus"
                          KeyDown="LabelEdit_KeyDown">
@@ -133,7 +133,7 @@
 
             <StackPanel Visibility="{Binding IsOrdered, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
                 <TextBlock Text="{Binding SequenceDisplay}"
-                           FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                           FontFamily="{DynamicResource App.MonoFontFamily}" TextWrapping="Wrap" />
                 <TextBlock Text="{Binding LengthDisplay}" />
                 <TextBlock Text="{Binding UniqueCountDisplay}" />
             </StackPanel>
@@ -142,7 +142,7 @@
                 <TextBlock Text="Set projection (sorted unique pcs):"
                            ToolTip="Unordered projection of the node's pitch content." />
                 <TextBlock Text="{Binding SetProjectionDisplay}" 
-                           FontFamily="Consolas,Cascadia Mono,Courier New" Margin="0,2,0,4" TextWrapping="Wrap" />
+                           FontFamily="{DynamicResource App.MonoFontFamily}" Margin="0,2,0,4" TextWrapping="Wrap" />
                 <Button Content="{Binding CommitUnorderedLabel}" Command="{Binding CommitUnorderedCommand}"
                         IsEnabled="{Binding CanCommitUnordered}" Margin="0,0,0,8" />
 
@@ -154,7 +154,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="NF (from set):" Margin="0,0,6,0" />
                     <TextBlock Grid.Column="1" Text="{Binding NormalFormDisplay}"
-                               FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                               FontFamily="{DynamicResource App.MonoFontFamily}" TextWrapping="Wrap" />
                     <Button Grid.Column="2" Content="Commit NF node" Command="{Binding CommitNormalFormCommand}"
                             IsEnabled="{Binding CanCommitNormalForm}" Margin="8,0,0,0" />
                 </Grid>
@@ -167,7 +167,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="PF (from set):" Margin="0,0,6,0" />
                     <TextBlock Grid.Column="1" Text="{Binding PrimeFormDisplay}"
-                               FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                               FontFamily="{DynamicResource App.MonoFontFamily}" TextWrapping="Wrap" />
                     <Button Grid.Column="2" Content="Commit PF node" Command="{Binding CommitPrimeFormCommand}"
                             IsEnabled="{Binding CanCommitPrimeForm}" Margin="8,0,0,0" />
                 </Grid>
@@ -178,9 +178,9 @@
                         <TextBlock Text="{Binding CardinalityDisplay}" />
                         <TextBlock Text="{Binding LinearSpanDisplay}" />
                         <TextBlock Text="{Binding IntervalVectorDisplay}"
-                                   FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                                   FontFamily="{DynamicResource App.MonoFontFamily}" TextWrapping="Wrap" />
                         <TextBlock Text="{Binding OisDisplay}"
-                                   FontFamily="Consolas,Cascadia Mono,Courier New" TextWrapping="Wrap" />
+                                   FontFamily="{DynamicResource App.MonoFontFamily}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
             </StackPanel>

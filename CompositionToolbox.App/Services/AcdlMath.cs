@@ -10,6 +10,14 @@ namespace CompositionToolbox.App.Services
         RoundRobin
     }
 
+    public sealed class AcdlProjectionDetails
+    {
+        public int TrimCountTotal { get; set; }
+        public int[] TrimCountByIndex { get; set; } = Array.Empty<int>();
+        public int FinalSum { get; set; }
+        public int NumClampsToMin { get; set; }
+    }
+
     public static class AcdlMath
     {
         public static int[] ComputeCint(int[] pcs, int modulus)
@@ -49,11 +57,39 @@ namespace CompositionToolbox.App.Services
             out int targetFreeSum,
             out string? invalidReason)
         {
+            return TryProjectGaps(
+                baseGaps,
+                modulus,
+                anchorIndex,
+                multiplier,
+                mode,
+                out fixedGap,
+                out projectedGaps,
+                out scaledFreeSum,
+                out targetFreeSum,
+                out invalidReason,
+                out _);
+        }
+
+        public static bool TryProjectGaps(
+            int[] baseGaps,
+            int modulus,
+            int anchorIndex,
+            int multiplier,
+            AcdlProjectionMode mode,
+            out int fixedGap,
+            out int[] projectedGaps,
+            out int scaledFreeSum,
+            out int targetFreeSum,
+            out string? invalidReason,
+            out AcdlProjectionDetails details)
+        {
             fixedGap = 0;
             projectedGaps = Array.Empty<int>();
             scaledFreeSum = 0;
             targetFreeSum = 0;
             invalidReason = null;
+            details = new AcdlProjectionDetails();
 
             if (baseGaps == null || baseGaps.Length == 0 || modulus <= 0)
             {
@@ -72,6 +108,7 @@ namespace CompositionToolbox.App.Services
             }
 
             var k = baseGaps.Length;
+            details.TrimCountByIndex = new int[k];
             fixedGap = baseGaps[anchorIndex];
             targetFreeSum = modulus - fixedGap;
             var freeCount = k - 1;
@@ -121,7 +158,13 @@ namespace CompositionToolbox.App.Services
                             return false;
                         }
 
+                        if (v[maxIndex] == 2)
+                        {
+                            details.NumClampsToMin += 1;
+                        }
                         v[maxIndex] -= 1;
+                        details.TrimCountTotal += 1;
+                        details.TrimCountByIndex[maxIndex] += 1;
                         excess -= 1;
                     }
                 }
@@ -167,7 +210,13 @@ namespace CompositionToolbox.App.Services
                             if (excess == 0) break;
                             if (v[idx] > 1)
                             {
+                                if (v[idx] == 2)
+                                {
+                                    details.NumClampsToMin += 1;
+                                }
                                 v[idx] -= 1;
+                                details.TrimCountTotal += 1;
+                                details.TrimCountByIndex[idx] += 1;
                                 excess -= 1;
                                 decremented = true;
                             }
@@ -187,6 +236,7 @@ namespace CompositionToolbox.App.Services
                 if (i == anchorIndex) continue;
                 projectedGaps[i] = v[i];
             }
+            details.FinalSum = projectedGaps.Sum();
             return true;
         }
 
