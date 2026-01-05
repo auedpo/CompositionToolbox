@@ -7,7 +7,9 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        MinWidth="360">
+        MinWidth="360"
+        Background="{DynamicResource Brush.App.Background}"
+        Foreground="{DynamicResource Brush.Text.Primary}">
     <Border Padding="{DynamicResource App.PanelPadding}">
         <Grid>
             <Grid.RowDefinitions>

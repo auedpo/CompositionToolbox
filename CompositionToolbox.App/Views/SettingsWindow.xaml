@@ -3,12 +3,20 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="clr-namespace:CompositionToolbox.App.Converters"
         Title="Settings" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner"
-        FontFamily="Segoe UI">
+        FontFamily="Segoe UI"
+        Background="{DynamicResource Brush.App.Background}"
+        Foreground="{DynamicResource Brush.Text.Primary}">
     <Window.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
     </Window.Resources>
     <Border Padding="12">
         <StackPanel>
+            <TextBlock Text="Theme" FontWeight="Bold" Margin="0,0,0,8" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12" VerticalAlignment="Center">
+                <TextBlock Text="Theme:" VerticalAlignment="Center" Width="120" />
+                <ComboBox Width="180" ItemsSource="{Binding ThemeKinds}" SelectedItem="{Binding SelectedTheme}" />
+            </StackPanel>
+
             <TextBlock Text="Accidentals" FontWeight="Bold" Margin="0,0,0,8" />
             <RadioButton Content="All sharps"
                          IsChecked="{Binding SelectedAccidentalRule, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=AllSharps}"

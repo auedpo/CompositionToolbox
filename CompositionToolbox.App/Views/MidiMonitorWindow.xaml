@@ -2,7 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MIDI Monitor" Height="360" Width="520"
-        FontFamily="Segoe UI">
+        FontFamily="Segoe UI"
+        Background="{DynamicResource Brush.App.Background}"
+        Foreground="{DynamicResource Brush.Text.Primary}">
     <Window.Resources>
         <Style x:Key="MidiMonitorListItemStyle" TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -17,11 +19,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{DynamicResource App.TransformLog.RowSelectedBrush}" />
-                                <Setter Property="Foreground" Value="{DynamicResource App.TransformLog.RowSelectedTextBrush}" />
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Selection.Fill}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{DynamicResource App.TransformLog.RowHoverBrush}" />
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.Canvas.GridLine}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -41,6 +43,8 @@
         <ListView Grid.Row="1"
                   ItemsSource="{Binding Messages}"
                   ItemContainerStyle="{StaticResource MidiMonitorListItemStyle}"
+                  Background="{DynamicResource Brush.Surface.Background}"
+                  BorderBrush="{DynamicResource Brush.Surface.Border}"
                   Margin="0,8,0,0">
             <ListView.View>
                 <GridView>

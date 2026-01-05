@@ -27,5 +27,6 @@ namespace CompositionToolbox.App.Models
         public ChordVoicingMode ChordVoicingMode { get; set; } = ChordVoicingMode.Centered;
         public NotationPreference DefaultNotationMode { get; set; } = NotationPreference.Chord;
         public int PitchBendRangeSemitones { get; set; } = 48;
+        public AppThemeKind Theme { get; set; } = AppThemeKind.DarkNeutral;
     }
 }

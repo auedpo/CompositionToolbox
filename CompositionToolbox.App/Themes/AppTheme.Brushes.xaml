@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Surfaces -->
+    <SolidColorBrush x:Key="Brush.App.Background" Color="{DynamicResource Color.App.Background}" />
+    <SolidColorBrush x:Key="Brush.Surface.Background" Color="{DynamicResource Color.Surface.Background}" />
+    <SolidColorBrush x:Key="Brush.Surface.Border" Color="{DynamicResource Color.Surface.Border}" />
+    <SolidColorBrush x:Key="Brush.Canvas.Background" Color="{DynamicResource Color.Canvas.Background}" />
+    <SolidColorBrush x:Key="Brush.Canvas.GridLine" Color="{DynamicResource Color.Canvas.GridLine}" />
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="Brush.Text.Primary" Color="{DynamicResource Color.Text.Primary}" />
+    <SolidColorBrush x:Key="Brush.Text.Secondary" Color="{DynamicResource Color.Text.Secondary}" />
+    <SolidColorBrush x:Key="Brush.Text.Disabled" Color="{DynamicResource Color.Text.Disabled}" />
+
+    <!-- Interaction -->
+    <SolidColorBrush x:Key="Brush.Accent" Color="{DynamicResource Color.Accent}" />
+    <SolidColorBrush x:Key="Brush.Selection.Fill" Color="{DynamicResource Color.Selection.Fill}" />
+    <SolidColorBrush x:Key="Brush.Selection.Outline" Color="{DynamicResource Color.Selection.Outline}" />
+    <SolidColorBrush x:Key="Brush.Focus.Ring" Color="{DynamicResource Color.Focus.Ring}" />
+
+    <!-- State -->
+    <SolidColorBrush x:Key="Brush.Danger" Color="{DynamicResource Color.Danger}" />
+    <SolidColorBrush x:Key="Brush.Warning" Color="{DynamicResource Color.Warning}" />
+    <SolidColorBrush x:Key="Brush.Success" Color="{DynamicResource Color.Success}" />
+</ResourceDictionary>

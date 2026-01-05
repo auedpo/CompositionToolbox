@@ -28,6 +28,7 @@ namespace CompositionToolbox.App.ViewModels
         private IReadOnlyList<System.Windows.Point> _nodePositions = Array.Empty<System.Windows.Point>();
         private IReadOnlyList<(System.Windows.Point A, System.Windows.Point B)> _segments = Array.Empty<(System.Windows.Point A, System.Windows.Point B)>();
         private PointCollection _polylinePoints = new();
+        private bool _forceAscending;
         private int _cardinality;
         private string _orderDisplay = string.Empty;
         private int? _lastSelected;
@@ -47,6 +48,9 @@ namespace CompositionToolbox.App.ViewModels
             ClearCommand = new RelayCommand(Clear);
             BackspaceCommand = new RelayCommand(RemoveLast, () => Order.Count > 0);
             CommitCommand = new RelayCommand(Commit, () => Order.Count > 0);
+            InvertCommand = new RelayCommand(InvertSelection, () => Modulus > 0);
+            TransposeUpCommand = new RelayCommand(() => TransposeSelection(1), () => Order.Count > 0);
+            TransposeDownCommand = new RelayCommand(() => TransposeSelection(-1), () => Order.Count > 0);
 
             BuildNodes();
             UpdateDerivedState();
@@ -112,6 +116,21 @@ namespace CompositionToolbox.App.ViewModels
             private set => SetProperty(ref _nodeDiameter, value);
         }
 
+        public bool ForceAscending
+        {
+            get => _forceAscending;
+            set
+            {
+            if (SetProperty(ref _forceAscending, value))
+            {
+                NormalizeOrderIfForced();
+                TransposeUpCommand.NotifyCanExecuteChanged();
+                TransposeDownCommand.NotifyCanExecuteChanged();
+                UpdateDerivedState();
+            }
+            }
+        }
+
         public int Cardinality
         {
             get => _cardinality;
@@ -130,6 +149,9 @@ namespace CompositionToolbox.App.ViewModels
         public IRelayCommand ClearCommand { get; }
         public IRelayCommand BackspaceCommand { get; }
         public IRelayCommand CommitCommand { get; }
+        public IRelayCommand InvertCommand { get; }
+        public IRelayCommand TransposeUpCommand { get; }
+        public IRelayCommand TransposeDownCommand { get; }
 
         public void Activate()
         {
@@ -266,6 +288,7 @@ namespace CompositionToolbox.App.ViewModels
                 SetNodeSelected(pc, true);
             }
 
+            NormalizeOrderIfForced();
             UpdateDerivedState();
         }
 
@@ -293,6 +316,7 @@ namespace CompositionToolbox.App.ViewModels
             Order.RemoveAt(Order.Count - 1);
             Enabled.Remove(pc);
             SetNodeSelected(pc, false);
+            NormalizeOrderIfForced();
             UpdateDerivedState();
         }
 
@@ -317,6 +341,9 @@ namespace CompositionToolbox.App.ViewModels
 
             BackspaceCommand.NotifyCanExecuteChanged();
             CommitCommand.NotifyCanExecuteChanged();
+            InvertCommand.NotifyCanExecuteChanged();
+            TransposeUpCommand.NotifyCanExecuteChanged();
+            TransposeDownCommand.NotifyCanExecuteChanged();
         }
 
         private void BuildPolylinePoints()
@@ -336,7 +363,72 @@ namespace CompositionToolbox.App.ViewModels
                 }
             }
 
+            if (Order.Count > 2)
+            {
+                var firstPc = Order[0];
+                if (_pcPositions.TryGetValue(firstPc, out var firstPoint))
+                {
+                    points.Add(firstPoint);
+                }
+            }
+
             PolylinePoints = points;
+        }
+
+        private void NormalizeOrderIfForced()
+        {
+            if (!ForceAscending || Order.Count < 2) return;
+            var sorted = Order.OrderBy(x => x).ToArray();
+            if (Order.SequenceEqual(sorted)) return;
+            Order.Clear();
+            foreach (var pc in sorted)
+            {
+                Order.Add(pc);
+            }
+        }
+
+        private void InvertSelection()
+        {
+            if (Modulus <= 0) return;
+            var inverse = new List<int>();
+            for (var pc = 0; pc < Modulus; pc++)
+            {
+                if (!Enabled.Contains(pc))
+                {
+                    inverse.Add(pc);
+                }
+            }
+            ApplyOrder(inverse);
+        }
+
+        private void TransposeSelection(int delta)
+        {
+            if (Order.Count == 0 || Modulus <= 0) return;
+            var transposed = Order.Select(pc => NormalizeMod(pc + delta, Modulus)).ToList();
+            ApplyOrder(transposed);
+        }
+
+        private void ApplyOrder(IReadOnlyList<int> nextOrder)
+        {
+            Order.Clear();
+            Enabled.Clear();
+            foreach (var pc in nextOrder)
+            {
+                Order.Add(pc);
+                Enabled.Add(pc);
+            }
+            foreach (var node in Nodes)
+            {
+                node.IsSelected = Enabled.Contains(node.Pc);
+            }
+            NormalizeOrderIfForced();
+            UpdateDerivedState();
+        }
+
+        private static int NormalizeMod(int value, int modulus)
+        {
+            var n = value % modulus;
+            return n < 0 ? n + modulus : n;
         }
 
         private void BuildSegments()
@@ -354,6 +446,15 @@ namespace CompositionToolbox.App.ViewModels
                     && _pcPositions.TryGetValue(Order[i], out var b))
                 {
                     segments.Add((a, b));
+                }
+            }
+
+            if (Order.Count > 2)
+            {
+                if (_pcPositions.TryGetValue(Order[^1], out var tail)
+                    && _pcPositions.TryGetValue(Order[0], out var head))
+                {
+                    segments.Add((tail, head));
                 }
             }
 

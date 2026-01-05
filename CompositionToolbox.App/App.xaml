@@ -9,9 +9,11 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="Themes/Colors.xaml" />
-        <ResourceDictionary Source="Themes/Styles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
+        <ResourceDictionary Source="Themes/AppTheme.Keys.xaml" />
+        <ResourceDictionary Source="Themes/AppTheme.Brushes.xaml" />
+        <ResourceDictionary Source="Themes/AppTheme.Palette.DarkNeutral.xaml" />
+        <ResourceDictionary Source="Themes/Styles.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <FontFamily x:Key="App.MonoFontFamily">Consolas,Cascadia Mono,Courier New</FontFamily>
       <Style x:Key="App.MonoTextStyle" TargetType="TextBlock">
@@ -27,7 +29,6 @@
       <Thickness x:Key="App.SectionSpacingBottom">0,0,0,6</Thickness>
       <GridLength x:Key="App.PanelGap">8</GridLength>
       <sys:Double x:Key="App.PanelGapSize">8</sys:Double>
-      <SolidColorBrush x:Key="App.PanelBorderBrush" Color="#B7C9A6" />
         <!-- Gripper style: three vertically stacked dots centered for GridSplitters -->
         <Style TargetType="GridSplitter">
           <Setter Property="Background" Value="Transparent" />
@@ -39,9 +40,9 @@
               <ControlTemplate TargetType="GridSplitter">
                 <Grid Background="{TemplateBinding Background}">
                   <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical" IsHitTestVisible="False">
-                    <Ellipse Width="4" Height="4" Fill="{DynamicResource App.GripperDotBrush}" Margin="{DynamicResource App.GripperDotMarginVertical}" />
-                    <Ellipse Width="4" Height="4" Fill="{DynamicResource App.GripperDotBrush}" Margin="{DynamicResource App.GripperDotMarginVertical}" />
-                    <Ellipse Width="4" Height="4" Fill="{DynamicResource App.GripperDotBrush}" Margin="{DynamicResource App.GripperDotMarginVertical}" />
+                    <Ellipse Width="4" Height="4" Fill="{DynamicResource Brush.Text.Secondary}" Margin="{DynamicResource App.GripperDotMarginVertical}" />
+                    <Ellipse Width="4" Height="4" Fill="{DynamicResource Brush.Text.Secondary}" Margin="{DynamicResource App.GripperDotMarginVertical}" />
+                    <Ellipse Width="4" Height="4" Fill="{DynamicResource Brush.Text.Secondary}" Margin="{DynamicResource App.GripperDotMarginVertical}" />
                   </StackPanel>
                 </Grid>
               </ControlTemplate>

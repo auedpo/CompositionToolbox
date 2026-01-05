@@ -4,7 +4,6 @@ using System.IO;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
-using System.Windows.Media;
 using CompositionToolbox.App.Views.Behaviors;
 
 namespace CompositionToolbox.App
@@ -24,17 +23,6 @@ namespace CompositionToolbox.App
         {
             SliderWheelBehavior.EnsureInitialized();
             TextBoxClearButtonBehavior.EnsureInitialized();
-            var windowBrush = TryFindResource(System.Windows.SystemColors.WindowBrushKey) as System.Windows.Media.Brush
-                ?? (System.Windows.Media.Brush)FindResource(System.Windows.SystemColors.WindowBrushKey);
-
-            Current.Resources["App.DividerBrush"] = CreateLightenedBrush(windowBrush, 0.05);
-
-            // Gripper dot brush: 80% translucent white (alpha ~ 204) so dots are subtly visible on darker backgrounds
-            var gripperColor = System.Windows.Media.Color.FromArgb(204, 255, 255, 255);
-            var gripperBrush = new System.Windows.Media.SolidColorBrush(gripperColor);
-            gripperBrush.Freeze();
-            Current.Resources["App.GripperDotBrush"] = gripperBrush;
-
 #if DEBUG
             try
             {
@@ -157,36 +145,5 @@ namespace CompositionToolbox.App
 #endif
         }
 
-        private static System.Windows.Media.Brush CreateLightenedBrush(System.Windows.Media.Brush baseBrush, double amount)
-        {
-            if (baseBrush is not System.Windows.Media.SolidColorBrush sb)
-            {
-                return baseBrush;
-            }
-
-            var c = sb.Color;
-            byte Lighten(byte channel) => (byte)Math.Min(255, channel + (255 - channel) * amount);
-            return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(
-                c.A,
-                Lighten(c.R),
-                Lighten(c.G),
-                Lighten(c.B)));
-        }
-
-        private static System.Windows.Media.Brush CreateDarkenedBrush(System.Windows.Media.Brush baseBrush, double amount)
-        {
-            if (baseBrush is not System.Windows.Media.SolidColorBrush sb)
-            {
-                return baseBrush;
-            }
-
-            var c = sb.Color;
-            byte Darken(byte channel) => (byte)Math.Max(0, channel - (int)(channel * amount));
-            return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(
-                c.A,
-                Darken(c.R),
-                Darken(c.G),
-                Darken(c.B)));
-        }
     }
 }

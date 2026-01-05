@@ -4,6 +4,7 @@
              xmlns:converters="clr-namespace:CompositionToolbox.App.Converters">
     <UserControl.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+        <converters:NullableIndexConverter x:Key="NullableIndexConverter" />
         <Style x:Key="AffineMonoText" TargetType="TextBlock" BasedOn="{StaticResource App.MonoTextStyle}" />
     </UserControl.Resources>
     <Border Padding="12">
@@ -40,7 +41,7 @@
                     <TextBlock Text="Single focus:" Margin="0,0,6,0" />
                     <ComboBox Width="140"
                               ItemsSource="{Binding FocusCandidates}"
-                              SelectedIndex="{Binding SelectedFocusIndex}" />
+                              SelectedIndex="{Binding SelectedFocusIndex, Converter={StaticResource NullableIndexConverter}}" />
                 </WrapPanel>
             </StackPanel>
 

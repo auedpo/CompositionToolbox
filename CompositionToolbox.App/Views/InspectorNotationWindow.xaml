@@ -6,7 +6,9 @@
         Width="960"
         Height="420"
         WindowStartupLocation="CenterOwner"
-        FontFamily="Segoe UI">
+        FontFamily="Segoe UI"
+        Background="{DynamicResource Brush.App.Background}"
+        Foreground="{DynamicResource Brush.Text.Primary}">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

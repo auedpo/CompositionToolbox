@@ -29,6 +29,8 @@ namespace CompositionToolbox.App.ViewModels
             new ObservableCollection<ChordVoicingMode>(Enum.GetValues<ChordVoicingMode>());
         public ObservableCollection<NotationPreference> NotationPreferences { get; } =
             new ObservableCollection<NotationPreference>(Enum.GetValues<NotationPreference>());
+        public ObservableCollection<AppThemeKind> ThemeKinds { get; } =
+            new ObservableCollection<AppThemeKind>(Enum.GetValues<AppThemeKind>());
 
         private int _selectedModulus = 12;
         public int SelectedModulus
@@ -84,6 +86,7 @@ namespace CompositionToolbox.App.ViewModels
         private NotationPreference _defaultNotationMode;
         private NotationPreference _workspacePreviewNotationMode;
         private int _pitchBendRangeSemitones;
+        private AppThemeKind _selectedTheme;
         private CompositeTransformLogEntry? _selectedLogEntry;
         private WorkspacePreview? _workspacePreview;
         private string _logDetailsAfter = "Refs after: -";
@@ -109,6 +112,8 @@ namespace CompositionToolbox.App.ViewModels
             PresetState = new PresetStateService();
             _selectedAccidentalRule = _appSettings.AccidentalRule;
             LoadRealizationSettings();
+            _selectedTheme = _appSettings.Theme;
+            AppTheme.Apply(_selectedTheme);
             _midiService.SetPitchBendRangeSemitones(_pitchBendRangeSemitones);
             RefreshMidiDevices();
             PlayCommand = new RelayCommand(async () => await PlayAsync(), () => Store.SelectedState?.PitchRef != null);
@@ -545,6 +550,20 @@ namespace CompositionToolbox.App.ViewModels
             _defaultNotationMode = _appSettings.DefaultNotationMode;
             _workspacePreviewNotationMode = _appSettings.DefaultNotationMode;
             _pitchBendRangeSemitones = _appSettings.PitchBendRangeSemitones;
+        }
+
+        public AppThemeKind SelectedTheme
+        {
+            get => _selectedTheme;
+            set
+            {
+                if (SetProperty(ref _selectedTheme, value))
+                {
+                    _appSettings.Theme = value;
+                    _settingsService.Save(_appSettings);
+                    AppTheme.Apply(value);
+                }
+            }
         }
 
         private void UpdatePc0RefMidi()

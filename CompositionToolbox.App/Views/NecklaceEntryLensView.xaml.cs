@@ -20,7 +20,38 @@ namespace CompositionToolbox.App.Views
         private void NecklaceEntryLensView_Loaded(object sender, RoutedEventArgs e)
         {
             _layoutAttempts = 0;
+            Focus();
             PushViewportSize();
+        }
+
+        private void NecklaceEntryLensView_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (_viewModel == null) return;
+
+            if (e.Key == Key.Back)
+            {
+                if (_viewModel.BackspaceCommand.CanExecute(null))
+                {
+                    _viewModel.BackspaceCommand.Execute(null);
+                }
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                if (_viewModel.ClearCommand.CanExecute(null))
+                {
+                    _viewModel.ClearCommand.Execute(null);
+                }
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter)
+            {
+                if (_viewModel.CommitCommand.CanExecute(null))
+                {
+                    _viewModel.CommitCommand.Execute(null);
+                }
+                e.Handled = true;
+            }
         }
 
         private void NecklaceEntryLensView_SizeChanged(object sender, SizeChangedEventArgs e)

@@ -7,6 +7,8 @@
         xmlns:local="clr-namespace:CompositionToolbox.App"
         Title="Composition Toolbox" Height="720" Width="1100"
         FontFamily="Segoe UI"
+        Background="{DynamicResource Brush.App.Background}"
+        Foreground="{DynamicResource Brush.Text.Primary}"
         PreviewKeyDown="MainWindow_PreviewKeyDown">
 
     <Window.CommandBindings>
@@ -20,13 +22,13 @@
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
         <Style x:Key="SectionHeaderTextStyle" TargetType="TextBlock">
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
         </Style>
         <Style x:Key="RowSplitterPreviewStyle" TargetType="Control">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Control">
-                        <Rectangle Fill="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                        <Rectangle Fill="{DynamicResource Brush.Canvas.GridLine}"
                                    Height="2"
                                    HorizontalAlignment="Stretch"
                                    VerticalAlignment="Center" />
@@ -57,13 +59,13 @@
                                          HorizontalAlignment="Center"
                                          VerticalAlignment="Center">
                                 <Ellipse Width="4" Height="4"
-                                         Fill="{DynamicResource App.GripperDotBrush}"
+                                         Fill="{DynamicResource Brush.Text.Secondary}"
                                          Margin="{DynamicResource App.GripperDotMarginHorizontal}" />
                                 <Ellipse Width="4" Height="4"
-                                         Fill="{DynamicResource App.GripperDotBrush}"
+                                         Fill="{DynamicResource Brush.Text.Secondary}"
                                          Margin="{DynamicResource App.GripperDotMarginHorizontal}" />
                                 <Ellipse Width="4" Height="4"
-                                         Fill="{DynamicResource App.GripperDotBrush}"
+                                         Fill="{DynamicResource Brush.Text.Secondary}"
                                          Margin="{DynamicResource App.GripperDotMarginHorizontal}" />
                             </UniformGrid>
                         </Grid>
@@ -73,8 +75,8 @@
         </Style>
         <Style x:Key="TransformLogMonoTextStyle" TargetType="TextBlock" BasedOn="{StaticResource App.MonoTextStyle}" />
         <Style x:Key="PanelBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource SystemControlPageBackgroundChromeLowBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource App.PanelBorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface.Background}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Surface.Border}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Padding" Value="{DynamicResource App.PanelPadding}" />
@@ -303,13 +305,16 @@
                                   SelectionMode="Single"
                                   SelectionUnit="FullRow"
                                   RowHeight="24"
-                                  Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
-                                  RowBackground="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
-                                  AlternatingRowBackground="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
+                                  Background="{DynamicResource Brush.Surface.Background}"
+                                  RowBackground="{DynamicResource Brush.Surface.Background}"
+                                  AlternatingRowBackground="{DynamicResource Brush.Surface.Background}"
                                   BorderThickness="1">
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow">
                                     <EventSetter Event="PreviewMouseRightButtonDown" Handler="TransformLogRow_PreviewMouseRightButtonDown" />
+                                    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Background}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Surface.Border}" />
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -319,6 +324,16 @@
                                             </ContextMenu>
                                         </Setter.Value>
                                     </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource Brush.Selection.Fill}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Selection.Outline}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource Brush.Canvas.GridLine}" />
+                                        </Trigger>
+                                    </Style.Triggers>
                                 </Style>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
@@ -400,7 +415,7 @@
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0"
                         Style="{StaticResource PanelBorderNoPaddingStyle}"
-                        Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
+                        Background="{DynamicResource Brush.Surface.Background}">
                     <views:InspectorView DataContext="{Binding Inspector}" />
                 </Border>
                 <GridSplitter Grid.Row="1"

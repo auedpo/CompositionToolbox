@@ -52,7 +52,6 @@ C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Ap
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\InspectorNotationWindow.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\PitchListCatalogWindow.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\PitchListCatalogWindow.g.cs
-C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\Colors.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\TestLensView.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\TestLensView.g.cs
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\IVExplorerView.g.cs
@@ -79,3 +78,7 @@ C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Ap
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\Dialogs\TextPromptDialog.g.cs
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\NecklaceEntryLensView.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Views\NecklaceEntryLensView.g.cs
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\AppTheme.Brushes.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\AppTheme.Keys.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\AppTheme.Palette.DarkNeutral.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\AppTheme.Palette.LightNeutral.baml
