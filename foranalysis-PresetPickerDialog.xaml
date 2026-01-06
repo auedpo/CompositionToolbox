@@ -9,7 +9,7 @@
         Height="600"
         WindowStartupLocation="CenterOwner"
         Background="#1E1E1E"
-        Foreground="White"
+        Foreground="{DynamicResource Brush.Text.Primary}"
         FontFamily="Segoe UI"
         FlowDirection="LeftToRight">
     <Window.Resources>
@@ -25,7 +25,7 @@
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="#2F3B48" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static sys:SystemColors.HighlightBrushKey}}" />
+                    <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#2B2F33" />
@@ -36,7 +36,7 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Foreground" Value="#A0A0A0" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
             <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Padding" Value="0" />
@@ -51,10 +51,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource {x:Static sys:SystemColors.HighlightBrushKey}}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource {x:Static sys:SystemColors.HighlightBrushKey}}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -62,13 +62,13 @@
             </Setter>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsFavorite}" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static sys:SystemColors.HighlightBrushKey}}" />
+                    <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="PresetGridHeaderStyle" TargetType="GridViewColumnHeader">
             <Setter Property="Background" Value="#2B2B2B" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="BorderBrush" Value="{StaticResource GridLineBrush}" />
             <Setter Property="BorderThickness" Value="0,0,1,1" />
@@ -125,7 +125,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Background" Value="#3A3D41" />
-                                <Setter Property="Foreground" Value="White" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Background" Value="#323438" />
@@ -175,7 +175,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding PrimeFormDisplay}" Foreground="LightGray" FontFamily="Consolas" />
+                                    <TextBlock Text="{Binding PrimeFormDisplay}" Foreground="{DynamicResource Brush.Text.Secondary}" FontFamily="Consolas" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -189,7 +189,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding CardinalityValue}" Foreground="LightGray" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding CardinalityValue}" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -203,7 +203,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding Id}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding Id}" Foreground="{DynamicResource Brush.Text.Primary}" FontWeight="Bold" HorizontalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -217,7 +217,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding IC1}" Foreground="LightGray" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding IC1}" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -231,7 +231,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding IC2}" Foreground="LightGray" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding IC2}" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -245,7 +245,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding IC3}" Foreground="LightGray" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding IC3}" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -259,7 +259,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding IC4}" Foreground="LightGray" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding IC4}" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -273,7 +273,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding IC5}" Foreground="LightGray" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding IC5}" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -287,7 +287,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,0,1,0" Padding="6,4">
-                                    <TextBlock Text="{Binding IC6}" Foreground="LightGray" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding IC6}" Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" />
                                 </Border>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -323,7 +323,7 @@
                 Padding="8">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding SelectedPreset.Id}" Foreground="White" FontWeight="Bold" />
+                    <TextBlock Text="{Binding SelectedPreset.Id}" Foreground="{DynamicResource Brush.Text.Primary}" FontWeight="Bold" />
                     <Button DataContext="{Binding SelectedPreset}"
                             Content="{Binding FavoriteIcon}"
                             Command="{Binding ToggleFavoriteCommand}"
@@ -334,8 +334,8 @@
                             ToolTip="Toggle favorite"
                             Focusable="False" />
                 </StackPanel>
-                <TextBlock Text="{Binding SelectedPreset.PrimeFormDisplay}" Foreground="LightGray" FontFamily="Consolas" Margin="0,4,0,0" />
-                <TextBlock Text="{Binding SelectedPreset.CardinalityDisplay}" Foreground="LightGray" Margin="0,0,0,8" />
+                <TextBlock Text="{Binding SelectedPreset.PrimeFormDisplay}" Foreground="{DynamicResource Brush.Text.Secondary}" FontFamily="Consolas" Margin="0,4,0,0" />
+                <TextBlock Text="{Binding SelectedPreset.CardinalityDisplay}" Foreground="{DynamicResource Brush.Text.Secondary}" Margin="0,0,0,8" />
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
                     <RadioButton Content="Chord"
@@ -359,7 +359,7 @@
                 Padding="8"
                 Margin="0,0,8,0">
             <StackPanel>
-                <TextBlock Text="Cardinality" Foreground="White" FontWeight="Bold" Margin="0,0,0,4" />
+                <TextBlock Text="Cardinality" Foreground="{DynamicResource Brush.Text.Primary}" FontWeight="Bold" Margin="0,0,0,4" />
                 <ListBox ItemsSource="{Binding CardinalityOptions}"
                          SelectedValuePath="Value"
                          SelectedValue="{Binding SelectedCardinality}"
@@ -376,7 +376,7 @@
 
                 <Border BorderBrush="{StaticResource GridLineBrush}" BorderThickness="0,1,0,0" Margin="0,8,0,8" />
 
-                <TextBlock Text="Favorites" Foreground="White" FontWeight="Bold" Margin="0,0,0,4" />
+                <TextBlock Text="Favorites" Foreground="{DynamicResource Brush.Text.Primary}" FontWeight="Bold" Margin="0,0,0,4" />
                 <CheckBox Content="Only favorites"
                           IsChecked="{Binding ShowFavoritesOnly}"
                           Checked="FavoritesOnly_Checked"

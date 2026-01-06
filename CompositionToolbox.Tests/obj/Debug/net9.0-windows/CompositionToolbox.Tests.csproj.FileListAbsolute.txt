@@ -118,3 +118,5 @@ C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Te
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Tests\obj\Debug\net9.0-windows\CompositionToolbox.Tests.pdb
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Tests\obj\Debug\net9.0-windows\CompositionToolbox.Tests.genruntimeconfig.cache
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Tests\obj\Debug\net9.0-windows\ref\CompositionToolbox.Tests.dll
+c:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Tests\obj\Debug\net9.0-windows\CompositionToolbox.Tests.sourcelink.json
+c:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Tests\bin\Debug\net9.0-windows\Assets\edo-notation.js

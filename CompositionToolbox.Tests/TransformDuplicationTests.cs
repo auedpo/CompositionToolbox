@@ -39,7 +39,7 @@ namespace CompositionToolbox.Tests
             store.TransformState("INPUT", new Dictionary<string, object> { ["_test"] = true }, duplicateState);
 
             var entries = store.LogEntries;
-            Assert.Equal(1, entries.Count);
+            Assert.Single(entries);
         }
     }
 }

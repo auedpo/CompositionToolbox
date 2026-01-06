@@ -18,7 +18,7 @@ public class CompositeStoreTests
         };
 
         var id1 = store.GetOrAddNode(node1);
-        Assert.Equal(1, store.Nodes.Count);
+        Assert.Single(store.Nodes);
 
         var node2 = new AtomicNode
         {
@@ -30,7 +30,7 @@ public class CompositeStoreTests
 
         var id2 = store.GetOrAddNode(node2);
         Assert.Equal(id1, id2);
-        Assert.Equal(1, store.Nodes.Count);
+        Assert.Single(store.Nodes);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class CompositeStoreTests
         };
 
         var id1 = store.GetOrAddNode(node1);
-        Assert.Equal(1, store.Nodes.Count);
+        Assert.Single(store.Nodes);
 
         var node2 = new AtomicNode
         {
@@ -108,7 +108,7 @@ public class CompositeStoreTests
 
         store.TransformState("Input", null, nextState);
 
-        Assert.Equal(1, store.Nodes.Count);
+        Assert.Single(store.Nodes);
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class CompositeStoreTests
         vm.Initialization.InputText = "0 4 7";
         vm.Initialization.IsOrdered = true;
         vm.Initialization.CreatePitchListCommand.Execute(null);
-        Assert.Equal(1, store.Nodes.Count);
+        Assert.Single(store.Nodes);
     }
 
     [Fact]
@@ -153,6 +153,6 @@ public class CompositeStoreTests
             });
         });
 
-        Assert.Equal(1, store.Nodes.Count);
+        Assert.Single(store.Nodes);
     }
 }

@@ -12,7 +12,7 @@ TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\App.xaml
 24-787038198
 3554582714
-1001175638388
+1011508511256
 221-541485389
 MainWindow.xaml;Themes\AppTheme.Brushes.xaml;Themes\AppTheme.Keys.xaml;Themes\AppTheme.Palette.DarkNeutral.xaml;Themes\AppTheme.Palette.LightNeutral.xaml;Themes\Styles.xaml;Views\AcdlLensView.xaml;Views\Dialogs\ConfirmDialog.xaml;Views\Dialogs\MessageDialog.xaml;Views\Dialogs\TextPromptDialog.xaml;Views\FocusAffineView.xaml;Views\GapToPcView.xaml;Views\InitializationView.xaml;Views\InspectorNotationWindow.xaml;Views\InspectorView.xaml;Views\IVExplorerView.xaml;Views\MidiMonitorWindow.xaml;Views\NecklaceEntryLensView.xaml;Views\NotationView.xaml;Views\PitchListCatalogWindow.xaml;Views\SettingsWindow.xaml;Views\SwirlingMistsLensView.xaml;Views\TestLensView.xaml;Views\TransformLogDetailsWindow.xaml;
 

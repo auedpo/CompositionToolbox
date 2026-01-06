@@ -16,6 +16,9 @@
     <None Include="Assets\notation.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Assets\edo-notation.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Assets\presets.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -74,6 +74,15 @@
             </Setter>
         </Style>
         <Style x:Key="TransformLogMonoTextStyle" TargetType="TextBlock" BasedOn="{StaticResource App.MonoTextStyle}" />
+        <Style x:Key="TransformLogEntryTextStyle" TargetType="TextBlock" BasedOn="{StaticResource TransformLogMonoTextStyle}">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+            <Setter Property="FontSize" Value="11" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=IsSelected}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <Style x:Key="PanelBorderStyle" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource Brush.Surface.Background}" />
             <Setter Property="BorderBrush" Value="{DynamicResource Brush.Surface.Border}" />
@@ -288,7 +297,15 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <DockPanel Margin="{DynamicResource App.SectionSpacingBottom}">
-                            <TextBlock Style="{StaticResource SectionHeaderTextStyle}" DockPanel.Dock="Left">Transform Log</TextBlock>
+                            <TextBlock Style="{StaticResource SectionHeaderTextStyle}" DockPanel.Dock="Left">
+                                <TextBlock.Inlines>
+                                    <Run Text="Transform Log" />
+                                    <Run Text=" · "
+                                         Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    <Run Foreground="{DynamicResource Brush.Text.Secondary}"
+                                         Text="{Binding Store.SelectedComposite.Title, TargetNullValue='(no composite selected)'}" />
+                                </TextBlock.Inlines>
+                            </TextBlock>
                         </DockPanel>
                         <DataGrid x:Name="TransformLogList"
                                   Grid.Row="1"
@@ -298,13 +315,12 @@
                                   SelectionChanged="TransformLog_SelectionChanged"
                                   AutoGenerateColumns="False"
                                   HeadersVisibility="Column"
-                                  GridLinesVisibility="None"
+                                  GridLinesVisibility="Horizontal"
                                   CanUserAddRows="False"
                                   CanUserDeleteRows="False"
                                   IsReadOnly="True"
                                   SelectionMode="Single"
                                   SelectionUnit="FullRow"
-                                  RowHeight="24"
                                   Background="{DynamicResource Brush.Surface.Background}"
                                   RowBackground="{DynamicResource Brush.Surface.Background}"
                                   AlternatingRowBackground="{DynamicResource Brush.Surface.Background}"
@@ -315,6 +331,8 @@
                                     <Setter Property="Background" Value="{DynamicResource Brush.Surface.Background}" />
                                     <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
                                     <Setter Property="BorderBrush" Value="{DynamicResource Brush.Surface.Border}" />
+                                    <Setter Property="Margin" Value="0,0,0,4" />
+                                    <Setter Property="SnapsToDevicePixels" Value="True" />
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -330,6 +348,15 @@
                                             <Setter Property="BorderBrush" Value="{DynamicResource Brush.Selection.Outline}" />
                                             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
                                         </Trigger>
+                                        <MultiTrigger>
+                                            <MultiTrigger.Conditions>
+                                                <Condition Property="IsSelected" Value="True" />
+                                                <Condition Property="Selector.IsSelectionActive" Value="False" />
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Background" Value="{DynamicResource Brush.Selection.Fill}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Selection.Outline}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                                        </MultiTrigger>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter Property="Background" Value="{DynamicResource Brush.Canvas.GridLine}" />
                                         </Trigger>
@@ -337,45 +364,66 @@
                                 </Style>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
-                                <DataGridTemplateColumn Header="Step" Width="60">
+                                <DataGridTemplateColumn Header="Entry" Width="*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Style="{StaticResource TransformLogMonoTextStyle}">
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="StepIndex">
-                                                        <Binding />
-                                                        <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Op" Width="120" Binding="{Binding Op}" ElementStyle="{StaticResource TransformLogMonoTextStyle}" />
-                                <DataGridTemplateColumn Header="Badge" Width="60">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Style="{StaticResource TransformLogMonoTextStyle}" HorizontalAlignment="Right">
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="Badges">
-                                                        <Binding />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="PitchList" Width="300">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Style="{StaticResource TransformLogMonoTextStyle}" TextWrapping="Wrap">
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="PitchListValue">
-                                                        <Binding />
-                                                        <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="48" />
+                                                    <ColumnDefinition Width="8" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Row="0"
+                                                           Grid.RowSpan="2"
+                                                           Grid.Column="0"
+                                                           Style="{StaticResource TransformLogEntryTextStyle}"
+                                                           HorizontalAlignment="Right"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="StepIndex">
+                                                            <Binding />
+                                                            <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                                <Grid Grid.Row="0" Grid.Column="2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" MinWidth="16" />
+                                                        <ColumnDefinition Width="12" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               VerticalAlignment="Center"
+                                                               Style="{StaticResource TransformLogEntryTextStyle}"
+                                                               TextTrimming="CharacterEllipsis">
+                                                        <TextBlock.Text>
+                                                            <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="Badges">
+                                                                <Binding />
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                    <TextBlock Grid.Column="2"
+                                                               Style="{StaticResource TransformLogEntryTextStyle}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Text="{Binding Op}" />
+                                                </Grid>
+                                                <TextBlock Grid.Row="1"
+                                                           Grid.Column="2"
+                                                           Style="{StaticResource TransformLogEntryTextStyle}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,2,0,0">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource TransformLogEntryConverter}" ConverterParameter="ListTypes">
+                                                            <Binding />
+                                                            <Binding Path="DataContext.Store" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>

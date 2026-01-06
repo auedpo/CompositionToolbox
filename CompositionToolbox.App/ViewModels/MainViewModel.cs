@@ -17,7 +17,7 @@ namespace CompositionToolbox.App.ViewModels
     public class MainViewModel : ObservableObject
     {
         public CompositeStore Store { get; }
-        public ObservableCollection<int> Moduli { get; } = new ObservableCollection<int> { 12, 19 };
+        public ObservableCollection<int> Moduli { get; } = new ObservableCollection<int> { 12, 19, 31 };
         public ObservableCollection<string> NoteNames { get; } = new ObservableCollection<string>
         {
             "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"

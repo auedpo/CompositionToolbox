@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>Notation</title>
   <script src="vexflow-min.js"></script>
+  <script src="edo-notation.js"></script>
   <style>
     body{ margin:0; background:#F5F0E6; color:#111; font-family:Segoe UI; overflow:hidden; }
     #score { padding:8px; overflow:hidden; }
@@ -20,100 +21,7 @@
     }
     const VF = Vex.Flow;
 
-    function midiToNoteSpec(midi, preferSharps) {
-      const sharpNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-      const flatNames = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
-      const names = preferSharps ? sharpNames : flatNames;
-      const octave = Math.floor(midi / 12) - 1;
-      const note = names[midi % 12];
-      const base = note[0].toLowerCase();
-      const acc = note.length > 1 ? note.slice(1) : null;
-      return { key: base + "/" + octave, acc };
-    }
-
-    const edo19Names = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'E#', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B', 'B#'];
-
-    function pcToEdo19Spec(pc, baseOctave) {
-      const normalized = ((pc % 19) + 19) % 19;
-      const name = edo19Names[normalized];
-      const base = name[0].toLowerCase();
-      const acc = name.length > 1 ? name.slice(1) : null;
-      return { key: base + "/" + baseOctave, acc };
-    }
-
-    function pcsToEdo19Notes(pcs, baseOctave) {
-      return pcs.map(pc => pcToEdo19Spec(pc, baseOctave));
-    }
-
-    function pcsToEdoNotesWithMidi(pcs, midiList, modulus) {
-      const safeMidi = midiList.length > 0 ? midiList : [60];
-      const minMidi = Math.min(...safeMidi);
-      const baseOctave = Math.floor(minMidi / 12) - 1;
-      return pcs.map((pc, i) => {
-        const midi = midiList[i] ?? minMidi;
-        const octaveShift = Math.floor((midi - minMidi) / modulus);
-        const octave = baseOctave + octaveShift;
-        return pcToEdo19Spec(pc, octave);
-      });
-    }
-
-    function getDirectionPreference(values, i, fallback) {
-      if (i > 0 && values[i] !== values[i - 1]) return values[i] > values[i - 1];
-      for (let j = i + 1; j < values.length; j++) {
-        if (values[j] !== values[i]) return values[j] > values[i];
-      }
-      return fallback !== undefined ? fallback : true;
-    }
-
-    function pcsToMidiNotes(pcs, base=60, rule='noteaware') {
-      const mode = (rule || 'noteaware').toLowerCase();
-      let lastPreference = true;
-      let prevAccidental = null;
-      return pcs.map((pc, i) => {
-        let preferSharps = true;
-        if (mode === 'allsharps') {
-          preferSharps = true;
-        } else if (mode === 'allflats') {
-          preferSharps = false;
-        } else {
-          preferSharps = getDirectionPreference(pcs, i, lastPreference);
-          if (mode === 'noteaware') {
-            if (prevAccidental === '#') preferSharps = true;
-            if (prevAccidental === 'b') preferSharps = false;
-          }
-        }
-
-        const spec = midiToNoteSpec(base + pc, preferSharps);
-        lastPreference = preferSharps;
-        prevAccidental = spec.acc ? spec.acc : null;
-        return spec;
-      });
-    }
-
-    function midiListToNoteSpecs(midiList, rule='noteaware') {
-      const mode = (rule || 'noteaware').toLowerCase();
-      let lastPreference = true;
-      let prevAccidental = null;
-      return midiList.map((midi, i) => {
-        let preferSharps = true;
-        if (mode === 'allsharps') {
-          preferSharps = true;
-        } else if (mode === 'allflats') {
-          preferSharps = false;
-        } else {
-          preferSharps = getDirectionPreference(midiList, i, lastPreference);
-          if (mode === 'noteaware') {
-            if (prevAccidental === '#') preferSharps = true;
-            if (prevAccidental === 'b') preferSharps = false;
-          }
-        }
-
-        const spec = midiToNoteSpec(midi, preferSharps);
-        lastPreference = preferSharps;
-        prevAccidental = spec.acc ? spec.acc : null;
-        return spec;
-      });
-    }
+    const EdoNotation = window.EdoNotation;
 
     window.renderPcs = function(payload) {
       try {
@@ -151,13 +59,16 @@
         const overflowCount = maxNotes && pcs.length > maxNotes ? pcs.length - maxNotes : 0;
         const renderPcs = maxNotes ? pcs.slice(0, maxNotes) : pcs;
         const renderMidi = midiList ? (maxNotes ? midiList.slice(0, maxNotes) : midiList) : null;
-        const useEdo19 = obj.modulus === 19;
-        const allowMidiForEdo19 = obj.useMidiForEdo19 === true;
-        const noteSpecs = useEdo19 && renderPcs.length > 0
-          ? (allowMidiForEdo19 && renderMidi && renderMidi.length === renderPcs.length
-            ? pcsToEdoNotesWithMidi(renderPcs, renderMidi, obj.modulus)
-            : pcsToEdo19Notes(renderPcs, 4))
-          : (renderMidi ? midiListToNoteSpecs(renderMidi, accidentalRule) : pcsToMidiNotes(renderPcs, base, accidentalRule));
+        const edoModulus = obj.modulus;
+        const useEdo = edoModulus && EdoNotation && EdoNotation.hasEdoMapping(edoModulus);
+        const allowMidiForEdo = obj.useMidiForEdo19 === true;
+        const noteSpecs = useEdo && renderPcs.length > 0
+          ? (allowMidiForEdo && renderMidi && renderMidi.length === renderPcs.length
+            ? EdoNotation.pcsToEdoNotesWithMidi(renderPcs, renderMidi, edoModulus)
+            : EdoNotation.pcsToEdoNotes(renderPcs, edoModulus, 4))
+          : (renderMidi
+            ? EdoNotation.midiListToNoteSpecs(renderMidi, accidentalRule)
+            : EdoNotation.pcsToMidiNotes(renderPcs, base, accidentalRule));
         if (noteSpecs.length === 0) {
           // render empty measure
           return;

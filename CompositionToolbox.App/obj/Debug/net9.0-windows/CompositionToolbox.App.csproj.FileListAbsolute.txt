@@ -82,3 +82,4 @@ C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.Ap
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\AppTheme.Keys.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\AppTheme.Palette.DarkNeutral.baml
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\obj\Debug\net9.0-windows\Themes\AppTheme.Palette.LightNeutral.baml
+C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\bin\Debug\net9.0-windows\Assets\edo-notation.js

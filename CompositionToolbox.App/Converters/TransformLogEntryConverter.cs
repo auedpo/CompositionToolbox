@@ -23,6 +23,7 @@ namespace CompositionToolbox.App.Converters
                 "Badges" => FormatBadges(entry),
                 "StepIndex" => FormatStepIndex(entry, store),
                 "PitchListValue" => FormatPitchListValue(entry, store),
+                "ListTypes" => FormatListTypes(entry, store),
                 _ => FormatPatchSummary(entry, store)
             };
         }
@@ -97,6 +98,68 @@ namespace CompositionToolbox.App.Converters
             return $"{open}{string.Join(' ', pcs)}{close}";
         }
 
+        private static string FormatListTypes(CompositeTransformLogEntry entry, CompositeStore? store)
+        {
+            var slotTypes = entry.Patch.Changes
+                .Select(change => change.Slot)
+                .Distinct()
+                .ToArray();
+
+            if (slotTypes.Length == 0) return string.Empty;
+
+            var parts = slotTypes
+                .Select(slot => FormatRefValues(entry, store, slot))
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .ToArray();
+
+            return parts.Length == 0 ? "-" : string.Join(", ", parts);
+        }
+
+        private static string FormatRefValues(CompositeTransformLogEntry entry, CompositeStore? store, string slot)
+        {
+            if (store == null) return string.Empty;
+            var state = store.States.FirstOrDefault(s => s.StateId == entry.NewStateId);
+            if (state == null) return string.Empty;
+
+            Guid? id = slot switch
+            {
+                "PitchRef" => state.PitchRef,
+                "RhythmRef" => state.RhythmRef,
+                "VoicingRef" => state.VoicingRef,
+                "EventsRef" => state.EventsRef,
+                "RegisterRef" => state.RegisterRef,
+                "InstrumentRef" => state.InstrumentRef,
+                _ => null
+            };
+
+            if (!id.HasValue) return string.Empty;
+            var node = store.Nodes.FirstOrDefault(n => n.NodeId == id.Value);
+            if (node == null) return string.Empty;
+
+            // Prefer structured representation when available
+            switch (node.ValueType)
+            {
+                case AtomicValueType.PitchList:
+                    return FormatPitchListValue(entry, store);
+                case AtomicValueType.RhythmPattern:
+                case AtomicValueType.VoicingList:
+                case AtomicValueType.RegisterPattern:
+                    var arr = node.Mode == PcMode.Unordered ? node.Unordered : node.Ordered;
+                    return arr.Length == 0 ? string.Empty : (node.Mode == PcMode.Unordered ? $"[{string.Join(' ', arr)}]" : $"({string.Join(' ', arr)})");
+                case AtomicValueType.NoteEventSeq:
+                    if (!string.IsNullOrWhiteSpace(node.ValueJson))
+                    {
+                        var json = node.ValueJson!.Replace("\r", string.Empty).Replace("\n", string.Empty).Trim();
+                        return json.Length <= 60 ? json : json[..60] + "...";
+                    }
+                    // fallback to arrays if present
+                    var arr2 = node.Mode == PcMode.Unordered ? node.Unordered : node.Ordered;
+                    return arr2.Length == 0 ? string.Empty : $"[{string.Join(' ', arr2)}]";
+                default:
+                    return string.Empty;
+            }
+        }
+
         private static string FormatRef(string slot, Guid? id, CompositeStore? store)
         {
             if (!id.HasValue) return "-";
@@ -116,6 +179,7 @@ namespace CompositionToolbox.App.Converters
             if (node == null) return $"{prefix}{shortId}";
             return $"{prefix}{shortId}";
         }
+
     }
 
     public class StepIndexConverter : IValueConverter

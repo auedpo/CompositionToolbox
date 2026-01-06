@@ -267,9 +267,16 @@ namespace CompositionToolbox.App.Services
         private static (int note, int bend) ConvertStepToMidi(int step, int modulus, int baseMidi, int bendRangeSemitones)
         {
             var targetMidi = baseMidi + (step * 12.0 / modulus);
-            var baseNote = (int)Math.Round(targetMidi, MidpointRounding.AwayFromZero);
+            int baseNote;
+            double delta;
+
+            if (!EdoNotation.TryGetBaseNoteAndDelta(step, modulus, baseMidi, out baseNote, out delta))
+            {
+                baseNote = (int)Math.Round(targetMidi, MidpointRounding.AwayFromZero);
+                delta = targetMidi - baseNote;
+            }
+
             baseNote = Math.Clamp(baseNote, 0, 127);
-            var delta = targetMidi - baseNote;
             var normalized = delta / bendRangeSemitones;
             var bend = PitchBendCenter + (int)Math.Round(normalized * PitchBendCenter, MidpointRounding.AwayFromZero);
             bend = Math.Clamp(bend, 0, PitchBendMax);

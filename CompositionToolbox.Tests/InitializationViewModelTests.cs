@@ -1,7 +1,6 @@
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Stores;
-using CompositionToolbox.App.Models;
 using CompositionToolbox.App.ViewModels;
 
 namespace CompositionToolbox.Tests;

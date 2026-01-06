@@ -1660,11 +1660,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.Tests\\CompositionToolbox.Tests.csproj",
+      "projectUniqueName": "c:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.Tests\\CompositionToolbox.Tests.csproj",
       "projectName": "CompositionToolbox.Tests",
-      "projectPath": "C:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.Tests\\CompositionToolbox.Tests.csproj",
+      "projectPath": "c:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.Tests\\CompositionToolbox.Tests.csproj",
       "packagesPath": "C:\\Users\\apoor\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.Tests\\obj\\",
+      "outputPath": "c:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\apoor\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -1681,8 +1681,8 @@
         "net9.0-windows7.0": {
           "targetAlias": "net9.0-windows",
           "projectReferences": {
-            "C:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.App\\CompositionToolbox.App.csproj": {
-              "projectPath": "C:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.App\\CompositionToolbox.App.csproj"
+            "c:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.App\\CompositionToolbox.App.csproj": {
+              "projectPath": "c:\\Users\\apoor\\Documents\\Visual Studio\\Composition Toolbox\\CompositionToolbox.App\\CompositionToolbox.App.csproj"
             }
           }
         }
