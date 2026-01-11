@@ -1,3 +1,5 @@
+// Purpose: Dialog logic that backs the Message Dialog prompt's interactions and results.
+
 using System.Windows;
 
 namespace CompositionToolbox.App.Views.Dialogs

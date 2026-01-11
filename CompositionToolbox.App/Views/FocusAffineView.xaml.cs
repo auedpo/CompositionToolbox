@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Focus Affine View view that wires inputs into its view model.
+
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;

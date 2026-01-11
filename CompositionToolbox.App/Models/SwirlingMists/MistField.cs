@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists model representing Mist Field data for the lens.
+
 using System.Collections.Generic;
 
 namespace CompositionToolbox.App.Models.SwirlingMists

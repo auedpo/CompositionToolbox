@@ -1,1 +1,0 @@
-G:/My Drive/z00 Research/Obsidian/Workspace/Necklace Entry.md

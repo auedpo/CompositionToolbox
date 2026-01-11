@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Notation View view that wires inputs into its view model.
+
 using CompositionToolbox.App.Models;
 using Microsoft.Web.WebView2.Core;
 using System.Text.Json;
@@ -23,6 +25,7 @@ namespace CompositionToolbox.App.Views
         private bool _pendingAllowScroll;
         private int[]? _pendingMidiNotes;
         private bool _pendingUseMidiForEdo19;
+        private NotationRenderExtras? _pendingNotationExtras;
         private bool _hasPending;
         private bool _isInitialized;
 
@@ -57,7 +60,8 @@ namespace CompositionToolbox.App.Views
             double? contentWidth = null,
             bool allowScroll = false,
             int[]? midiNotes = null,
-            bool useMidiForEdo19 = false)
+            bool useMidiForEdo19 = false,
+            NotationRenderExtras? notationExtras = null)
         {
             if (node == null) return;
             if (WebView.CoreWebView2 == null || !_isInitialized)
@@ -74,6 +78,7 @@ namespace CompositionToolbox.App.Views
                 _pendingAllowScroll = allowScroll;
                 _pendingMidiNotes = midiNotes;
                 _pendingUseMidiForEdo19 = useMidiForEdo19;
+                _pendingNotationExtras = notationExtras;
                 _hasPending = true;
                 return;
             }
@@ -93,7 +98,8 @@ namespace CompositionToolbox.App.Views
                 showOverflow = showOverflowIndicator,
                 contentWidth,
                 allowScroll,
-                useMidiForEdo19
+                useMidiForEdo19,
+                notationExtras
             };
             var json = JsonSerializer.Serialize(payload);
             try
@@ -118,8 +124,10 @@ namespace CompositionToolbox.App.Views
             var allowScroll = _pendingAllowScroll;
             var midiNotes = _pendingMidiNotes;
             var useMidiForEdo19 = _pendingUseMidiForEdo19;
+            var notationExtras = _pendingNotationExtras;
+            _pendingNotationExtras = null;
             _hasPending = false;
-            RenderNode(node, rule, mode, width, height, maxNotes, clip, showOverflow, contentWidth, allowScroll, midiNotes, useMidiForEdo19);
+            RenderNode(node, rule, mode, width, height, maxNotes, clip, showOverflow, contentWidth, allowScroll, midiNotes, useMidiForEdo19, notationExtras);
         }
     }
 }

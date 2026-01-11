@@ -1,3 +1,5 @@
+// Purpose: Converter that translates values for the Enum To Boolean bindings.
+
 using System;
 using System.Globalization;
 using System.Windows.Data;

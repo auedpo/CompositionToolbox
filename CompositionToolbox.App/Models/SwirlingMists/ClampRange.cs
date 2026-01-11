@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists model representing Clamp Range data for the lens.
+
 namespace CompositionToolbox.App.Models.SwirlingMists
 {
     public readonly struct ClampRange

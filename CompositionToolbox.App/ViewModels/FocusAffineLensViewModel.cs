@@ -1,3 +1,5 @@
+// Purpose: Focus Affine Lens view model that exposes state and commands for its associated view.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Stores;
+using CompositionToolbox.App.Utilities;
 
 namespace CompositionToolbox.App.ViewModels
 {
@@ -429,6 +432,15 @@ namespace CompositionToolbox.App.ViewModels
             var resultPcs = useOffsets
                 ? SelectedResult.Offsets.ToArray()
                 : SelectedResult.ResultSet.Members.ToArray();
+            var args = new Dictionary<string, object>
+            {
+                ["a"] = MultiplierA,
+                ["focus"] = SelectedResult.Focus,
+                ["modulus"] = SelectedResult.ResultSet.Modulus,
+                ["mode"] = useOffsets ? "Offsets" : "Outputs",
+                ["useOffsets"] = useOffsets,
+                ["ordered"] = resultPcs.ToArray()
+            };
             var node = new AtomicNode
             {
                 NodeId = Guid.NewGuid(),
@@ -440,18 +452,14 @@ namespace CompositionToolbox.App.ViewModels
                 OpFromPrev = new OpDescriptor
                 {
                     OpType = "FocusAffine",
+                    OpKey = OpKeys.TransformFocusAffineApply,
                     OperationLabel = useOffsets
                         ? $"Focus Affine Offsets f={SelectedResult.Focus}"
                         : $"Focus Affine f={SelectedResult.Focus}",
+                    Title = useOffsets ? "Focus Affine Offsets" : "Focus Affine",
                     SourceLens = "FocusAffine",
                     SourceNodeId = current.NodeId,
-                    OpParams = new Dictionary<string, object>
-                    {
-                        ["a"] = MultiplierA,
-                        ["focus"] = SelectedResult.Focus,
-                        ["modulus"] = SelectedResult.ResultSet.Modulus,
-                        ["mode"] = useOffsets ? "Offsets" : "Outputs"
-                    }
+                    OpParams = OperationLog.CreateParams(args)
                 }
             };
 
@@ -469,14 +477,8 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
             };
 
-            var opParams = new Dictionary<string, object>
-            {
-                ["a"] = MultiplierA,
-                ["focus"] = SelectedResult.Focus,
-                ["modulus"] = SelectedResult.ResultSet.Modulus,
-                ["mode"] = useOffsets ? "Offsets" : "Outputs"
-            };
-            _store.TransformState("FocusAffine", opParams, nextState);
+            var opParams = OperationLog.CreateParams(args);
+            _store.TransformState("FocusAffine", opParams, nextState, OpKeys.TransformFocusAffineApply, node.OpFromPrev.OpType);
         }
 
         private readonly record struct FocusAffineCacheKey(

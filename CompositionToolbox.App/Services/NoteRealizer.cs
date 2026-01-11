@@ -1,3 +1,5 @@
+// Purpose: Service orchestrating note realizer operations for the app.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

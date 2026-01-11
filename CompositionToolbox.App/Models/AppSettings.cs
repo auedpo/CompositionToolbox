@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the App Settings data used across the application.
+
 using System;
 using System.Collections.Generic;
 
@@ -27,6 +29,7 @@ namespace CompositionToolbox.App.Models
         public ChordVoicingMode ChordVoicingMode { get; set; } = ChordVoicingMode.Centered;
         public NotationPreference DefaultNotationMode { get; set; } = NotationPreference.Chord;
         public int PitchBendRangeSemitones { get; set; } = 48;
+        public bool SendPitchBendForTuning { get; set; } = true;
         public AppThemeKind Theme { get; set; } = AppThemeKind.DarkNeutral;
     }
 }

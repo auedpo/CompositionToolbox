@@ -1,3 +1,5 @@
+// Purpose: Handles app startup, theme initialization, and the main window's lifecycle.
+
 using System;
 using System.Text;
 using System.IO;

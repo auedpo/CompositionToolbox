@@ -1,3 +1,5 @@
+// Purpose: Necklace Entry Lens view model that exposes state and commands for its associated view.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Stores;
+using CompositionToolbox.App.Utilities;
 
 namespace CompositionToolbox.App.ViewModels
 {
@@ -491,6 +494,12 @@ namespace CompositionToolbox.App.ViewModels
             if (Order.Count == 0) return;
 
             var ordered = Order.ToArray();
+            var args = new Dictionary<string, object>
+            {
+                ["Modulus"] = Modulus,
+                ["Order"] = ordered.ToArray(),
+                ["Count"] = ordered.Length
+            };
             var node = new AtomicNode
             {
                 NodeId = Guid.NewGuid(),
@@ -502,16 +511,13 @@ namespace CompositionToolbox.App.ViewModels
                 Label = "Necklace Entry",
                 OpFromPrev = new OpDescriptor
                 {
+                    OpKey = OpKeys.PitchNecklaceEnter,
                     OpType = "Necklace Entry",
                     OperationLabel = "Necklace Entry",
+                    Title = "Necklace Entry",
                     SourceLens = "Necklace Entry",
                     SourceNodeId = null,
-                    OpParams = new Dictionary<string, object>
-                    {
-                        ["Modulus"] = Modulus,
-                        ["Order"] = ordered.ToArray(),
-                        ["Count"] = ordered.Length
-                    }
+                    OpParams = OperationLog.CreateParams(args)
                 }
             };
 
@@ -529,14 +535,9 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
             };
 
-            var opParams = new Dictionary<string, object>
-            {
-                ["Modulus"] = Modulus,
-                ["Order"] = ordered.ToArray(),
-                ["Count"] = ordered.Length
-            };
+            var opParams = OperationLog.CreateParams(args);
 
-            _store.TransformState("Necklace Entry", opParams, nextState);
+            _store.TransformState("Necklace Entry", opParams, nextState, OpKeys.PitchNecklaceEnter, node.OpFromPrev.OpType);
         }
     }
 

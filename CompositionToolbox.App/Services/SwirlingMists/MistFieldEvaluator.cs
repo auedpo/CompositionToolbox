@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists service that performs mist field evaluator work for the lens calculus.
+
 using System;
 using CompositionToolbox.App.Models.SwirlingMists;
 

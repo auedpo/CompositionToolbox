@@ -1,4 +1,7 @@
+// Purpose: Core code file related to Composite Store Tests.
+
 using CompositionToolbox.App.Models;
+using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Stores;
 
 namespace CompositionToolbox.Tests;
@@ -118,10 +121,11 @@ public class CompositeStoreTests
         var appSettings = settingsService.Load();
         var store = new CompositeStore();
         var projectService = new CompositionToolbox.App.Services.ProjectService(Path.GetTempPath());
-        var vm = new CompositionToolbox.App.ViewModels.MainViewModel(settingsService, appSettings, store, projectService);
+            var vm = new CompositionToolbox.App.ViewModels.MainViewModel(settingsService, appSettings, store, projectService, new TestDialogService());
 
         // create a new composite using the MainViewModel command (same as user flow)
         vm.NewCompositeCommand.Execute(null);
+        vm.Initialization.Activate();
 
         // prepare input preview and invoke create
         vm.Initialization.InputText = "0 4 7";
@@ -155,4 +159,15 @@ public class CompositeStoreTests
 
         Assert.Single(store.Nodes);
     }
+}
+
+internal sealed class TestDialogService : IDialogService
+{
+    public bool Confirm(string title, string message) => true;
+
+    public string? PromptText(string title, string message, string defaultValue) => "Test";
+
+    public void Info(string title, string message) { }
+
+    public void Warning(string title, string message) { }
 }

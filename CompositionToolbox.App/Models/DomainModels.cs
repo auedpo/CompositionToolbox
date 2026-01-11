@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Domain Models data used across the application.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,23 +18,31 @@ namespace CompositionToolbox.App.Models
 
     public class OpDescriptor
     {
+        public string OpKey { get; set; } = string.Empty;
         public string OpType { get; set; } = string.Empty;
         public string OperationLabel { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Summary { get; set; } = string.Empty;
+        public string[]? Tags { get; set; }
         public string SourceLens { get; set; } = string.Empty;
         public Dictionary<string, object>? OpParams { get; set; }
         public Guid? SourceNodeId { get; set; }
 
         public string ToDisplayString()
         {
-            if (string.IsNullOrWhiteSpace(OperationLabel))
+            var label = !string.IsNullOrWhiteSpace(Title)
+                ? Title
+                : OperationLabel;
+
+            if (string.IsNullOrWhiteSpace(label))
             {
                 return SourceLens;
             }
             if (string.IsNullOrWhiteSpace(SourceLens))
             {
-                return OperationLabel;
+                return label;
             }
-            return $"{SourceLens} -> {OperationLabel}";
+            return $"{SourceLens} -> {label}";
         }
     }
 

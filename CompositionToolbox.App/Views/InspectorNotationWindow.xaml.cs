@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Inspector Notation Window view that wires inputs into its view model.
+
 using System;
 using System.Windows;
 using CompositionToolbox.App.Models;
@@ -12,6 +14,7 @@ namespace CompositionToolbox.App.Views
         private string _renderMode = "line";
         private int[]? _midiNotes;
         private bool _useMidiForEdo19;
+        private NotationRenderExtras? _notationExtras;
 
         public InspectorNotationWindow()
         {
@@ -21,13 +24,14 @@ namespace CompositionToolbox.App.Views
             Closing += InspectorNotationWindow_Closing;
         }
 
-        public void SetNotation(AtomicNode node, AccidentalRule rule, string renderMode, int[]? midiNotes = null, bool useMidiForEdo19 = false)
+        public void SetNotation(AtomicNode node, AccidentalRule rule, string renderMode, int[]? midiNotes = null, bool useMidiForEdo19 = false, NotationRenderExtras? notationExtras = null)
         {
             _node = node;
             _rule = rule;
             _renderMode = renderMode;
             _midiNotes = midiNotes;
             _useMidiForEdo19 = useMidiForEdo19;
+            _notationExtras = notationExtras;
             HeaderText.Text = $"{node.Label} ({_renderMode})";
             Render();
         }
@@ -70,7 +74,8 @@ namespace CompositionToolbox.App.Views
                 contentWidth: estimatedWidth,
                 allowScroll: true,
                 midiNotes: midi,
-                useMidiForEdo19: _useMidiForEdo19);
+                useMidiForEdo19: _useMidiForEdo19,
+                notationExtras: _notationExtras);
         }
 
         private static RealizationConfig GetRealizationConfig()

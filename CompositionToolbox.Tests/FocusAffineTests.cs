@@ -1,3 +1,5 @@
+// Purpose: Core code file related to Focus Affine Tests.
+
 using System.Linq;
 using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Models;

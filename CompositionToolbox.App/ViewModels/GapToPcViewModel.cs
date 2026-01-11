@@ -1,7 +1,10 @@
+// Purpose: Gap To Pc view model that exposes state and commands for its associated view.
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Stores;
+using CompositionToolbox.App.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -205,22 +208,30 @@ namespace CompositionToolbox.App.ViewModels
             var ordered = PreviewPcs.ToArray();
             var unordered = MusicUtils.NormalizeUnordered(ordered, modulus);
 
-            var node = new AtomicNode
+            var args = new Dictionary<string, object>
             {
-                Modulus = modulus,
-                Mode = PcMode.Ordered,
-                Ordered = ordered,
-                Unordered = unordered,
-                Label = "Gap",
-                ValueType = AtomicValueType.PitchList,
-                OpFromPrev = new OpDescriptor
+                ["modulus"] = modulus,
+                ["root"] = ParseRoot(RootInput, modulus),
+                ["gaps"] = PreviewGaps.ToArray(),
+                ["pcs"] = ordered.ToArray()
+            };
+
+            var node = AtomicNodeFactory.CreatePitchList(
+                modulus: modulus,
+                mode: PcMode.Ordered,
+                ordered: ordered,
+                unordered: unordered,
+                label: "Gap",
+                provenance: new OpDescriptor
                 {
                     OpType = "GapToPc",
+                    OpKey = OpKeys.PitchGapToPcApply,
                     OperationLabel = "Gap -> PC",
+                    Title = "Gap -> PC",
                     SourceLens = "Gap -> PC",
-                    SourceNodeId = null
-                }
-            };
+                    SourceNodeId = null,
+                    OpParams = OperationLog.CreateParams(args)
+                });
 
             var nodeId = _store.GetOrAddNode(node);
             var prevState = _store.SelectedState;
@@ -237,15 +248,8 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
             };
 
-            var opParams = new Dictionary<string, object>
-            {
-                ["modulus"] = modulus,
-                ["root"] = ParseRoot(RootInput, modulus),
-                ["gaps"] = PreviewGaps.ToArray(),
-                ["pcs"] = ordered.ToArray()
-            };
-
-            _store.TransformState("Gap -> PC", opParams, nextState);
+            var opParams = OperationLog.CreateParams(args);
+            _store.TransformState("Gap -> PC", opParams, nextState, OpKeys.PitchGapToPcApply, node.OpFromPrev!.OpType);
         }
     }
 }

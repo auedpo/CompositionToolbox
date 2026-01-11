@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Midi Monitor Window view that wires inputs into its view model.
+
 using System;
 using System.Windows;
 using CompositionToolbox.App.Models;

@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Window Placement Settings data used across the application.
+
 namespace CompositionToolbox.App.Models
 {
     public class WindowPlacementSettings

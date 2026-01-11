@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists model representing Waveform Definition data for the lens.
+
 using System;
 
 namespace CompositionToolbox.App.Models.SwirlingMists

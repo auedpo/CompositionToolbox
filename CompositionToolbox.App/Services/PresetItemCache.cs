@@ -1,3 +1,5 @@
+// Purpose: Cache service keeping preset descriptors ready for the UI.
+
 using System;
 using System.Collections.Concurrent;
 using System.Linq;

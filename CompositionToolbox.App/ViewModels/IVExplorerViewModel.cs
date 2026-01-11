@@ -1,8 +1,11 @@
+// Purpose: IV Explorer view model that exposes state and commands for its associated view.
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Stores;
+using CompositionToolbox.App.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -523,7 +526,7 @@ namespace CompositionToolbox.App.ViewModels
             var deltaIntent = SelectedResult.ActionType == IvExplorerActionType.Decrement
                 ? $"IC{SelectedResult.FromIC}-1"
                 : $"IC{SelectedResult.ToIC}+1";
-            var opParams = new Dictionary<string, object>
+            var args = new Dictionary<string, object>
             {
                 ["n"] = _modulus,
                 ["k"] = _baseSet.Length,
@@ -534,7 +537,8 @@ namespace CompositionToolbox.App.ViewModels
                 ["eqMode"] = EquivalenceMode.ToString(),
                 ["displayMode"] = DisplayForm.ToString(),
                 ["representativeKey"] = SelectedResult.RepresentativeKey,
-                ["deltaIntent"] = deltaIntent
+                ["deltaIntent"] = deltaIntent,
+                ["pcs"] = pcs.ToArray()
             };
 
             var node = new AtomicNode
@@ -547,13 +551,15 @@ namespace CompositionToolbox.App.ViewModels
                 ValueType = AtomicValueType.PitchList,
                 OpFromPrev = new OpDescriptor
                 {
-                    OpType = "IVMove",
-                    OperationLabel = $"IV Move IC{SelectedResult.FromIC}->IC{SelectedResult.ToIC}",
-                    SourceLens = "IV Explorer",
-                    SourceNodeId = _sourceNode.NodeId,
-                    OpParams = new Dictionary<string, object>(opParams)
-                }
-            };
+                        OpKey = OpKeys.PitchIvExplorerMove,
+                        OpType = "IVMove",
+                        OperationLabel = $"IV Move IC{SelectedResult.FromIC}->IC{SelectedResult.ToIC}",
+                        Title = $"IV Move IC{SelectedResult.FromIC}->IC{SelectedResult.ToIC}",
+                        SourceLens = "IV Explorer",
+                        SourceNodeId = _sourceNode.NodeId,
+                        OpParams = OperationLog.CreateParams(args)
+                    }
+                };
 
             var nodeId = _store.GetOrAddNode(node);
             var prevState = _store.SelectedState;
@@ -570,7 +576,8 @@ namespace CompositionToolbox.App.ViewModels
                 Label = prevState?.Label
             };
 
-            _store.TransformState("IV Move", opParams, nextState);
+            var opParams = OperationLog.CreateParams(args);
+            _store.TransformState("IV Move", opParams, nextState, OpKeys.PitchIvExplorerMove, node.OpFromPrev.OpType);
         }
 
         private void CopyRow(IVExplorerResultRow? row)

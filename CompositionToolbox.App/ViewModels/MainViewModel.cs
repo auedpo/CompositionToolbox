@@ -1,3 +1,5 @@
+// Purpose: Main view model that exposes state and commands for its associated view.
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -6,6 +8,7 @@ using System.ComponentModel;
 using CompositionToolbox.App.Stores;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
+using CompositionToolbox.App.Utilities;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text.Json;
@@ -86,6 +89,7 @@ namespace CompositionToolbox.App.ViewModels
         private NotationPreference _defaultNotationMode;
         private NotationPreference _workspacePreviewNotationMode;
         private int _pitchBendRangeSemitones;
+        private bool _sendPitchBendForTuning;
         private AppThemeKind _selectedTheme;
         private CompositeTransformLogEntry? _selectedLogEntry;
         private WorkspacePreview? _workspacePreview;
@@ -96,12 +100,15 @@ namespace CompositionToolbox.App.ViewModels
         private readonly Dictionary<Guid, Guid> _lastSelectedLogEntryByComposite = new();
         public ICollectionView TransformLogView { get; }
 
-        public MainViewModel(SettingsService settingsService, AppSettings appSettings, CompositeStore store, ProjectService projectService)
+        private readonly IDialogService _dialogService;
+
+        public MainViewModel(SettingsService settingsService, AppSettings appSettings, CompositeStore store, ProjectService projectService, IDialogService? dialogService = null)
         {
             _settingsService = settingsService;
             _appSettings = appSettings;
             Store = store;
             _projectService = projectService;
+            _dialogService = dialogService ?? DialogService.Implementation;
             TransformLogView = CollectionViewSource.GetDefaultView(Store.LogEntries);
             TransformLogView.Filter = entry =>
                 entry is CompositeTransformLogEntry logEntry
@@ -460,6 +467,15 @@ namespace CompositionToolbox.App.ViewModels
             var preview = WorkspacePreview;
             if (preview?.Node == null) return;
             var node = preview.Node;
+            var notationExtras = preview.NotationExtras;
+
+            var config = GetRealizationConfig();
+            if (node.ValueType == AtomicValueType.RhythmPattern
+                && notationExtras?.Events.Count > 0)
+            {
+                await _midiService.PlayRhythmEvents(notationExtras.Events, notationExtras.BaseBeats, config);
+                return;
+            }
 
             var isChord = WorkspacePreviewNotationMode == NotationPreference.Chord;
             var mode = isChord ? PcMode.Unordered : PcMode.Ordered;
@@ -468,7 +484,6 @@ namespace CompositionToolbox.App.ViewModels
                 : (node.Mode == PcMode.Ordered ? node.Ordered : node.Unordered);
             if (pcs.Length == 0) return;
 
-            var config = GetRealizationConfig();
             await _midiService.PlayPcs(pcs, node.Modulus, mode, config);
         }
 
@@ -484,13 +499,27 @@ namespace CompositionToolbox.App.ViewModels
             }
         }
 
+        public bool SendPitchBendForTuning
+        {
+            get => _sendPitchBendForTuning;
+            set
+            {
+                if (SetProperty(ref _sendPitchBendForTuning, value))
+                {
+                    _appSettings.SendPitchBendForTuning = value;
+                    _settingsService.Save(_appSettings);
+                    _midiService.SendPitchBendForTuning = value;
+                }
+            }
+        }
+
         private async Task TestMidiAsync()
         {
             if (!_midiService.IsOpen)
             {
-                DialogService.Info(
-                    "MIDI Output",
-                    "No MIDI output device is open. Select a device and try again.");
+                    _dialogService.Info(
+                        "MIDI Output",
+                        "No MIDI output device is open. Select a device and try again.");
                 return;
             }
             await _midiService.TestOutput();
@@ -500,9 +529,9 @@ namespace CompositionToolbox.App.ViewModels
         {
             if (!_midiService.IsOpen)
             {
-                DialogService.Info(
-                    "MIDI Output",
-                    "No MIDI output device is open. Select a device and try again.");
+                    _dialogService.Info(
+                        "MIDI Output",
+                        "No MIDI output device is open. Select a device and try again.");
                 return;
             }
             await _midiService.TestMicrotoneSweep(SelectedModulus, _appSettings.Pc0RefMidi);
@@ -550,6 +579,8 @@ namespace CompositionToolbox.App.ViewModels
             _defaultNotationMode = _appSettings.DefaultNotationMode;
             _workspacePreviewNotationMode = _appSettings.DefaultNotationMode;
             _pitchBendRangeSemitones = _appSettings.PitchBendRangeSemitones;
+            _sendPitchBendForTuning = _appSettings.SendPitchBendForTuning;
+            _midiService.SendPitchBendForTuning = _sendPitchBendForTuning;
         }
 
         public AppThemeKind SelectedTheme
@@ -631,7 +662,9 @@ namespace CompositionToolbox.App.ViewModels
                 ? "Op params: -"
                 : $"Op params:\n{JsonSerializer.Serialize(entry.OpParams, new JsonSerializerOptions { WriteIndented = true })}";
 
-            LogDetailsMeta = $"Meta:\nEntryId: {entry.EntryId}\nCompositeId: {entry.CompositeId}\nPrevStateId: {entry.PrevStateId?.ToString() ?? "-"}\nNewStateId: {entry.NewStateId}";
+            var descriptor = OpCatalog.Describe(entry);
+            var summary = string.IsNullOrWhiteSpace(descriptor.Summary) ? "-" : descriptor.Summary;
+            LogDetailsMeta = $"Meta:\nEntryId: {entry.EntryId}\nCompositeId: {entry.CompositeId}\nOpKey: {descriptor.OpKey}\nOperation: {descriptor.Title}\nLegacy OpLabel: {entry.Op}\nLegacy OpType: {entry.OpType}\nSummary: {summary}\nPrevStateId: {entry.PrevStateId?.ToString() ?? "-"}\nNewStateId: {entry.NewStateId}";
         }
 
         private CompositeTransformLogEntry? GetCompositeSelectedLogEntry()
@@ -709,9 +742,11 @@ namespace CompositionToolbox.App.ViewModels
         private void CopySelectedSnapshot()
         {
             if (SelectedLogEntry == null) return;
+            var descriptor = OpCatalog.Describe(SelectedLogEntry);
             var snapshot = string.Join(Environment.NewLine + Environment.NewLine, new[]
             {
-                $"Op: {SelectedLogEntry.Op}",
+                $"Op: {descriptor.Title} [{descriptor.OpKey}]",
+                $"Legacy Op: {SelectedLogEntry.Op} / {SelectedLogEntry.OpType}",
                 LogDetailsAfter,
                 LogDetailsBefore,
                 LogDetailsOpParams
@@ -721,7 +756,7 @@ namespace CompositionToolbox.App.ViewModels
 
         private void CreateComposite()
         {
-            var name = DialogService.PromptText("New Composite", "Composite name:", "Untitled");
+            var name = _dialogService.PromptText("New Composite", "Composite name:", "Untitled");
             if (string.IsNullOrWhiteSpace(name)) return;
             var composite = new Composite { Title = name.Trim() };
             var state = new CompositeState { CompositeId = composite.CompositeId };
@@ -737,7 +772,7 @@ namespace CompositionToolbox.App.ViewModels
             if (Store.SelectedComposite == null) return;
             var sourceComposite = Store.SelectedComposite;
             var sourceState = Store.GetCurrentState(sourceComposite);
-            var name = DialogService.PromptText("Duplicate Composite", "Composite name:", $"{sourceComposite.Title} Copy");
+            var name = _dialogService.PromptText("Duplicate Composite", "Composite name:", $"{sourceComposite.Title} Copy");
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var composite = new Composite { Title = name.Trim() };
@@ -786,6 +821,8 @@ namespace CompositionToolbox.App.ViewModels
                     NewStateId = newStateId,
                     CreatedAt = entry.CreatedAt,
                     Op = entry.Op,
+                    OpType = entry.OpType,
+                    OpKey = entry.OpKey,
                     OpParams = entry.OpParams == null ? null : new Dictionary<string, object>(entry.OpParams),
                     Patch = new CompositeRefPatch
                     {
@@ -826,7 +863,7 @@ namespace CompositionToolbox.App.ViewModels
         {
             if (Store.SelectedComposite == null) return;
             var current = Store.SelectedComposite.Title;
-            var name = DialogService.PromptText("Rename Composite", "Composite name:", current);
+            var name = _dialogService.PromptText("Rename Composite", "Composite name:", current);
             if (string.IsNullOrWhiteSpace(name)) return;
             var selected = Store.SelectedComposite;
             if (selected == null) return;
@@ -838,7 +875,7 @@ namespace CompositionToolbox.App.ViewModels
         {
             if (Store.SelectedComposite == null || Store.Composites.Count <= 1) return;
             var composite = Store.SelectedComposite;
-            var confirmed = DialogService.Confirm(
+            var confirmed = _dialogService.Confirm(
                 "Delete Composite",
                 $"Delete composite \"{composite.Title}\"?");
             if (!confirmed) return;

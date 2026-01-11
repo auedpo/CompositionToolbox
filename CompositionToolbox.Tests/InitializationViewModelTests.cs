@@ -1,3 +1,5 @@
+// Purpose: Core code file related to Initialization View Model Tests.
+
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Stores;

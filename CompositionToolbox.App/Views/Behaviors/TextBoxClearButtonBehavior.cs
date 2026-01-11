@@ -1,3 +1,5 @@
+// Purpose: Attached behavior providing reusable Text Box Clear Button Behavior helpers for XAML controls.
+
 using System;
 using System.Windows;
 using System.Windows.Media;

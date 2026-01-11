@@ -1,0 +1,121 @@
+<!-- Purpose: Layout for the Interference Rhythm lens. -->
+
+<UserControl x:Class="CompositionToolbox.App.Views.InterferenceRhythmLensView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:CompositionToolbox.App.ViewModels"
+             Background="{DynamicResource Brush.Surface.Background}"
+             Foreground="{DynamicResource Brush.Text.Primary}">
+    <Border Padding="12"
+            Background="{DynamicResource Brush.Surface.Background}"
+            BorderThickness="1"
+            BorderBrush="{DynamicResource Brush.Surface.Border}"
+            CornerRadius="4">
+        <StackPanel>
+            <TextBlock Text="Interference Rhythm"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8" />
+
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0"
+                            Margin="0,0,8,0">
+                    <TextBlock Text="Generator A parts"
+                               FontWeight="Bold"
+                               Margin="0,0,0,2" />
+                    <TextBox Text="{Binding GeneratorASplit, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,6"
+                             ToolTip="Enter comma/space-separated part lengths (e.g., '3 2')" />
+                    <TextBlock Text="Pitch A"
+                               FontWeight="Bold"
+                               Margin="0,0,0,2" />
+                    <TextBox Text="{Binding PitchAInput, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Generator B parts"
+                               FontWeight="Bold"
+                               Margin="0,0,0,2" />
+                    <TextBox Text="{Binding GeneratorBSplit, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,6"
+                             ToolTip="Enter comma/space-separated part lengths (e.g., '2,2,1')" />
+                    <TextBlock Text="Pitch B"
+                               FontWeight="Bold"
+                               Margin="0,0,0,2" />
+                    <TextBox Text="{Binding PitchBInput, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,0,8">
+                <Button Content="Preview"
+                        Command="{Binding PreviewCommand}"
+                        Padding="12,4"
+                        Margin="0,0,8,0"
+                        Background="{DynamicResource Brush.Accent}"
+                        Foreground="{DynamicResource Brush.Text.Primary}" />
+                <Button Content="Commit"
+                        Command="{Binding CommitCommand}"
+                        Padding="12,4"
+                        Background="{DynamicResource Brush.Selection.Fill}"
+                        Foreground="{DynamicResource Brush.Text.Primary}" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding SummaryText}"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,4" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <TextBlock Text="Base unit" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox ItemsSource="{Binding BaseNoteValues}"
+                          SelectedItem="{Binding BaseNoteValue}"
+                          Width="120" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <TextBlock Text="Grouping" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox ItemsSource="{Binding GroupingOptions}"
+                          SelectedItem="{Binding SelectedGrouping}"
+                          DisplayMemberPath="Label"
+                          Width="200" />
+            </StackPanel>
+            <TextBlock Text="{Binding DurationsDisplay}"
+                       FontStyle="Italic"
+                       Margin="0,0,0,12" />
+
+            <ItemsControl ItemsSource="{Binding PreviewEvents}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource Brush.Canvas.Background}"
+                                Padding="4"
+                                Margin="0,0,0,4"
+                                CornerRadius="2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding TimeDisplay}"
+                                           FontWeight="Bold"
+                                           Margin="0,0,8,0" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding FiresDisplay}"
+                                           TextWrapping="Wrap" />
+                                <StackPanel Grid.Column="2"
+                                            Orientation="Horizontal"
+                                            Margin="12,0,0,0">
+                                    <TextBlock Text="{Binding PitchesDisplay}" />
+                                    <TextBlock Text=" (" />
+                                    <TextBlock Text="{Binding DurationDisplay}" />
+                                    <TextBlock Text=")" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
+</UserControl>

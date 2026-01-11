@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Composite Models data used across the application.
+
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -63,6 +65,8 @@ namespace CompositionToolbox.App.Models
         public Guid NewStateId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string Op { get; set; } = string.Empty;
+        public string OpType { get; set; } = string.Empty;
+        public string OpKey { get; set; } = string.Empty;
         public Dictionary<string, object>? OpParams { get; set; }
         public CompositeRefPatch Patch { get; set; } = new CompositeRefPatch();
     }

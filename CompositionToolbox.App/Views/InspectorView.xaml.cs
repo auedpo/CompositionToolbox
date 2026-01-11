@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Inspector View view that wires inputs into its view model.
+
 using System;
 using System.ComponentModel;
 using System.Windows;
@@ -40,7 +42,8 @@ namespace CompositionToolbox.App.Views
             if (e.PropertyName == nameof(InspectorViewModel.NotationNode)
                 || e.PropertyName == nameof(InspectorViewModel.NotationRenderMode)
                 || e.PropertyName == nameof(InspectorViewModel.AccidentalRule)
-                || e.PropertyName == nameof(InspectorViewModel.NotationMidiNotes))
+                || e.PropertyName == nameof(InspectorViewModel.NotationMidiNotes)
+                || e.PropertyName == nameof(InspectorViewModel.NotationExtras))
             {
                 RenderNotation();
                 UpdateExpandedNotation();
@@ -68,13 +71,14 @@ namespace CompositionToolbox.App.Views
                 clipToViewport: true,
                 showOverflowIndicator: true,
                 midiNotes: _vm.NotationMidiNotes,
-                useMidiForEdo19: _vm.UseSessionOverride);
+                useMidiForEdo19: _vm.UseSessionOverride,
+                notationExtras: _vm.NotationExtras);
         }
 
         private void UpdateExpandedNotation()
         {
             if (_notationWindow == null || !_notationWindow.IsVisible || _vm?.NotationNode == null) return;
-            _notationWindow.SetNotation(_vm.NotationNode, _vm.AccidentalRule, _vm.NotationRenderMode, _vm.NotationMidiNotes, _vm.UseSessionOverride);
+                _notationWindow.SetNotation(_vm.NotationNode, _vm.AccidentalRule, _vm.NotationRenderMode, _vm.NotationMidiNotes, _vm.UseSessionOverride, _vm.NotationExtras);
         }
 
         private void ExpandNotation_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -88,7 +92,7 @@ namespace CompositionToolbox.App.Views
                 };
                 _notationWindow.Closed += (_, _) => _notationWindow = null;
             }
-            _notationWindow.SetNotation(_vm.NotationNode, _vm.AccidentalRule, _vm.NotationRenderMode, _vm.NotationMidiNotes, _vm.UseSessionOverride);
+            _notationWindow.SetNotation(_vm.NotationNode, _vm.AccidentalRule, _vm.NotationRenderMode, _vm.NotationMidiNotes, _vm.UseSessionOverride, _vm.NotationExtras);
             _notationWindow.Show();
             _notationWindow.Activate();
         }

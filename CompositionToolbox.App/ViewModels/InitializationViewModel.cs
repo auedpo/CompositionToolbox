@@ -1,8 +1,11 @@
+// Purpose: Initialization view model that exposes state and commands for its associated view.
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Stores;
+using CompositionToolbox.App.Utilities;
 using System;
 using System.Linq;
 using System.Collections.ObjectModel;
@@ -443,22 +446,31 @@ namespace CompositionToolbox.App.ViewModels
                 return;
             }
 
-            var node = new AtomicNode
+            var args = new Dictionary<string, object>
             {
-                Modulus = PreviewNode.Modulus,
-                Mode = PreviewNode.Mode,
-                Ordered = ordered,
-                Unordered = unordered,
-                Label = "Input",
-                ValueType = AtomicValueType.PitchList,
-                OpFromPrev = new OpDescriptor
+                ["modulus"] = PreviewNode.Modulus,
+                ["mode"] = PreviewNode.Mode.ToString(),
+                ["ordered"] = ordered.ToArray(),
+                ["unordered"] = unordered.ToArray(),
+                ["input"] = InputText ?? string.Empty
+            };
+
+            var node = AtomicNodeFactory.CreatePitchList(
+                modulus: PreviewNode.Modulus,
+                mode: PreviewNode.Mode,
+                ordered: ordered,
+                unordered: unordered,
+                label: "Input",
+                provenance: new OpDescriptor
                 {
+                    OpKey = OpKeys.ProjectInitInput,
                     OpType = "INPUT",
                     OperationLabel = "Input",
+                    Title = "Input",
                     SourceLens = "Initialization",
-                    SourceNodeId = null
-                }
-            };
+                    SourceNodeId = null,
+                    OpParams = OperationLog.CreateParams(args)
+                });
 
             var nodeId = _store.GetOrAddNode(node);
             var prevState = _store.SelectedState;
@@ -475,7 +487,8 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
             };
 
-            _store.TransformState("Input", null, nextState);
+            var opParams = OperationLog.CreateParams(args);
+            _store.TransformState("Input", opParams, nextState, OpKeys.ProjectInitInput, node.OpFromPrev!.OpType);
         }
 
         private void RefreshPresetLists()

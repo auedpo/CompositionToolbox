@@ -1,3 +1,5 @@
+// Purpose: Midi Monitor view model that exposes state and commands for its associated view.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;

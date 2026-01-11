@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Pitch List Catalog Window view that wires inputs into its view model.
+
 using System.Windows;
 using System.Diagnostics;
 using CompositionToolbox.App.Services;

@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists model representing Random Walk Params data for the lens.
+
 namespace CompositionToolbox.App.Models.SwirlingMists
 {
     public sealed class RandomWalkParams

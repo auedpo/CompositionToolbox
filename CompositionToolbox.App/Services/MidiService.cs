@@ -1,3 +1,5 @@
+// Purpose: Service orchestrating midi operations for the app.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,6 +21,7 @@ namespace CompositionToolbox.App.Services
         private MidiOut? _out;
         private int _deviceIndex = -1;
         private int _pitchBendRangeSemitones = DefaultPitchBendRangeSemitones;
+        public bool SendPitchBendForTuning { get; set; } = true;
 
         public bool IsOpen => _out != null;
         public int ActiveDeviceIndex => _deviceIndex;
@@ -131,13 +134,51 @@ namespace CompositionToolbox.App.Services
             }
         }
 
+        public async Task PlayRhythmEvents(
+            IReadOnlyList<NotationEventSpec> events,
+            double baseBeats,
+            RealizationConfig? config,
+            int velocity = 90)
+        {
+            if (!IsOpen) return;
+            if (events == null || events.Count == 0) return;
+            if (baseBeats <= 0) baseBeats = 1.0;
+
+            var tempoBpm = 120;
+            var msPerQuarter = 60000.0 / tempoBpm;
+            var basePitch = config?.Pc0RefMidi ?? 60;
+
+            foreach (var evt in events)
+            {
+                var beats = evt.Units * baseBeats;
+                var durationMs = Math.Max(1, (int)Math.Round(beats * msPerQuarter));
+                var midiNotes = (evt.MidiPitches?.Where(p => p >= 0).ToArray() ?? Array.Empty<int>()).Distinct().ToArray();
+                if (midiNotes.Length == 0)
+                {
+                    midiNotes = new[] { basePitch };
+                }
+
+                foreach (var note in midiNotes)
+                {
+                    SendNoteOn(note, velocity);
+                }
+
+                await Task.Delay(durationMs);
+
+                foreach (var note in midiNotes)
+                {
+                    SendNoteOff(note);
+                }
+            }
+        }
+
         public async Task PlayPcs(int[] pcs, int modulus, PcMode mode, RealizationConfig config, int velocity = 90, int stepMs = 250, int durationMs = 450)
         {
             if (!IsOpen) return;
             if (pcs == null || pcs.Length == 0) return;
             if (modulus <= 0) return;
 
-            if (modulus == 12)
+            if (!SendPitchBendForTuning || modulus == 12)
             {
                 var midi = MusicUtils.RealizePcs(pcs, modulus, mode, config);
                 if (mode == PcMode.Unordered)

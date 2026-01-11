@@ -1,5 +1,5 @@
 ﻿CompositionToolbox.App
-
+1.0.0.0
 
 winexe
 C#
@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\Users\apoor\Documents\Visual Studio\Composition Toolbox\CompositionToolbox.App\App.xaml
-24-787038198
+251835956612
 3554582714
-1011508511256
+117-1114166739
 221-541485389
-MainWindow.xaml;Themes\AppTheme.Brushes.xaml;Themes\AppTheme.Keys.xaml;Themes\AppTheme.Palette.DarkNeutral.xaml;Themes\AppTheme.Palette.LightNeutral.xaml;Themes\Styles.xaml;Views\AcdlLensView.xaml;Views\Dialogs\ConfirmDialog.xaml;Views\Dialogs\MessageDialog.xaml;Views\Dialogs\TextPromptDialog.xaml;Views\FocusAffineView.xaml;Views\GapToPcView.xaml;Views\InitializationView.xaml;Views\InspectorNotationWindow.xaml;Views\InspectorView.xaml;Views\IVExplorerView.xaml;Views\MidiMonitorWindow.xaml;Views\NecklaceEntryLensView.xaml;Views\NotationView.xaml;Views\PitchListCatalogWindow.xaml;Views\SettingsWindow.xaml;Views\SwirlingMistsLensView.xaml;Views\TestLensView.xaml;Views\TransformLogDetailsWindow.xaml;
+MainWindow.xaml;Themes\AppTheme.Brushes.xaml;Themes\AppTheme.Keys.xaml;Themes\AppTheme.Palette.DarkNeutral.xaml;Themes\AppTheme.Palette.LightNeutral.xaml;Themes\Styles.xaml;Views\AcdlLensView.xaml;Views\Dialogs\ConfirmDialog.xaml;Views\Dialogs\MessageDialog.xaml;Views\Dialogs\TextPromptDialog.xaml;Views\FocusAffineView.xaml;Views\GapToPcView.xaml;Views\InitializationView.xaml;Views\InspectorNotationWindow.xaml;Views\InspectorView.xaml;Views\InterferenceRhythmLensView.xaml;Views\IVExplorerView.xaml;Views\MidiMonitorWindow.xaml;Views\NecklaceEntryLensView.xaml;Views\NotationView.xaml;Views\PitchListCatalogWindow.xaml;Views\SettingsWindow.xaml;Views\SwirlingMistsLensView.xaml;Views\TestLensView.xaml;Views\TransformLogDetailsWindow.xaml;
 
-False
+True
 

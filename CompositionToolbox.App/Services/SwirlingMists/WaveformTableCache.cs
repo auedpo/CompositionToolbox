@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists service that performs waveform table cache work for the lens calculus.
+
 using System;
 using System.Collections.Generic;
 using CompositionToolbox.App.Models.SwirlingMists;

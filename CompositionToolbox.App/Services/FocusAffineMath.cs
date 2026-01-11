@@ -1,3 +1,5 @@
+// Purpose: Service orchestrating focus affine math operations for the app.
+
 using System;
 using System.Linq;
 using CompositionToolbox.App.Models;

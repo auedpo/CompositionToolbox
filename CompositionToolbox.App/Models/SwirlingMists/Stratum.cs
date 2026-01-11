@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists model representing Stratum data for the lens.
+
 namespace CompositionToolbox.App.Models.SwirlingMists
 {
     public sealed class Stratum

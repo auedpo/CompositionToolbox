@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists Lens view model that exposes state and commands for its associated view.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

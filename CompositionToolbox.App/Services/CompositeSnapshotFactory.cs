@@ -1,3 +1,5 @@
+// Purpose: Service orchestrating composite snapshot factory operations for the app.
+
 using System;
 using System.Linq;
 using CompositionToolbox.App.Models;

@@ -1,3 +1,5 @@
+// Purpose: Utility helpers concerning grid length animation for the UI.
+
 using System;
 using System.Windows;
 using System.Windows.Media.Animation;

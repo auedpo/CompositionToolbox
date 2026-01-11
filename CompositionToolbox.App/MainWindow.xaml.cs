@@ -1,3 +1,5 @@
+// Purpose: Bridges the main window to its view model and handles lifecycle/interaction wiring.
+
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -43,6 +45,8 @@ namespace CompositionToolbox.App
         private NecklaceEntryLensViewModel? _necklaceEntryViewModel;
         private SwirlingMistsLensView? _swirlingMistsView;
         private SwirlingMistsLensViewModel? _swirlingMistsViewModel;
+        private InterferenceRhythmLensView? _interferenceRhythmView;
+        private InterferenceRhythmLensViewModel? _interferenceRhythmViewModel;
         private TestLensView? _testLensView;
         private SettingsWindow? _settingsWindow;
         private Views.PitchListCatalogWindow? _pitchListCatalogWindow;
@@ -90,7 +94,7 @@ namespace CompositionToolbox.App
             _midiExportService = new MidiExportService(new NoteRealizer(), _dragOutFileService);
             var store = new CompositeStore();
             store.Load(_projectService.LoadOrCreate());
-            DataContext = new MainViewModel(_settingsService, _appSettings, store, _projectService);
+            DataContext = new MainViewModel(_settingsService, _appSettings, store, _projectService, DialogService.Implementation);
             _vm = (MainViewModel)DataContext;
             _vm.PitchListCatalogRequested += (_, _) => OpenPitchListCatalog();
             _vm.PitchListCatalogModalRequested += (_, _) => OpenPitchListCatalogModal();
@@ -219,11 +223,11 @@ namespace CompositionToolbox.App
                 renderMode,
                 width: width,
                 height: height,
-                maxNotes: 16,
                 clipToViewport: true,
                 showOverflowIndicator: true,
                 midiNotes: midi,
-                useMidiForEdo19: true);
+                useMidiForEdo19: true,
+                notationExtras: preview?.NotationExtras);
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -312,6 +316,15 @@ namespace CompositionToolbox.App
                         _swirlingMistsView = new SwirlingMistsLensView { DataContext = _swirlingMistsViewModel };
                     }
                     ShowLens(_swirlingMistsView);
+                }
+                else if (string.Equals(tag, "InterferenceRhythm", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (_interferenceRhythmView == null)
+                    {
+                        _interferenceRhythmViewModel = new InterferenceRhythmLensViewModel(_vm.Store);
+                        _interferenceRhythmView = new InterferenceRhythmLensView { DataContext = _interferenceRhythmViewModel };
+                    }
+                    ShowLens(_interferenceRhythmView);
                 }
                 else if (string.Equals(tag, "Test", StringComparison.OrdinalIgnoreCase))
                 {

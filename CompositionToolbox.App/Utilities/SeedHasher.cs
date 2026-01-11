@@ -1,3 +1,5 @@
+// Purpose: Utility helpers concerning seed hasher for the UI.
+
 using System;
 using System.Linq;
 

@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Midi Monitor Message data used across the application.
+
 using System;
 
 namespace CompositionToolbox.App.Models

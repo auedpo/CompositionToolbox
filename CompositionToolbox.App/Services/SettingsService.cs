@@ -1,3 +1,5 @@
+// Purpose: Service orchestrating settings operations for the app.
+
 using System;
 using System.Diagnostics;
 using System.IO;

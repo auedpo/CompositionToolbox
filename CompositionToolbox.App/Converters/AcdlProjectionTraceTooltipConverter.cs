@@ -1,3 +1,5 @@
+// Purpose: Converter that translates values for the Acdl Projection Trace Tooltip bindings.
+
 using System;
 using System.Globalization;
 using System.Text;

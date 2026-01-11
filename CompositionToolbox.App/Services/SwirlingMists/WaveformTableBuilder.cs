@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists service that performs waveform table builder work for the lens calculus.
+
 using System;
 using CompositionToolbox.App.Models.SwirlingMists;
 

@@ -1,3 +1,5 @@
+// Purpose: Service orchestrating preset catalog operations for the app.
+
 using System;
 using System.Collections.Generic;
 using System.IO;

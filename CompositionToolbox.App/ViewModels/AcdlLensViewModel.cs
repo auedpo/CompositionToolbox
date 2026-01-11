@@ -1,3 +1,5 @@
+// Purpose: Acdl Lens view model that exposes state and commands for its associated view.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Stores;
+using CompositionToolbox.App.Utilities;
 
 namespace CompositionToolbox.App.ViewModels
 {
@@ -1244,6 +1247,15 @@ namespace CompositionToolbox.App.ViewModels
             }
 
             var resultPcs = row.ResultPitchList.ToArray();
+            var args = new Dictionary<string, object>
+            {
+                ["P"] = P,
+                ["ProjectionMode"] = ProjectionMode.ToString(),
+                ["AnchorGapIndex"] = row.AnchorGapIndex,
+                ["FixedGap"] = row.FixedGap,
+                ["Modulus"] = _modulus,
+                ["Ordered"] = resultPcs.ToArray()
+            };
             var node = new AtomicNode
             {
                 NodeId = Guid.NewGuid(),
@@ -1257,16 +1269,11 @@ namespace CompositionToolbox.App.ViewModels
                 {
                     OpType = "ACDL",
                     OperationLabel = $"ACDL a={row.AnchorGapIndex}",
+                    OpKey = OpKeys.TransformAcdlApply,
+                    Title = $"ACDL a={row.AnchorGapIndex}",
                     SourceLens = "ACDL",
                     SourceNodeId = current.NodeId,
-                    OpParams = new Dictionary<string, object>
-                    {
-                        ["P"] = P,
-                        ["ProjectionMode"] = ProjectionMode.ToString(),
-                        ["AnchorGapIndex"] = row.AnchorGapIndex,
-                        ["FixedGap"] = row.FixedGap,
-                        ["Modulus"] = _modulus
-                    }
+                    OpParams = OperationLog.CreateParams(args)
                 }
             };
 
@@ -1284,15 +1291,8 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
             };
 
-            var opParams = new Dictionary<string, object>
-            {
-                ["P"] = P,
-                ["ProjectionMode"] = ProjectionMode.ToString(),
-                ["AnchorGapIndex"] = row.AnchorGapIndex,
-                ["FixedGap"] = row.FixedGap,
-                ["Modulus"] = _modulus
-            };
-            _store.TransformState("ACDL", opParams, nextState);
+            var opParams = OperationLog.CreateParams(args);
+            _store.TransformState("ACDL", opParams, nextState, OpKeys.TransformAcdlApply, node.OpFromPrev.OpType);
         }
 
         private void CommitMultiSelection(int anchorIndex, int p)
@@ -1309,6 +1309,16 @@ namespace CompositionToolbox.App.ViewModels
                 return;
             }
 
+            var args = new Dictionary<string, object>
+            {
+                ["P"] = p,
+                ["ProjectionMode"] = ProjectionMode.ToString(),
+                ["AnchorGapIndex"] = anchorIndex,
+                ["FixedGap"] = fixedGap,
+                ["Modulus"] = _modulus,
+                ["Ordered"] = resultList.ToArray()
+            };
+
             var node = new AtomicNode
             {
                 NodeId = Guid.NewGuid(),
@@ -1322,16 +1332,11 @@ namespace CompositionToolbox.App.ViewModels
                 {
                     OpType = "ACDL",
                     OperationLabel = $"ACDL a={anchorIndex}",
+                    OpKey = OpKeys.TransformAcdlApply,
+                    Title = $"ACDL a={anchorIndex}",
                     SourceLens = "ACDL",
                     SourceNodeId = current.NodeId,
-                    OpParams = new Dictionary<string, object>
-                    {
-                        ["P"] = p,
-                        ["ProjectionMode"] = ProjectionMode.ToString(),
-                        ["AnchorGapIndex"] = anchorIndex,
-                        ["FixedGap"] = fixedGap,
-                        ["Modulus"] = _modulus
-                    }
+                    OpParams = OperationLog.CreateParams(args)
                 }
             };
 
@@ -1349,15 +1354,8 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
             };
 
-            var opParams = new Dictionary<string, object>
-            {
-                ["P"] = p,
-                ["ProjectionMode"] = ProjectionMode.ToString(),
-                ["AnchorGapIndex"] = anchorIndex,
-                ["FixedGap"] = fixedGap,
-                ["Modulus"] = _modulus
-            };
-            _store.TransformState("ACDL", opParams, nextState);
+            var opParams = OperationLog.CreateParams(args);
+            _store.TransformState("ACDL", opParams, nextState, OpKeys.TransformAcdlApply, node.OpFromPrev.OpType);
         }
 
         private void ClearMultiSelection()
@@ -1424,6 +1422,13 @@ namespace CompositionToolbox.App.ViewModels
                 .ToArray();
             if (unique.Length == _sourceOrdered.Length) return;
 
+            var args = new Dictionary<string, object>
+            {
+                ["Modulus"] = _modulus,
+                ["Original"] = _sourceOrdered.ToArray(),
+                ["Unique"] = unique.ToArray()
+            };
+
             var node = new AtomicNode
             {
                 NodeId = Guid.NewGuid(),
@@ -1437,14 +1442,11 @@ namespace CompositionToolbox.App.ViewModels
                 {
                     OpType = "ACDL - Unique PCs",
                     OperationLabel = "ACDL - Unique PCs",
+                    OpKey = OpKeys.PitchPcsetDedupe,
+                    Title = "ACDL - Unique PCs",
                     SourceLens = "ACDL",
                     SourceNodeId = _sourceNode.NodeId,
-                    OpParams = new Dictionary<string, object>
-                    {
-                        ["Modulus"] = _modulus,
-                        ["Original"] = _sourceOrdered.ToArray(),
-                        ["Unique"] = unique.ToArray()
-                    }
+                    OpParams = OperationLog.CreateParams(args)
                 }
             };
 
@@ -1462,13 +1464,8 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
             };
 
-            var opParams = new Dictionary<string, object>
-            {
-                ["Modulus"] = _modulus,
-                ["Original"] = _sourceOrdered.ToArray(),
-                ["Unique"] = unique.ToArray()
-            };
-            _store.TransformState("ACDL - Unique PCs", opParams, nextState);
+            var opParams = OperationLog.CreateParams(args);
+            _store.TransformState("ACDL - Unique PCs", opParams, nextState, OpKeys.PitchPcsetDedupe, node.OpFromPrev.OpType);
         }
 
         private void CreateOrderedFromUnordered()
@@ -1476,6 +1473,12 @@ namespace CompositionToolbox.App.ViewModels
             if (_sourceNode == null || !HasPitchSource || IsOrderedSource) return;
             var source = _sourceNode.Unordered?.ToArray() ?? Array.Empty<int>();
             if (source.Length == 0) return;
+
+            var args = new Dictionary<string, object>
+            {
+                ["Modulus"] = _modulus,
+                ["Ordered"] = source.ToArray()
+            };
 
             var node = new AtomicNode
             {
@@ -1490,13 +1493,11 @@ namespace CompositionToolbox.App.ViewModels
                 {
                     OpType = "ACDL - Ordered from Unordered",
                     OperationLabel = "ACDL - Ordered from Unordered",
+                    OpKey = OpKeys.PitchPcsetOrder,
+                    Title = "ACDL - Ordered from Unordered",
                     SourceLens = "ACDL",
                     SourceNodeId = _sourceNode.NodeId,
-                    OpParams = new Dictionary<string, object>
-                    {
-                        ["Modulus"] = _modulus,
-                        ["Ordered"] = source.ToArray()
-                    }
+                    OpParams = OperationLog.CreateParams(args)
                 }
             };
 
@@ -1514,12 +1515,8 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto
             };
 
-            var opParams = new Dictionary<string, object>
-            {
-                ["Modulus"] = _modulus,
-                ["Ordered"] = source.ToArray()
-            };
-            _store.TransformState("ACDL - Ordered from Unordered", opParams, nextState);
+            var opParams = OperationLog.CreateParams(args);
+            _store.TransformState("ACDL - Ordered from Unordered", opParams, nextState, OpKeys.PitchPcsetOrder, node.OpFromPrev.OpType);
         }
 
         private static bool IsAscending(int[] values)

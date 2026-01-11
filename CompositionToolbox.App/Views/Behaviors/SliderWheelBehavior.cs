@@ -1,3 +1,5 @@
+// Purpose: Attached behavior providing reusable Slider Wheel Behavior helpers for XAML controls.
+
 using System;
 using System.Windows;
 using System.Windows.Controls;

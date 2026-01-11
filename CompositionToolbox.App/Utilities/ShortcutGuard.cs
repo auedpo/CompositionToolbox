@@ -1,3 +1,5 @@
+// Purpose: Utility helpers concerning shortcut guard for the UI.
+
 using System.Windows;
 using System.Windows.Media;
 using WpfTextBoxBase = System.Windows.Controls.Primitives.TextBoxBase;

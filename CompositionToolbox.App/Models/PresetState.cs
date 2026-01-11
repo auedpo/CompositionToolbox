@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Preset State data used across the application.
+
 using System.Collections.Generic;
 
 namespace CompositionToolbox.App.Models

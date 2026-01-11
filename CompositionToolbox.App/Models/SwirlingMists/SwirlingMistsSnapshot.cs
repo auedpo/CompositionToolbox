@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists model representing Swirling Mists Snapshot data for the lens.
+
 using System;
 
 namespace CompositionToolbox.App.Models.SwirlingMists

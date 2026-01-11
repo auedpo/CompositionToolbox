@@ -1,3 +1,5 @@
+// Purpose: Service coordinating the lifecycle of preset state snapshots.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -1,3 +1,5 @@
+// Purpose: EDO-specific helper data for rendering notation and scale information.
+
 /* global window */
 (function (global) {
   const EDO_SPELLINGS = {

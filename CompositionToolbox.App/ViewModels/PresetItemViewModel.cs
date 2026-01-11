@@ -1,3 +1,5 @@
+// Purpose: Preset Item view model that exposes state and commands for its associated view.
+
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

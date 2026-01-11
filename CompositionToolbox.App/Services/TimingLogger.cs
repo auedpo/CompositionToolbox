@@ -1,3 +1,5 @@
+// Purpose: Service orchestrating timing logger operations for the app.
+
 using System;
 using System.IO;
 using System.Diagnostics;

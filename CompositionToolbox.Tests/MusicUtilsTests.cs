@@ -1,3 +1,5 @@
+// Purpose: Core code file related to Music Utils Tests.
+
 using CompositionToolbox.App.Models;
 
 namespace CompositionToolbox.Tests;

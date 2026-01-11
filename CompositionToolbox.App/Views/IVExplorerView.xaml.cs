@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the IV Explorer View view that wires inputs into its view model.
+
 using System.Windows.Input;
 using CompositionToolbox.App.ViewModels;
 

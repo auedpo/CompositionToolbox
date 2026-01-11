@@ -1,3 +1,5 @@
+// Purpose: Utility helpers for music theory calculations used by the rest of the app.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,3 +1,5 @@
+// Purpose: Core code file related to Transform Duplication Tests.
+
 using System;
 using Xunit;
 using CompositionToolbox.App.Stores;

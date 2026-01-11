@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Workspace Preview Attribute data used across the application.
+
 namespace CompositionToolbox.App.Models
 {
     public sealed class WorkspacePreviewAttribute

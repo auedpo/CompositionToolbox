@@ -1,3 +1,5 @@
+// Purpose: Interface for supplying preview data to lens views.
+
 using System.ComponentModel;
 using CompositionToolbox.App.Models;
 

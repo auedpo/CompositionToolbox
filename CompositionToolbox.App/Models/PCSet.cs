@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the PC Set data used across the application.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

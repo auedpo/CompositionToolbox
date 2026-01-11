@@ -1,3 +1,5 @@
+// Purpose: Service that persists UI layout state and window placements.
+
 using System;
 using System.Windows;
 using System.Windows.Controls;

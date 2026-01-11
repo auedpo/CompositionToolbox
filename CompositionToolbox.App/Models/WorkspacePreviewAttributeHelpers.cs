@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Workspace Preview Attribute Helpers data used across the application.
+
 using System.Collections.Generic;
 
 namespace CompositionToolbox.App.Models

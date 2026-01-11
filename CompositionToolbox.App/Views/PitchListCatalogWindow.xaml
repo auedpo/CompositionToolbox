@@ -1,4 +1,6 @@
-﻿<Window x:Class="CompositionToolbox.App.Views.PitchListCatalogWindow"
+﻿<!-- Purpose: Markup for the Pitch List Catalog Window view wiring its layout and bindings. -->
+
+<Window x:Class="CompositionToolbox.App.Views.PitchListCatalogWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:CompositionToolbox.App.Views.Behaviors"

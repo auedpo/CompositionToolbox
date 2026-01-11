@@ -1,3 +1,5 @@
+<!-- Purpose: Markup for the Necklace Entry Lens View view wiring its layout and bindings. -->
+
 <UserControl x:Class="CompositionToolbox.App.Views.NecklaceEntryLensView"
              x:Name="Root"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"

@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Initialization View view that wires inputs into its view model.
+
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows;

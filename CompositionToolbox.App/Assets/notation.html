@@ -1,4 +1,6 @@
 <!doctype html>
+<!-- Purpose: HTML shell that hosts VexFlow for the inline notation preview in the WPF WebView. -->
+
 <html>
 <head>
   <meta charset="utf-8" />
@@ -23,6 +25,48 @@
 
     const EdoNotation = window.EdoNotation;
 
+    const BaseNoteDenominators = {
+      "1/64": 64,
+      "1/32": 32,
+      "1/16": 16,
+      "1/8": 8,
+      "1/4": 4,
+      "1/2": 2,
+      "1": 1
+    };
+
+    const DurationTicks = {
+      "w": 64,
+      "h": 32,
+      "q": 16,
+      "8": 8,
+      "16": 4,
+      "32": 2,
+      "64": 1
+    };
+
+    function buildSegmentsFromTicks(totalTicks) {
+      let remaining = Math.max(1, Math.round(totalTicks));
+      const candidates = [];
+      Object.entries(DurationTicks).forEach(([symbol, ticks]) => {
+        candidates.push({ ticks, symbol, dots: 0 });
+        if (ticks % 2 === 0) {
+          candidates.push({ ticks: ticks + ticks / 2, symbol, dots: 1 });
+        }
+        if (ticks % 4 === 0) {
+          candidates.push({ ticks: ticks + ticks / 2 + ticks / 4, symbol, dots: 2 });
+        }
+      });
+      candidates.sort((a, b) => b.ticks - a.ticks || b.dots - a.dots);
+      const segments = [];
+      while (remaining > 0) {
+        const pick = candidates.find(c => c.ticks <= remaining) || { ticks: 1, symbol: "64", dots: 0 };
+        segments.push({ duration: pick.symbol, dots: pick.dots, ticks: pick.ticks });
+        remaining -= pick.ticks;
+      }
+      return segments;
+    }
+
     window.renderPcs = function(payload) {
       try {
         const obj = payload;
@@ -39,13 +83,47 @@
         const clip = obj.clip === true;
         const showOverflow = obj.showOverflow === true;
         const allowScroll = obj.allowScroll === true;
+        const extras = obj.notationExtras;
+        const extraEvents = extras && Array.isArray(extras.events) ? extras.events : null;
+        const hasExtraEvents = Array.isArray(extraEvents) && extraEvents.length > 0;
+        const clef = hasExtraEvents && extras?.clef ? extras.clef : 'treble';
+        const baseNote = extras?.baseNote || '1/4';
+        const baseDenominator = BaseNoteDenominators[baseNote] || 4;
+        const extraUnits = hasExtraEvents
+          ? extraEvents.reduce((sum, event) => sum + (Number(event.units) || 1), 0)
+          : 0;
+        const measureUnits = Number(extras?.measureUnits) || 0;
+        const ticksPerUnit = 64 / baseDenominator;
+        const measureTicks = measureUnits > 0 ? measureUnits * ticksPerUnit : 0;
 
         const score = document.getElementById('score');
         score.innerHTML = '';
         score.style.width = contentWidth + 'px';
         score.style.height = viewportHeight + 'px';
-        score.style.overflow = clip ? 'hidden' : (allowScroll ? 'auto' : 'visible');
-        document.body.style.overflow = clip ? 'hidden' : (allowScroll ? 'auto' : 'visible');
+        const needsScroll = hasExtraEvents && extraEvents.length > 64;
+        const allowScrollAuto = allowScroll || needsScroll;
+        const clipping = clip && !allowScrollAuto;
+        score.style.overflow = clipping ? 'hidden' : (allowScrollAuto ? 'auto' : 'visible');
+        document.body.style.overflow = clipping ? 'hidden' : (allowScrollAuto ? 'auto' : 'visible');
+        const warningId = 'notation-overflow-warning';
+        const existingWarning = document.getElementById(warningId);
+        if (existingWarning) {
+          existingWarning.remove();
+        }
+        const warningThreshold = 64;
+        if (hasExtraEvents && extraEvents.length > warningThreshold && showOverflow) {
+          const warning = document.createElement('div');
+          warning.id = warningId;
+          warning.textContent = 'Not all rhythm events fit in the preview; open the inspector notation pop-out to see the full result.';
+          warning.style.fontSize = '0.8rem';
+          warning.style.color = '#AA0000';
+          warning.style.margin = '4px 0 0 0';
+          warning.style.padding = '4px 6px';
+          warning.style.background = 'rgba(255, 255, 255, 0.7)';
+          warning.style.borderRadius = '4px';
+          warning.style.fontFamily = 'Segoe UI';
+          score.parentNode?.insertBefore(warning, score.nextSibling);
+        }
 
         const renderer = new VF.Renderer(score, VF.Renderer.Backends.SVG);
         renderer.resize(contentWidth, viewportHeight);
@@ -53,55 +131,136 @@
         context.setFillStyle('#111');
         context.setStrokeStyle('#111');
         const staveWidth = Math.max(60, contentWidth - 20);
-        const stave = new VF.Stave(10, 10, staveWidth);
-        stave.addClef('treble').setContext(context).draw();
+          const stave = new VF.Stave(10, 10, staveWidth);
+          stave.addClef(clef).setContext(context).draw();
 
-        const overflowCount = maxNotes && pcs.length > maxNotes ? pcs.length - maxNotes : 0;
+          const overflowCount = hasExtraEvents
+            ? Math.max(0, extraEvents.length - 64)
+            : (maxNotes && pcs.length > maxNotes ? pcs.length - maxNotes : 0);
         const renderPcs = maxNotes ? pcs.slice(0, maxNotes) : pcs;
         const renderMidi = midiList ? (maxNotes ? midiList.slice(0, maxNotes) : midiList) : null;
         const edoModulus = obj.modulus;
         const useEdo = edoModulus && EdoNotation && EdoNotation.hasEdoMapping(edoModulus);
-        const allowMidiForEdo = obj.useMidiForEdo19 === true;
-        const noteSpecs = useEdo && renderPcs.length > 0
-          ? (allowMidiForEdo && renderMidi && renderMidi.length === renderPcs.length
-            ? EdoNotation.pcsToEdoNotesWithMidi(renderPcs, renderMidi, edoModulus)
-            : EdoNotation.pcsToEdoNotes(renderPcs, edoModulus, 4))
-          : (renderMidi
-            ? EdoNotation.midiListToNoteSpecs(renderMidi, accidentalRule)
-            : EdoNotation.pcsToMidiNotes(renderPcs, base, accidentalRule));
-        if (noteSpecs.length === 0) {
-          // render empty measure
-          return;
-        }
+          const allowMidiForEdo = obj.useMidiForEdo19 === true;
+          let notes = [];
+          let ties = [];
+          let tickCount = 0;
+          const renderMode = (obj.renderMode || 'line').toLowerCase();
+          if (hasExtraEvents) {
+            const totalTicks = extraUnits * ticksPerUnit;
+            (extraEvents || []).forEach(event => {
+              const midiList = Array.isArray(event.pitches) ? event.pitches : [];
+              let noteSpecs = [];
+              if (midiList.length > 0 && EdoNotation && EdoNotation.midiListToNoteSpecs) {
+                noteSpecs = EdoNotation.midiListToNoteSpecs(midiList, accidentalRule);
+              }
+              if (noteSpecs.length === 0) {
+                noteSpecs = [{ key: 'C/5', acc: null }];
+              }
+              const chordKeys = noteSpecs.map(n => n.key);
+              const eventUnits = Number(event.units) || 1;
+              let remainingTicks = eventUnits * ticksPerUnit;
+              let lastNote = null;
 
-        let notes = [];
-        const renderMode = (obj.renderMode || 'line').toLowerCase();
-        if (renderMode === 'chord') {
-          const chord = new VF.StaveNote({ clef: 'treble', keys: noteSpecs.map(n => n.key), duration: 'w' });
-          noteSpecs.forEach((n, i) => {
-            if (n.acc) {
-              chord.addAccidental(i, new VF.Accidental(n.acc));
-            }
-          });
-          notes = [chord];
-        } else {
-          notes = noteSpecs.map(n => {
-            const note = new VF.StaveNote({ clef: 'treble', keys: [n.key], duration: 'q' });
-            if (n.acc) {
-              note.addAccidental(0, new VF.Accidental(n.acc));
-            }
-            return note;
-          });
-        }
+              while (remainingTicks > 0) {
+                const remainingInMeasure = measureTicks > 0
+                  ? measureTicks - (tickCount % measureTicks)
+                  : remainingTicks;
+                const chunkTicks = measureTicks > 0
+                  ? Math.min(remainingTicks, remainingInMeasure)
+                  : remainingTicks;
+                const chunkSegments = buildSegmentsFromTicks(chunkTicks);
+                chunkSegments.forEach(segment => {
+                  const segNote = new VF.StaveNote({ clef, keys: chordKeys, duration: segment.duration });
+                  noteSpecs.forEach((spec, idx) => {
+                    if (spec.acc) {
+                      segNote.addAccidental(idx, new VF.Accidental(spec.acc));
+                    }
+                  });
+                  if (segment.dots > 0) {
+                    for (let i = 0; i < segment.dots; i++) {
+                      if (VF.Dot && VF.Dot.buildAndAttach) {
+                        VF.Dot.buildAndAttach([segNote], { all: true });
+                      } else if (segNote.addDotToAll) {
+                        segNote.addDotToAll();
+                      }
+                    }
+                  }
+                  if (lastNote) {
+                    const tieCount = chordKeys.length;
+                    for (let i = 0; i < tieCount; i++) {
+                      ties.push(new VF.StaveTie({
+                        first_note: lastNote,
+                        last_note: segNote,
+                        first_indices: [i],
+                        last_indices: [i]
+                      }));
+                    }
+                  }
+                  lastNote = segNote;
+                  notes.push(segNote);
+                });
 
-        const voice = renderMode === 'chord'
-          ? new VF.Voice({ num_beats: 4, beat_value: 4 })
-          : new VF.Voice({ num_beats: notes.length, beat_value: 4 });
+                tickCount += chunkTicks;
+                remainingTicks -= chunkTicks;
+
+                if (measureTicks > 0 && tickCount % measureTicks === 0 && tickCount < totalTicks) {
+                  notes.push(new VF.BarNote());
+                }
+              }
+            });
+          } else {
+            const renderPcs = maxNotes ? pcs.slice(0, maxNotes) : pcs;
+            const renderMidi = midiList ? (maxNotes ? midiList.slice(0, maxNotes) : midiList) : null;
+            const edoModulus = obj.modulus;
+            const useEdo = edoModulus && EdoNotation && EdoNotation.hasEdoMapping(edoModulus);
+            const noteSpecs = useEdo && renderPcs.length > 0
+              ? (allowMidiForEdo && renderMidi && renderMidi.length === renderPcs.length
+                ? EdoNotation.pcsToEdoNotesWithMidi(renderPcs, renderMidi, edoModulus)
+                : EdoNotation.pcsToEdoNotes(renderPcs, edoModulus, 4))
+              : (renderMidi
+                ? EdoNotation.midiListToNoteSpecs(renderMidi, accidentalRule)
+                : EdoNotation.pcsToMidiNotes(renderPcs, base, accidentalRule));
+
+            if (noteSpecs.length === 0) {
+              return;
+            }
+
+            if (renderMode === 'chord') {
+              const chord = new VF.StaveNote({ clef: 'treble', keys: noteSpecs.map(n => n.key), duration: 'w' });
+              noteSpecs.forEach((n, i) => {
+                if (n.acc) {
+                  chord.addAccidental(i, new VF.Accidental(n.acc));
+                }
+              });
+              notes = [chord];
+            } else {
+              notes = noteSpecs.map(n => {
+                const note = new VF.StaveNote({ clef: 'treble', keys: [n.key], duration: 'q' });
+                if (n.acc) {
+                  note.addAccidental(0, new VF.Accidental(n.acc));
+                }
+                return note;
+              });
+            }
+          }
+
+        const buildVoice = (beats, denominator) => renderMode === 'chord'
+            ? new VF.Voice({ num_beats: beats, beat_value: denominator })
+            : (() => {
+                const v = new VF.Voice({ num_beats: beats, beat_value: denominator });
+                v.setStrict(false);
+                return v;
+              })();
+        const voiceBeats = hasExtraEvents ? Math.max(1, extraUnits) : 4;
+        const beatValue = hasExtraEvents ? baseDenominator : 4;
+        const voice = buildVoice(voiceBeats, beatValue);
         voice.addTickables(notes);
 
         const formatter = new VF.Formatter();
         formatter.joinVoices([voice]).format([voice], Math.max(60, contentWidth - 40));
         voice.draw(context, stave);
+        ties.forEach(tie => tie.setContext(context).draw());
 
         if (overflowCount > 0 && showOverflow) {
           const text = `+${overflowCount} more`;

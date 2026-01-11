@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Swirling Mists Lens View view that wires inputs into its view model.
+
 using System.Collections.Specialized;
 using System.Windows;
 using CompositionToolbox.App.ViewModels;

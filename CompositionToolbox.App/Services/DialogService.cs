@@ -1,61 +1,29 @@
-using System.Windows;
-using CompositionToolbox.App.Views.Dialogs;
+// Purpose: Static façade that routes dialog calls through an IDialogService.
+
+using System;
 
 namespace CompositionToolbox.App.Services
 {
     public static class DialogService
     {
-        public static string? PromptText(string title, string message, string defaultValue)
+        private static IDialogService? _implementation;
+
+        public static IDialogService Implementation
         {
-            var dialog = new TextPromptDialog
-            {
-                Title = title,
-                Prompt = message,
-                ResponseText = defaultValue
-            };
-            AttachOwner(dialog);
-            return dialog.ShowDialog() == true ? dialog.ResponseText : null;
+            get => _implementation ??= new WpfDialogService();
+            set => _implementation = value ?? throw new ArgumentNullException(nameof(value));
         }
+
+        public static string? PromptText(string title, string message, string defaultValue)
+            => Implementation.PromptText(title, message, defaultValue);
 
         public static bool Confirm(string title, string message)
-        {
-            var dialog = new ConfirmDialog
-            {
-                Title = title,
-                Message = message
-            };
-            AttachOwner(dialog);
-            return dialog.ShowDialog() == true;
-        }
+            => Implementation.Confirm(title, message);
 
         public static void Info(string title, string message)
-        {
-            var dialog = new MessageDialog
-            {
-                Title = title,
-                Message = message
-            };
-            AttachOwner(dialog);
-            dialog.ShowDialog();
-        }
+            => Implementation.Info(title, message);
 
         public static void Warning(string title, string message)
-        {
-            var dialog = new MessageDialog
-            {
-                Title = title,
-                Message = message
-            };
-            AttachOwner(dialog);
-            dialog.ShowDialog();
-        }
-
-        private static void AttachOwner(Window dialog)
-        {
-            if (System.Windows.Application.Current?.MainWindow != null)
-            {
-                dialog.Owner = System.Windows.Application.Current.MainWindow;
-            }
-        }
+            => Implementation.Warning(title, message);
     }
 }

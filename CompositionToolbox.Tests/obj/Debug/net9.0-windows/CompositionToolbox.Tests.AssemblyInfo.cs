@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CompositionToolbox.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cf402a9bc11530d5f9d90d166614822cb094ab33")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d6b4ccd7708183c483a73fd5bb2802daa0ff9201")]
 [assembly: System.Reflection.AssemblyProductAttribute("CompositionToolbox.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CompositionToolbox.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,3 +1,5 @@
+<!-- Purpose: Dialog markup for the Text Prompt Dialog prompt composed in the UI. -->
+
 <Window x:Class="CompositionToolbox.App.Views.Dialogs.TextPromptDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

@@ -1,8 +1,12 @@
+// Purpose: Inspector view model that exposes state and commands for its associated view.
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Services;
 using CompositionToolbox.App.Stores;
+using CompositionToolbox.App.Utilities;
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -54,6 +58,7 @@ namespace CompositionToolbox.App.ViewModels
         private AtomicNode? _notationNode;
         private int[] _notationMidiNotes = Array.Empty<int>();
         private string _notationRenderMode = "chord";
+        private NotationRenderExtras? _notationExtras;
         private bool _useSessionOverride;
         private int _overridePc0NoteIndex;
         private int _overridePc0Octave;
@@ -66,6 +71,16 @@ namespace CompositionToolbox.App.ViewModels
         private ChordVoicingMode _overrideChordVoicingMode;
         private bool _loadingOverride;
         private bool _isPcSet; // whether the selected node is a pitch-class set (unordered or unordered projection)
+
+        private static readonly string[] SlotPriority = new[]
+        {
+            "RhythmRef",
+            "EventsRef",
+            "PitchRef",
+            "RegisterRef",
+            "InstrumentRef",
+            "VoicingRef"
+        };
 
         public InspectorViewModel(CompositeStore store, MidiService midiService, Func<RealizationConfig> getRealizationConfig)
         {
@@ -300,6 +315,12 @@ namespace CompositionToolbox.App.ViewModels
             private set => SetProperty(ref _notationRenderMode, value);
         }
 
+        public NotationRenderExtras? NotationExtras
+        {
+            get => _notationExtras;
+            private set => SetProperty(ref _notationExtras, value);
+        }
+
         public bool UseSessionOverride
         {
             get => _useSessionOverride;
@@ -447,14 +468,71 @@ namespace CompositionToolbox.App.ViewModels
 
         private void UpdateFromState(CompositeState? state)
         {
-            if (state?.PitchRef == null)
+            AtomicNode? node = null;
+            if (state != null)
             {
-                UpdateFromNode(null);
-                return;
+                var entry = _store.LogEntries
+                    .Where(e => e.CompositeId == state.CompositeId && e.NewStateId == state.StateId)
+                    .LastOrDefault();
+
+                var slots = OrderSlotsForDisplay(entry);
+                foreach (var slot in slots)
+                {
+                    var nodeId = slot switch
+                    {
+                        "RhythmRef" => state.RhythmRef,
+                        "PitchRef" => state.PitchRef,
+                        "RegisterRef" => state.RegisterRef,
+                        "InstrumentRef" => state.InstrumentRef,
+                        "VoicingRef" => state.VoicingRef,
+                        "EventsRef" => state.EventsRef,
+                        _ => null
+                    };
+                    if (!nodeId.HasValue) continue;
+                    node = _store.Nodes.FirstOrDefault(n => n.NodeId == nodeId.Value);
+                    if (node != null)
+                    {
+                        break;
+                    }
+                }
             }
 
-            var node = _store.Nodes.FirstOrDefault(n => n.NodeId == state.PitchRef.Value);
             UpdateFromNode(node);
+        }
+
+        private static IEnumerable<string> OrderSlotsForDisplay(CompositeTransformLogEntry? entry)
+        {
+            var prioritized = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var changes = entry?.Patch?.Changes;
+            if (changes != null && changes.Count > 0)
+            {
+                for (var i = changes.Count - 1; i >= 0; i--)
+                {
+                    var slot = changes[i].Slot;
+                    if (string.IsNullOrWhiteSpace(slot)) continue;
+                    if (seen.Add(slot))
+                    {
+                        prioritized.Add(slot);
+                    }
+                }
+            }
+
+            foreach (var slot in SlotPriority)
+            {
+                if (seen.Add(slot))
+                {
+                    prioritized.Add(slot);
+                }
+            }
+
+            if (prioritized.Count == 0)
+            {
+                prioritized.Add("RhythmRef");
+                prioritized.Add("PitchRef");
+            }
+
+            return prioritized;
         }
 
         private void UpdateFromNode(AtomicNode? node)
@@ -557,6 +635,7 @@ namespace CompositionToolbox.App.ViewModels
             {
                 NotationNode = null;
                 NotationMidiNotes = Array.Empty<int>();
+                NotationExtras = null;
                 return;
             }
 
@@ -578,6 +657,136 @@ namespace CompositionToolbox.App.ViewModels
 
             var config = GetEffectiveRealizationConfig();
             NotationMidiNotes = MusicUtils.RealizePcs(displayPcs, node.Modulus, mode, config);
+            NotationExtras = BuildNotationExtrasFromNode(node);
+        }
+
+        private NotationRenderExtras? BuildNotationExtrasFromNode(AtomicNode node)
+        {
+            if (string.IsNullOrWhiteSpace(node.ValueJson))
+            {
+                return null;
+            }
+
+            try
+            {
+                using var doc = JsonDocument.Parse(node.ValueJson);
+                var root = doc.RootElement;
+                if (!root.TryGetProperty("kind", out var kind))
+                {
+                    return null;
+                }
+
+                var kindValue = kind.GetString() ?? string.Empty;
+                if (string.Equals(kindValue, "RhythmDurationsV1", StringComparison.OrdinalIgnoreCase))
+                {
+                    var baseNoteDuration = root.TryGetProperty("baseNoteValue", out var baseElem) && baseElem.ValueKind == JsonValueKind.String
+                        ? baseElem.GetString() ?? "1/4"
+                        : "1/4";
+
+                    var durations = root.TryGetProperty("durations", out var durationsElem) && durationsElem.ValueKind == JsonValueKind.Array
+                        ? durationsElem.EnumerateArray().Select(element => element.TryGetInt32(out var val) ? val : 0).Where(val => val > 0).ToArray()
+                        : Array.Empty<int>();
+                    if (durations.Length == 0)
+                    {
+                        return null;
+                    }
+
+                    var measureUnits = root.TryGetProperty("grouping", out var groupingElem)
+                        && groupingElem.ValueKind == JsonValueKind.Object
+                        && groupingElem.TryGetProperty("measureUnits", out var measureElem)
+                        && measureElem.TryGetInt32(out var measureValue)
+                        ? measureValue
+                        : (int?)null;
+
+                    var cycleUnits = root.TryGetProperty("cycle", out var cycleElem) && cycleElem.TryGetInt32(out var cycleValue)
+                        ? cycleValue
+                        : durations.Sum();
+
+                    var baseBeats = NotationDurationMapper.GetBaseNoteBeats(baseNoteDuration);
+                    var durationSpecs = durations.Select(durationUnits =>
+                    {
+                        var symbol = NotationDurationMapper.MapDurationSymbol(durationUnits, baseBeats);
+                        var segments = NotationDurationMapper.BuildDurationSegments(durationUnits, baseNoteDuration);
+                        return new NotationEventSpec(Array.Empty<int>(), symbol, durationUnits, segments);
+                    }).ToList();
+
+                    return new NotationRenderExtras("percussion", durationSpecs, baseBeats, baseNoteDuration, measureUnits, cycleUnits);
+                }
+
+                if (!string.Equals(kindValue, "InterferenceResultantV1", StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                var baseNoteLegacy = root.TryGetProperty("baseNoteValue", out var baseElemOld) && baseElemOld.ValueKind == JsonValueKind.String
+                    ? baseElemOld.GetString() ?? "1/4"
+                    : "1/4";
+
+                var events = root.TryGetProperty("events", out var eventsElem) && eventsElem.ValueKind == JsonValueKind.Array
+                    ? eventsElem.EnumerateArray().ToArray()
+                    : Array.Empty<JsonElement>();
+                if (events.Length == 0)
+                {
+                    return null;
+                }
+
+                var durationsLegacy = root.TryGetProperty("durations", out var durationsElemOld) && durationsElemOld.ValueKind == JsonValueKind.Array
+                    ? durationsElemOld.EnumerateArray().Select(element => element.TryGetInt32(out var val) ? val : 0).ToArray()
+                    : Array.Empty<int>();
+
+                var specsLegacy = new List<NotationEventSpec>();
+                var baseBeatsLegacy = NotationDurationMapper.GetBaseNoteBeats(baseNoteLegacy);
+                var usePercussion = false;
+                var idx = 0;
+                foreach (var evt in events)
+                {
+                    var pitches = ReadIntArray(evt, "pitches");
+                    var unpitched = evt.TryGetProperty("unpitched", out var unpitchedElem) && unpitchedElem.ValueKind == JsonValueKind.True;
+                    if (unpitched)
+                    {
+                        usePercussion = true;
+                    }
+
+                    var durationUnits = evt.TryGetProperty("duration", out var durationElem) && durationElem.TryGetInt32(out var durationValue)
+                        ? durationValue
+                        : (idx < durationsLegacy.Length ? durationsLegacy[idx] : 1);
+                    var symbol = NotationDurationMapper.MapDurationSymbol(durationUnits, baseBeatsLegacy);
+                    var segments = NotationDurationMapper.BuildDurationSegments(durationUnits, baseNoteLegacy);
+                    specsLegacy.Add(new NotationEventSpec(pitches, symbol, durationUnits, segments));
+                    idx++;
+                }
+
+                if (specsLegacy.Count == 0)
+                {
+                    return null;
+                }
+
+                var clef = usePercussion ? "percussion" : "treble";
+                return new NotationRenderExtras(clef, specsLegacy, baseBeatsLegacy, baseNoteLegacy);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        private static int[] ReadIntArray(JsonElement element, string property)
+        {
+            if (!element.TryGetProperty(property, out var prop) || prop.ValueKind != JsonValueKind.Array)
+            {
+                return Array.Empty<int>();
+            }
+
+            var list = new List<int>();
+            foreach (var item in prop.EnumerateArray())
+            {
+                if (item.TryGetInt32(out var value))
+                {
+                    list.Add(value);
+                }
+            }
+
+            return list.ToArray();
         }
 
         private int[] GetDisplayPcs(bool isChord)
@@ -598,13 +807,21 @@ namespace CompositionToolbox.App.ViewModels
             var node = SelectedNode;
             if (node == null) return;
 
+            if (node.ValueType == AtomicValueType.RhythmPattern
+                && NotationExtras?.Events.Count > 0)
+            {
+                var config = GetEffectiveRealizationConfig();
+                await _midiService.PlayRhythmEvents(NotationExtras.Events, NotationExtras.BaseBeats, config);
+                return;
+            }
+
             var isChord = SelectedNotationMode == InspectorNotationMode.Chord;
             var pcs = GetDisplayPcs(isChord);
             if (pcs.Length == 0) return;
 
-            var config = GetEffectiveRealizationConfig();
+            var playbackConfig = GetEffectiveRealizationConfig();
             var mode = isChord ? PcMode.Unordered : PcMode.Ordered;
-            await _midiService.PlayPcs(pcs, node.Modulus, mode, config);
+            await _midiService.PlayPcs(pcs, node.Modulus, mode, playbackConfig);
         }
 
         public void RefreshRealization()
@@ -618,6 +835,11 @@ namespace CompositionToolbox.App.ViewModels
             var node = SelectedNode;
 
             var unordered = _setProjection.ToArray();
+            var args = new Dictionary<string, object>
+            {
+                ["derivedFrom"] = "OrderedProjection",
+                ["ordered"] = unordered
+            };
             var candidate = new AtomicNode
             {
                 Modulus = node.Modulus,
@@ -630,16 +852,16 @@ namespace CompositionToolbox.App.ViewModels
                 {
                     OpType = "FORGET_ORDER",
                     OperationLabel = "Forget order",
+                    OpKey = OpKeys.UiInspectorForgetOrder,
+                    Title = "Forget order",
                     SourceLens = "Inspector",
                     SourceNodeId = node.NodeId,
-                    OpParams = new Dictionary<string, object>
-                    {
-                        ["derivedFrom"] = "OrderedProjection"
-                    }
+                    OpParams = OperationLog.CreateParams(args)
                 }
             };
 
-            AppendPitchNode("Forget order", null, candidate);
+            var logParams = OperationLog.CreateParams(args);
+            AppendPitchNode("Forget order", logParams, candidate, OpKeys.UiInspectorForgetOrder, candidate.OpFromPrev.OpType);
         }
 
         private void CommitNormalForm()
@@ -659,6 +881,12 @@ namespace CompositionToolbox.App.ViewModels
             var node = SelectedNode;
             if (node == null) return;
 
+            var args = new Dictionary<string, object>
+            {
+                ["policy"] = policy,
+                ["derivedFrom"] = "SetProjection",
+                ["ordered"] = ordered.ToArray()
+            };
             var candidate = new AtomicNode
             {
                 Modulus = node.Modulus,
@@ -671,17 +899,16 @@ namespace CompositionToolbox.App.ViewModels
                 {
                     OpType = "CHOOSE_ORDERING",
                     OperationLabel = label,
+                    OpKey = OpKeys.UiInspectorChooseOrdering,
+                    Title = label,
                     SourceLens = "Inspector",
                     SourceNodeId = node.NodeId,
-                    OpParams = new Dictionary<string, object>
-                    {
-                        ["policy"] = policy,
-                        ["derivedFrom"] = "SetProjection"
-                    }
+                    OpParams = OperationLog.CreateParams(args)
                 }
             };
 
-            AppendPitchNode(label, new Dictionary<string, object> { ["policy"] = policy }, candidate);
+            var logParams = OperationLog.CreateParams(args);
+            AppendPitchNode(label, logParams, candidate, OpKeys.UiInspectorChooseOrdering, candidate.OpFromPrev.OpType);
         }
 
         private void UpdateCommandStates()
@@ -692,7 +919,7 @@ namespace CompositionToolbox.App.ViewModels
             CommitPrimeFormCommand.NotifyCanExecuteChanged();
         }
 
-        private void AppendPitchNode(string op, Dictionary<string, object>? opParams, AtomicNode node)
+        private void AppendPitchNode(string op, Dictionary<string, object>? opParams, AtomicNode node, string? opKey = null, string? legacyOpType = null)
         {
             Trace.WriteLine($"[InspectorViewModel] Appending pitch node ts={DateTime.UtcNow:o} tid={Environment.CurrentManagedThreadId} op={op}");
             Trace.WriteLine(Environment.StackTrace);
@@ -711,7 +938,7 @@ namespace CompositionToolbox.App.ViewModels
                 ActivePreview = prevState?.ActivePreview ?? CompositePreviewTarget.Auto,
                 Label = prevState?.Label
             };
-            _store.TransformState(op, opParams, nextState);
+            _store.TransformState(op, opParams, nextState, opKey, legacyOpType, slotOrder: new[] { "PitchRef" });
         }
 
         private bool NodeExists(int modulus, PcMode mode, int[] ordered, int[]? unordered)

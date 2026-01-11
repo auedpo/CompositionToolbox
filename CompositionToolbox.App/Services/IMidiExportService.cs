@@ -1,3 +1,5 @@
+// Purpose: Contract for services that export MIDI from snapshots.
+
 using CompositionToolbox.App.Models;
 
 namespace CompositionToolbox.App.Services

@@ -1,4 +1,6 @@
-﻿<UserControl x:Class="CompositionToolbox.App.Views.SwirlingMistsLensView"
+﻿<!-- Purpose: Markup for the Swirling Mists Lens View view wiring its layout and bindings. -->
+
+<UserControl x:Class="CompositionToolbox.App.Views.SwirlingMistsLensView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:CompositionToolbox.App.ViewModels"

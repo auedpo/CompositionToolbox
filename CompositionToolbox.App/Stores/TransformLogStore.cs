@@ -1,6 +1,9 @@
+// Purpose: Store that tracks Transform Log Store state for the session.
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using CompositionToolbox.App.Models;
+using CompositionToolbox.App.Utilities;
 using System.Linq;
 using System.Diagnostics;
 using CompositionToolbox.App.Services;
@@ -9,7 +12,8 @@ namespace CompositionToolbox.App.Stores
 {
     public class TransformLogStore : ObservableObject
     {
-        private const string RootOpType = "INPUT";
+        private const string RootLegacyOpType = "INPUT";
+        private const string RootOpKey = OpKeys.ProjectInitInput;
         public ObservableCollection<AtomicNode> Nodes { get; } = new ObservableCollection<AtomicNode>();
 
         private AtomicNode? _selectedNode;
@@ -105,7 +109,8 @@ namespace CompositionToolbox.App.Stores
 #endif
             }
 
-            var isRoot = string.Equals(op.OpType, RootOpType, StringComparison.OrdinalIgnoreCase);
+            var isRoot = string.Equals(op.OpKey, RootOpKey, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(op.OpType, RootLegacyOpType, StringComparison.OrdinalIgnoreCase);
             if (!isRoot && op.SourceNodeId == null)
             {
 #if DEBUG

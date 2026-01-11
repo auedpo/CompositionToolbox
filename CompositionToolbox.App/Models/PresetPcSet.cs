@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Preset Pc Set data used across the application.
+
 using System;
 using System.Linq;
 

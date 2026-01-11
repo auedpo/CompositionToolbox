@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Necklace Entry Lens View view that wires inputs into its view model.
+
 using System;
 using System.Windows;
 using System.Windows.Input;

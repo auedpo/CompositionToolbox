@@ -1,3 +1,5 @@
+// Purpose: Swirling Mists service that performs swirling mists extractor work for the lens calculus.
+
 using System;
 using System.Collections.Generic;
 using CompositionToolbox.App.Models.SwirlingMists;

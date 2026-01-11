@@ -1,10 +1,14 @@
+// Purpose: Converter that translates values for the Transform Log Entry bindings.
+
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Data;
 using CompositionToolbox.App.Models;
 using CompositionToolbox.App.Stores;
+using CompositionToolbox.App.Utilities;
 
 namespace CompositionToolbox.App.Converters
 {
@@ -23,7 +27,9 @@ namespace CompositionToolbox.App.Converters
                 "Badges" => FormatBadges(entry),
                 "StepIndex" => FormatStepIndex(entry, store),
                 "PitchListValue" => FormatPitchListValue(entry, store),
-                "ListTypes" => FormatListTypes(entry, store),
+                "ListTypes" => FormatOpSummary(entry, store),
+                "OpLabel" => FormatOpLabel(entry),
+                "OpSummary" => FormatOpSummary(entry, store),
                 _ => FormatPatchSummary(entry, store)
             };
         }
@@ -178,6 +184,31 @@ namespace CompositionToolbox.App.Converters
             var node = store.Nodes.FirstOrDefault(n => n.NodeId == id.Value);
             if (node == null) return $"{prefix}{shortId}";
             return $"{prefix}{shortId}";
+        }
+
+        private static string FormatOpLabel(CompositeTransformLogEntry entry)
+        {
+            var descriptor = OpCatalog.Describe(entry);
+            var tags = descriptor.Tags?.Length > 0
+                ? $"[{string.Join(", ", descriptor.Tags)}] "
+                : string.Empty;
+            return $"{tags}{descriptor.Title}";
+        }
+
+        private static string FormatOpSummary(CompositeTransformLogEntry entry, CompositeStore? store)
+        {
+            var descriptor = OpCatalog.Describe(entry);
+            var summaryParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(descriptor.Summary))
+            {
+                summaryParts.Add(descriptor.Summary);
+            }
+            var listTypes = FormatListTypes(entry, store);
+            if (!string.IsNullOrWhiteSpace(listTypes))
+            {
+                summaryParts.Add(listTypes);
+            }
+            return summaryParts.Count == 0 ? string.Empty : string.Join(" | ", summaryParts);
         }
 
     }

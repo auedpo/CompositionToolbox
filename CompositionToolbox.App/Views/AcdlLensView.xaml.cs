@@ -1,3 +1,5 @@
+// Purpose: Code-behind for the Acdl Lens View view that wires inputs into its view model.
+
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;

@@ -1,3 +1,5 @@
+// Purpose: Service that manages palette swapping and exposes semantic brushes.
+
 using System;
 using System.Windows;
 using CompositionToolbox.App.Models;

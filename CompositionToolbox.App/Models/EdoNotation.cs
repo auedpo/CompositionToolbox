@@ -1,3 +1,5 @@
+// Purpose: Domain model that represents the Edo Notation data used across the application.
+
 using System;
 using System.Collections.Generic;
 
