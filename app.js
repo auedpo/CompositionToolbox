@@ -10,17 +10,26 @@ const RATIO_TARGETS = [
 ];
 
 const defaultParams = {
-  N: 12,
-  k: 1.6,
-  m: 0.55,
+  // Pitch/EDO geometry and compound interval handling.
+  edoSteps: 12,
+  compoundReliefM: 0.55,
+  // Ratio cost targets and weighting.
   sigma_cents: 20.0,
-  lam: 0.20,
-  alpha: 0.0,
-  f_ref_hz: 55.0,
-  K: 12,
+  ratioLam: 0.20,
+  // Roughness model and weighting.
+  roughAlpha: 0.0,
+  roughPartialsK: 12,
   amp_power: 1.0,
   rough_a: 3.5,
-  rough_b: 5.75
+  rough_b: 5.75,
+  // Register damping.
+  registerDampingK: 1.6,
+  // Anchor placement parameters (v2).
+  anchorAlpha: 0.3,
+  anchorBeta: 1.0,
+  anchorRho: 0.5,
+  // Reference tuning.
+  f_ref_hz: 55.0,
 };
 
 function hueForInterval(interval, windowL) {
@@ -72,8 +81,13 @@ const els = {
   oddBias: document.getElementById("oddBias"),
   favoritesList: document.getElementById("favoritesList"),
   anchorSummary: document.getElementById("anchorSummary"),
+  anchorMath: document.getElementById("anchorMath"),
   midiOut: document.getElementById("midiOut"),
-  midiPreview: document.getElementById("midiPreview")
+  midiPreview: document.getElementById("midiPreview"),
+  placementMode: document.getElementById("placementMode"),
+  anchorAlpha: document.getElementById("anchorAlpha"),
+  anchorBeta: document.getElementById("anchorBeta"),
+  anchorRho: document.getElementById("anchorRho")
 };
 
 let midiAccess = null;
@@ -93,7 +107,11 @@ const storageKeys = {
   activeO: "intervalApplet.activeO",
   filter: "intervalApplet.filter",
   midiOut: "intervalApplet.midiOut",
-  selectedPerm: "intervalApplet.selectedPerm"
+  selectedPerm: "intervalApplet.selectedPerm",
+  anchorAlpha: "intervalApplet.anchorAlpha",
+  anchorBeta: "intervalApplet.anchorBeta",
+  anchorRho: "intervalApplet.anchorRho",
+  placementMode: "intervalApplet.placementMode"
 };
 
 function parseIntervals(text) {
@@ -104,12 +122,14 @@ function parseIntervals(text) {
 }
 
 function lowBiasSplit(length) {
+  // Legacy low-bias split: odd intervals place more length below the anchor.
   const down = Math.floor((length + 1) / 2);
   const up = length - down;
   return [down, up];
 }
 
 function biasedSplit(length, flipOdd) {
+  // Optional odd-only flip to swap which side gets the extra step.
   const [down, up] = lowBiasSplit(length);
   if (length % 2 === 1 && flipOdd) {
     return [up, down];
@@ -118,6 +138,7 @@ function biasedSplit(length, flipOdd) {
 }
 
 function safeAnchorRange(L, intervals) {
+  // Legacy safe range: anchors must keep all endpoints inside [0, L].
   const downs = [];
   const ups = [];
   intervals.forEach((l) => {
@@ -131,6 +152,7 @@ function safeAnchorRange(L, intervals) {
 }
 
 function equalSpacedAnchors(amin, amax, n) {
+  // Legacy equal-spacing within the safe interior.
   if (n <= 0) return [];
   if (n === 1) return [amin];
   const span = amax - amin;
@@ -147,12 +169,150 @@ function equalSpacedAnchors(amin, amax, n) {
 }
 
 function endpointsForPerm(anchors, perm) {
+  // Legacy endpoint placement: use per-column odd-bias to choose the split.
   return anchors.map((a, idx) => {
     const l = perm[idx];
     const flipOdd = state.oddBias[idx] === "up";
     const [down, up] = biasedSplit(l, flipOdd);
     return [a - down, a + up];
   });
+}
+
+function rhoPlace(anchor, length, rho) {
+  // Continuous placement intent (not directly used for lattice endpoints).
+  const lowStar = anchor - rho * length;
+  const highStar = anchor + (1 - rho) * length;
+  return [lowStar, highStar];
+}
+
+function quantizedSplit(length, rho, oddBias) {
+  // Lattice projection policy: choose integer down/up to preserve length.
+  // Odd-bias only affects the rounding choice for odd lengths.
+  const eps = 1e-9;
+  const downIdeal = rho * length;
+  let down;
+  if (length % 2 === 0) {
+    down = Math.round(downIdeal);
+  } else {
+    down = oddBias === "up"
+      ? Math.floor(downIdeal + eps)
+      : Math.ceil(downIdeal - eps);
+  }
+  down = Math.max(0, Math.min(length, down));
+  return { down, up: length - down };
+}
+
+function quantizeInterval(anchor, length, rho, oddBias) {
+  // Q: pick integer anchor mark then apply the quantized split.
+  const A = Math.floor(anchor);
+  const { down, up } = quantizedSplit(length, rho, oddBias);
+  const low = A - down;
+  const high = A + up;
+  return { A, low, high, down, up };
+}
+
+function anchorsForPerm(L, perm, params) {
+  // v2 anchor generation: alpha/beta control how slack weights shape placement.
+  const n = perm.length;
+  const rho = params.anchorRho;
+  const alpha = params.anchorAlpha;
+  const beta = params.anchorBeta;
+  const splits = perm.map((d, idx) => quantizedSplit(d, rho, state.oddBias[idx]));
+  // Safe anchor range is based on the active split policy.
+  const amin = Math.max(...splits.map((s) => s.down));
+  const amax = L - Math.max(...splits.map((s) => s.up));
+  if (!Number.isFinite(amin) || !Number.isFinite(amax) || amin > amax) {
+    return null;
+  }
+  if (n === 1) {
+    const a = amin;
+    return {
+      anchorFloats: [a],
+      anchors: [Math.floor(a)],
+      splits,
+      slack: [L - perm[0]],
+      weights: [1],
+      prefixSums: [0],
+      prefixFractions: [0],
+      totalWeight: 1,
+      amin,
+      amax
+    };
+  }
+  const span = amax - amin;
+  // Slack-based weights: larger slack gets more influence as beta increases.
+  const slack = perm.map((d) => L - d);
+  const weights = slack.map((s) => Math.pow(s, beta));
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0) || 1;
+  let prefix = 0;
+  const eps = 1e-9;
+  const prefixFractions = [];
+  const prefixSums = [];
+  const anchorFloats = perm.map((d, idx) => {
+    // t: index-based position, u: prefix-weighted position.
+    const t = idx / (n - 1);
+    const u = prefix / totalWeight;
+    const a0 = amin + t * span;
+    const a1 = amin + u * span;
+    const a = (1 - alpha) * a0 + alpha * a1;
+    prefix += weights[idx];
+    void d;
+    prefixSums.push(prefix - weights[idx]);
+    prefixFractions.push(u);
+    // Clamp for safety against floating-point drift at the bounds.
+    return Math.min(amax, Math.max(amin, a));
+  });
+  // Quantize anchors to the integer lattice, keeping them inside [amin, amax].
+  const anchors = anchorFloats.map((a) => Math.max(amin, Math.min(amax, Math.floor(a + eps))));
+  return {
+    anchorFloats,
+    anchors,
+    splits,
+    slack,
+    weights,
+    prefixSums,
+    prefixFractions,
+    totalWeight,
+    amin,
+    amax
+  };
+}
+
+function endpointsListFromEndpoints(endpoints) {
+  // Preserve duplicates for index-aligned comparisons.
+  return endpoints.flat().sort((a, b) => a - b);
+}
+
+function betaZeroPitchesForPerm(perm, params, L) {
+  // Alternate placement with beta=0 for visual comparison.
+  const anchorData = anchorsForPerm(L, perm, { ...params, anchorBeta: 0 });
+  if (!anchorData) return null;
+  const endpoints = anchorData.anchorFloats.map((a, idx) => {
+    const d = perm[idx];
+    const bias = state.oddBias[idx];
+    const { low, high } = quantizeInterval(a, d, params.anchorRho, bias);
+    return [low, high];
+  });
+  return {
+    pitches: pitchesFromEndpoints(endpoints),
+    endpointList: endpointsListFromEndpoints(endpoints)
+  };
+}
+
+function alphaZeroPitchesForPerm(perm, params, L) {
+  // Alternate placement with alpha=0 for visual comparison.
+  const anchorData = anchorsForPerm(L, perm, { ...params, anchorAlpha: 0 });
+  if (!anchorData) return null;
+  const endpoints = anchorData.anchorFloats.map((a, idx) => {
+    const d = perm[idx];
+    const bias = state.oddBias[idx];
+    const { low, high } = quantizeInterval(a, d, params.anchorRho, bias);
+    return [low, high];
+  });
+  return {
+    pitches: pitchesFromEndpoints(endpoints),
+    endpointList: endpointsListFromEndpoints(endpoints)
+  };
 }
 
 function pitchesFromEndpoints(endpoints) {
@@ -174,14 +334,15 @@ function inducedIntervals(pitches) {
   return out.sort((a, b) => a - b);
 }
 
-function ratioCost(cents, sigma, lam) {
+function ratioCost(cents, sigma, ratioLam) {
+  // Match interval to nearest target ratio with a height penalty.
   let best = Number.POSITIVE_INFINITY;
   let bestRatio = [1, 1];
   let bestHeight = 0;
   for (const [n, d] of RATIO_TARGETS) {
     const target = 1200 * Math.log2(n / d);
     const height = Math.log2(n * d);
-    const cost = Math.pow(Math.abs(cents - target) / sigma, 2) + lam * height;
+    const cost = Math.pow(Math.abs(cents - target) / sigma, 2) + ratioLam * height;
     if (cost < best) {
       best = cost;
       bestRatio = [n, d];
@@ -192,6 +353,7 @@ function ratioCost(cents, sigma, lam) {
 }
 
 function registerDamping(lo, L, k) {
+  // Optional register penalty: higher registers receive less damping.
   if (state.params.useDamping) {
     return Math.exp(-k * (lo / L));
   }
@@ -199,16 +361,19 @@ function registerDamping(lo, L, k) {
 }
 
 function compoundRelief(dSteps, N, m) {
+  // Reduce tension for larger compound intervals (per octave).
   return Math.exp(-m * Math.floor(dSteps / N));
 }
 
 function f0FromLo(lo, N, fRefHz) {
+  // Convert a pitch-space step into a reference fundamental frequency.
   return fRefHz * Math.pow(2, lo / N);
 }
 
 const roughCache = new Map();
 
 function roughnessKharm(cents, f0Hz, K, ampPower, a, b) {
+  // Spectral roughness via pairwise partial interactions (cached for speed).
   const key = `${cents.toFixed(3)}|${f0Hz.toFixed(3)}|${K}|${ampPower}|${a}|${b}`;
   if (roughCache.has(key)) return roughCache.get(key);
   const r = Math.pow(2, cents / 1200);
@@ -232,18 +397,19 @@ function roughnessKharm(cents, f0Hz, K, ampPower, a, b) {
 }
 
 function calibrateAlpha(params, gamma) {
-  const L = params.N * 3;
+  // Scale roughness into the same magnitude range as ratio cost.
+  const L = params.edoSteps * 3;
   const lo = Math.floor(L / 4);
-  const f0Hz = f0FromLo(lo, params.N, params.f_ref_hz);
+  const f0Hz = f0FromLo(lo, params.edoSteps, params.f_ref_hz);
   const ratioVals = [];
   const roughVals = [];
-  for (let dMod = 1; dMod < params.N; dMod++) {
-    const cents = 1200 * (dMod / params.N);
-    const { cost } = ratioCost(cents, params.sigma_cents, params.lam);
+  for (let dMod = 1; dMod < params.edoSteps; dMod++) {
+    const cents = 1200 * (dMod / params.edoSteps);
+    const { cost } = ratioCost(cents, params.sigma_cents, params.ratioLam);
     const rough = roughnessKharm(
       cents,
       f0Hz,
-      params.K,
+      params.roughPartialsK,
       params.amp_power,
       params.rough_a,
       params.rough_b
@@ -268,45 +434,48 @@ function median(values) {
 }
 
 function dyadPenalty(lo, hi, params, L) {
+  // Combined dyad tension: ratio cost + scaled roughness, then register/compound factors.
   const dSteps = hi - lo;
-  const dMod = dSteps % params.N;
-  const cents = 1200 * (dMod / params.N);
-  const { cost } = ratioCost(cents, params.sigma_cents, params.lam);
-  const f0Hz = f0FromLo(lo, params.N, params.f_ref_hz);
+  const dMod = dSteps % params.edoSteps;
+  const cents = 1200 * (dMod / params.edoSteps);
+  const { cost } = ratioCost(cents, params.sigma_cents, params.ratioLam);
+  const f0Hz = f0FromLo(lo, params.edoSteps, params.f_ref_hz);
   const rough = roughnessKharm(
     cents,
     f0Hz,
-    params.K,
+    params.roughPartialsK,
     params.amp_power,
     params.rough_a,
     params.rough_b
   );
-  const r = registerDamping(lo, L, params.k);
-  const c = compoundRelief(dSteps, params.N, params.m);
-  return (cost + params.alpha * rough) * r * c;
+  const r = registerDamping(lo, L, params.registerDampingK);
+  const c = compoundRelief(dSteps, params.edoSteps, params.compoundReliefM);
+  return (cost + params.roughAlpha * rough) * r * c;
 }
 
 function dyadPenaltyDetails(lo, hi, params, L) {
+  // Same as dyadPenalty but returns raw pieces for hover inspection.
   const dSteps = hi - lo;
-  const dMod = dSteps % params.N;
-  const cents = 1200 * (dMod / params.N);
-  const { cost } = ratioCost(cents, params.sigma_cents, params.lam);
-  const f0Hz = f0FromLo(lo, params.N, params.f_ref_hz);
+  const dMod = dSteps % params.edoSteps;
+  const cents = 1200 * (dMod / params.edoSteps);
+  const { cost } = ratioCost(cents, params.sigma_cents, params.ratioLam);
+  const f0Hz = f0FromLo(lo, params.edoSteps, params.f_ref_hz);
   const rough = roughnessKharm(
     cents,
     f0Hz,
-    params.K,
+    params.roughPartialsK,
     params.amp_power,
     params.rough_a,
     params.rough_b
   );
-  const r = registerDamping(lo, L, params.k);
-  const c = compoundRelief(dSteps, params.N, params.m);
-  const g = (cost + params.alpha * rough) * r * c;
+  const r = registerDamping(lo, L, params.registerDampingK);
+  const c = compoundRelief(dSteps, params.edoSteps, params.compoundReliefM);
+  const g = (cost + params.roughAlpha * rough) * r * c;
   return { g, dSteps };
 }
 
 function computeReferenceG(params) {
+  // Reference dyad (1-step) used for scaling hover values.
   const LRef = 36;
   const loRef = Math.floor(LRef / 2);
   const hiRef = loRef + 1;
@@ -315,6 +484,7 @@ function computeReferenceG(params) {
 }
 
 function sonorityPenalty(pitches, params, L) {
+  // Total tension = sum over all dyad penalties in the chord.
   let total = 0;
   for (let i = 0; i < pitches.length; i++) {
     for (let j = i + 1; j < pitches.length; j++) {
@@ -430,12 +600,46 @@ function uniquePermutations(values) {
 }
 
 function computeForWindow(intervals, params, O) {
-  const L = O * params.N;
-  const [amin, amax] = safeAnchorRange(L, intervals);
-  const anchors = equalSpacedAnchors(amin, amax, intervals.length);
+  // v1 vs v2: v1 uses legacy equal-spaced anchors; v2 uses parametric anchors.
+  const L = O * params.edoSteps;
+  const isLegacy = params.placementMode === "v1";
+  let anchors = null;
+  let legacyRange = null;
+  if (isLegacy) {
+    const [amin, amax] = safeAnchorRange(L, intervals);
+    anchors = equalSpacedAnchors(amin, amax, intervals.length);
+    legacyRange = { amin, amax };
+  }
   const perms = uniquePermutations(intervals);
   const records = perms.map((perm) => {
-    const endpoints = endpointsForPerm(anchors, perm);
+    let anchorData = null;
+    let endpoints = null;
+    if (isLegacy) {
+      // Legacy placement: anchors fixed, odd-bias only flips split for odd d.
+      endpoints = endpointsForPerm(anchors, perm);
+      const splits = perm.map((d, idx) => {
+        const flipOdd = state.oddBias[idx] === "up";
+        const [down, up] = biasedSplit(d, flipOdd);
+        return { down, up };
+      });
+      anchorData = {
+        anchors,
+        anchorFloats: anchors.map((a) => a),
+        splits,
+        amin: legacyRange ? legacyRange.amin : null,
+        amax: legacyRange ? legacyRange.amax : null
+      };
+    } else {
+      // Parametric placement: compute anchors per permutation then quantize endpoints.
+      anchorData = anchorsForPerm(L, perm, params);
+      if (!anchorData) return null;
+      endpoints = anchorData.anchorFloats.map((a, idx) => {
+        const d = perm[idx];
+        const bias = state.oddBias[idx];
+        const { low, high } = quantizeInterval(a, d, params.anchorRho, bias);
+        return [low, high];
+      });
+    }
     const pitches = pitchesFromEndpoints(endpoints);
     const induced = inducedIntervals(pitches);
     const total = sonorityPenalty(pitches, params, L);
@@ -443,18 +647,26 @@ function computeForWindow(intervals, params, O) {
     return {
       perm,
       endpoints,
-      anchors,
+      anchors: anchorData ? anchorData.anchors : anchors,
+      anchorFloats: anchorData ? anchorData.anchorFloats : null,
+      anchorRange: anchorData ? { amin: anchorData.amin, amax: anchorData.amax } : null,
+      splits: anchorData ? anchorData.splits : null,
+      slack: anchorData ? anchorData.slack : null,
+      weights: anchorData ? anchorData.weights : null,
+      prefixSums: anchorData ? anchorData.prefixSums : null,
+      prefixFractions: anchorData ? anchorData.prefixFractions : null,
+      totalWeight: anchorData ? anchorData.totalWeight : null,
       pitches,
       induced,
       inducedCounts: intervalCounts(induced),
       total,
       perPair: pairCount ? total / pairCount : 0,
-      iv: octaveReducedIntervalVector(pitches, params.N),
-      primeForm: primeFormRahnForte(pitches, params.N)
+      iv: octaveReducedIntervalVector(pitches, params.edoSteps),
+      primeForm: primeFormRahnForte(pitches, params.edoSteps)
     };
-  });
+  }).filter(Boolean);
   records.sort((a, b) => a.perPair - b.perPair);
-  return { L, anchors, records };
+  return { L, records };
 }
 
 function renderOddBiasToggles(intervals) {
@@ -555,10 +767,21 @@ function updateMeta() {
   if (!rec) {
     els.selectedInfo.textContent = "";
     els.hoverInfo.textContent = "";
+    if (els.anchorMath) els.anchorMath.textContent = "";
     return;
   }
   const O = state.activeO;
+  const L = O * state.params.edoSteps;
+  const slacks = rec.perm.map((d) => L - d);
+  const minSlack = Math.min(...slacks);
+  const maxSlack = Math.max(...slacks);
+  const slackRatio = minSlack > 0 ? (maxSlack / minSlack) : Number.POSITIVE_INFINITY;
   const pitchCount = rec.pitches.length;
+  // Anchor debug for visibility into the parametric placement math.
+  const anchorRange = rec.anchorRange
+    ? `anchor range: [${rec.anchorRange.amin}, ${rec.anchorRange.amax}]`
+    : "";
+  const anchorLines = renderAnchorDebugLines(rec).join("");
   els.selectedInfo.innerHTML = [
     `<div class="meta-line">perm: ${rec.perm.join(" ")}</div>`,
     `<div class="meta-line grid"><span class="label">pitches</span><span class="pitch-grid" style="--pitch-count:${pitchCount}">${renderPitches(rec.pitches)}</span></div>`,
@@ -570,11 +793,15 @@ function updateMeta() {
     `<div class="meta-line">IV: ${rec.iv.join(" ")}</div>`,
     `<div class="meta-line">prime: ${rec.primeForm.join(" ")}</div>`,
     `<div class="meta-line">tension: ${rec.total.toFixed(6)}</div>`,
-    `<div class="meta-line">per pair: ${rec.perPair.toFixed(6)}</div>`
+    `<div class="meta-line">per pair: ${rec.perPair.toFixed(6)}</div>`,
+    `<div class="meta-line">slack ratio: ${Number.isFinite(slackRatio) ? slackRatio.toFixed(3) : "inf"}</div>`,
+    anchorRange ? `<div class="meta-line">${anchorRange}</div>` : "",
+    anchorLines ? `<div class="meta-line">anchor details:</div>${anchorLines}` : ""
   ].join("");
 
   void O;
   updateHoverInfo();
+  updateAnchorMath(rec);
 }
 
 function updateHoverInfo() {
@@ -583,7 +810,7 @@ function updateHoverInfo() {
     els.hoverInfo.textContent = "Hover a pitch to see dyad details.";
     return;
   }
-  const L = state.activeO * state.params.N;
+  const L = state.activeO * state.params.edoSteps;
   const base = state.hoverPitch;
   const rows = rec.pitches
     .filter((p) => p !== base)
@@ -620,22 +847,27 @@ function renderPlot() {
   }
 
   const O = state.activeO;
-  const L = O * state.params.N;
-  const rawSpacing = parseFloat(els.xSpacing.value) || 0.8;
-  const xSpacing = Math.min(1.2, Math.max(0.2, rawSpacing));
+  const L = O * state.params.edoSteps;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const pad = 48;
   const width = canvas.width - pad * 2;
   const height = canvas.height - pad * 2;
-  const totalCols = rec.endpoints.length + 1;
+  const intervalCols = rec.endpoints.length;
+  const quarter = width / 4;
+  const intervalWidth = quarter;
+  const intervalLeft = pad;
+  const auxLeft = pad + 2 * quarter;
+  const compositeX = pad + 3 * quarter;
 
   function yToPx(y) {
     return canvas.height - pad - (y / L) * height;
   }
 
-  function xToPx(i) {
-    return pad + (i + 1) * (width / (totalCols + 1)) * xSpacing;
+  function xIntervalToPx(i) {
+    if (intervalCols <= 0) return intervalLeft + intervalWidth / 2;
+    const span = intervalWidth / (intervalCols + 1);
+    return intervalLeft + (i + 1) * span;
   }
 
   ctx.lineWidth = 1;
@@ -650,7 +882,7 @@ function renderPlot() {
 
   ctx.lineWidth = 1.2;
   ctx.strokeStyle = "rgba(0,0,0,0.35)";
-  for (let y = 0; y <= L; y += state.params.N) {
+  for (let y = 0; y <= L; y += state.params.edoSteps) {
     const px = yToPx(y);
     ctx.beginPath();
     ctx.moveTo(pad, px);
@@ -658,11 +890,23 @@ function renderPlot() {
     ctx.stroke();
   }
 
+  if (rec.anchorRange) {
+    // Safe interior band used for anchor placement.
+    const top = yToPx(rec.anchorRange.amax);
+    const bottom = yToPx(rec.anchorRange.amin);
+    const bandY = Math.min(top, bottom);
+    const bandH = Math.abs(bottom - top);
+    ctx.save();
+    ctx.fillStyle = "rgba(15, 76, 92, 0.08)";
+    ctx.fillRect(pad, bandY, canvas.width - pad * 2, bandH);
+    ctx.restore();
+  }
+
   ctx.fillStyle = "#1b1b1b";
   ctx.font = "12px 'Palatino Linotype', serif";
   state.hoverPoints = [];
   rec.endpoints.forEach(([lo, hi], idx) => {
-    const x = xToPx(idx);
+    const x = xIntervalToPx(idx);
     ctx.strokeStyle = "#1b1b1b";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -685,12 +929,23 @@ function renderPlot() {
     ctx.arc(x, yToPx(a), 4, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    // Float anchor ring shows where the continuous anchor lands before quantization.
+    const aFloat = rec.anchorFloats ? rec.anchorFloats[idx] : a;
+    ctx.save();
+    ctx.strokeStyle = "rgba(15, 76, 92, 0.8)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(x, yToPx(aFloat), 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
     ctx.fillText(`a=${a}`, x + 6, yToPx(a) + 4);
     ctx.fillText(`lo=${lo}`, x + 6, yToPx(lo) + 12);
     ctx.fillText(`hi=${hi}`, x + 6, yToPx(hi) - 4);
   });
 
-  const xAll = xToPx(totalCols);
+  const xAll = compositeX;
+  const xAlpha = auxLeft + quarter / 3;
+  const xBeta = auxLeft + (2 * quarter) / 3;
   state.hoverPoints = rec.pitches.map((p) => ({
     pitch: p,
     x: xAll,
@@ -700,7 +955,7 @@ function renderPlot() {
   ctx.setLineDash([4, 4]);
   ctx.strokeStyle = "rgba(0,0,0,0.35)";
   rec.endpoints.forEach(([lo, hi], idx) => {
-    const x = xToPx(idx);
+    const x = xIntervalToPx(idx);
     [lo, hi].forEach((p) => {
       const y = yToPx(p);
       ctx.beginPath();
@@ -718,6 +973,102 @@ function renderPlot() {
     ctx.fillText(`${p}`, xAll + 6, yToPx(p) + 4);
     state.hoverPoints.push({ pitch: p, x: xAll, y: yToPx(p), type: "all" });
   });
+
+  if (state.params.placementMode === "v2" && state.hoverPitch !== null) {
+    const betaZeroData = betaZeroPitchesForPerm(rec.perm, state.params, L);
+    if (betaZeroData) {
+      const compositeList = endpointsListFromEndpoints(rec.endpoints);
+      ctx.save();
+      ctx.fillStyle = "rgba(15, 76, 92, 0.8)";
+      ctx.strokeStyle = "rgba(15, 76, 92, 0.6)";
+      ctx.lineWidth = 1;
+      ctx.font = "12px 'Palatino Linotype', serif";
+      betaZeroData.pitches.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(xBeta, yToPx(p), 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        const label = `${p}`;
+        const metrics = ctx.measureText(label);
+        ctx.fillText(label, xBeta - metrics.width - 6, yToPx(p) + 3);
+      });
+      const betaSorted = betaZeroData.endpointList;
+      const compSorted = compositeList;
+      const count = Math.min(betaSorted.length, compSorted.length);
+      ctx.strokeStyle = "rgba(200, 40, 40, 0.6)";
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < count; i++) {
+        const yFrom = yToPx(betaSorted[i]);
+        const yTo = yToPx(compSorted[i]);
+        ctx.beginPath();
+        ctx.moveTo(xBeta + 3, yFrom);
+        ctx.lineTo(xAll - 3, yTo);
+        ctx.stroke();
+      }
+      const label = "β=0";
+      const metrics = ctx.measureText(label);
+      const labelPaddingX = 6;
+      const labelPaddingY = 4;
+      const labelWidth = metrics.width + labelPaddingX * 2;
+      const labelHeight = 16 + labelPaddingY;
+      const labelX = xBeta - labelWidth / 2;
+      const labelY = pad - labelHeight - 8;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.fillRect(labelX, labelY, labelWidth, labelHeight);
+      ctx.strokeStyle = "rgba(15, 76, 92, 0.6)";
+      ctx.strokeRect(labelX, labelY, labelWidth, labelHeight);
+      ctx.fillStyle = "rgba(15, 76, 92, 0.9)";
+      ctx.fillText(label, labelX + labelPaddingX, labelY + labelHeight - 6);
+      ctx.restore();
+    }
+
+    const alphaZeroData = alphaZeroPitchesForPerm(rec.perm, state.params, L);
+    if (alphaZeroData) {
+      const compositeList = endpointsListFromEndpoints(rec.endpoints);
+      ctx.save();
+      ctx.fillStyle = "rgba(40, 80, 200, 0.8)";
+      ctx.strokeStyle = "rgba(40, 80, 200, 0.6)";
+      ctx.lineWidth = 1;
+      ctx.font = "12px 'Palatino Linotype', serif";
+      alphaZeroData.pitches.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(xAlpha, yToPx(p), 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        const label = `${p}`;
+        const metrics = ctx.measureText(label);
+        ctx.fillText(label, xAlpha - metrics.width - 6, yToPx(p) + 3);
+      });
+      const alphaSorted = alphaZeroData.endpointList;
+      const compSorted = compositeList;
+      const count = Math.min(alphaSorted.length, compSorted.length);
+      ctx.strokeStyle = "rgba(40, 80, 200, 0.6)";
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < count; i++) {
+        const yFrom = yToPx(alphaSorted[i]);
+        const yTo = yToPx(compSorted[i]);
+        ctx.beginPath();
+        ctx.moveTo(xAlpha + 3, yFrom);
+        ctx.lineTo(xAll - 3, yTo);
+        ctx.stroke();
+      }
+      const label = "α=0";
+      const metrics = ctx.measureText(label);
+      const labelPaddingX = 6;
+      const labelPaddingY = 4;
+      const labelWidth = metrics.width + labelPaddingX * 2;
+      const labelHeight = 16 + labelPaddingY;
+      const labelX = xAlpha - labelWidth / 2;
+      const labelY = pad - labelHeight - 8;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.fillRect(labelX, labelY, labelWidth, labelHeight);
+      ctx.strokeStyle = "rgba(40, 80, 200, 0.6)";
+      ctx.strokeRect(labelX, labelY, labelWidth, labelHeight);
+      ctx.fillStyle = "rgba(40, 80, 200, 0.9)";
+      ctx.fillText(label, labelX + labelPaddingX, labelY + labelHeight - 6);
+      ctx.restore();
+    }
+  }
 
   if (state.hoverPitch !== null) {
     const baseIndex = rec.pitches.indexOf(state.hoverPitch);
@@ -795,8 +1146,118 @@ function renderIntervals(intervals) {
     .join(" ");
 }
 
+function renderAnchorDebugLines(rec) {
+  if (!rec.anchorFloats || !rec.splits) return [];
+  // Compact per-column summary for quick inspection.
+  const metrics = anchorMetricsFromRecord(rec);
+  const formatFrac = (num, den) => `${num.toFixed(2)}/${den.toFixed(2)}`;
+  return rec.perm.map((d, idx) => {
+    const aFloat = rec.anchorFloats[idx];
+    const A = rec.anchors[idx];
+    const [low, high] = rec.endpoints[idx];
+    const split = rec.splits[idx];
+    const down = split ? split.down : "";
+    const up = split ? split.up : "";
+    const s = metrics.slack[idx];
+    const w = metrics.weights[idx];
+    const u = metrics.prefixFractions[idx];
+    const p = metrics.prefixSums[idx];
+    const line = `col ${idx + 1}: d=${d} s=${s} w=${w.toFixed(2)} u=${formatFrac(p, metrics.totalWeight)} a*=${aFloat.toFixed(2)} A=${A} down=${down} up=${up} low=${low} high=${high}`;
+    return `<div class="meta-line small">${line}</div>`;
+  });
+}
+
+function anchorMetricsFromRecord(rec) {
+  if (rec.slack && rec.weights && rec.prefixFractions && rec.prefixSums && rec.totalWeight) {
+    return {
+      slack: rec.slack,
+      weights: rec.weights,
+      prefixSums: rec.prefixSums,
+      prefixFractions: rec.prefixFractions,
+      totalWeight: rec.totalWeight
+    };
+  }
+  const L = state.activeO * state.params.edoSteps;
+  const slack = rec.perm.map((d) => L - d);
+  const weights = slack.map((s) => Math.pow(s, state.params.anchorBeta));
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0) || 1;
+  let prefix = 0;
+  const prefixSums = [];
+  const prefixFractions = weights.map((w) => {
+    const u = prefix / totalWeight;
+    prefixSums.push(prefix);
+    prefix += w;
+    return u;
+  });
+  return { slack, weights, prefixSums, prefixFractions, totalWeight };
+}
+
+function updateAnchorMath(rec) {
+  if (!els.anchorMath) return;
+  if (!rec || !rec.anchorFloats || !rec.splits) {
+    els.anchorMath.textContent = "No anchor data.";
+    return;
+  }
+  // Full anchor table with float/int anchors and the chosen integer split.
+  const metrics = anchorMetricsFromRecord(rec);
+  const formatFrac = (num, den) => `${num.toFixed(2)}/${den.toFixed(2)}`;
+  const rangeLine = rec.anchorRange
+    ? `<div class="meta-line">Amin=${rec.anchorRange.amin} Amax=${rec.anchorRange.amax}</div>`
+    : "";
+  const rows = rec.perm
+    .map((d, idx) => {
+      const aFloat = rec.anchorFloats[idx];
+      const A = rec.anchors[idx];
+      const [low, high] = rec.endpoints[idx];
+      const split = rec.splits[idx];
+      const down = split ? split.down : "";
+      const up = split ? split.up : "";
+      const s = metrics.slack[idx];
+      const w = metrics.weights[idx];
+      const u = metrics.prefixFractions[idx];
+      const p = metrics.prefixSums[idx];
+      return `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${d}</td>
+          <td>${s}</td>
+          <td>${w.toFixed ? w.toFixed(2) : w}</td>
+          <td>${formatFrac(p, metrics.totalWeight)}</td>
+          <td>${aFloat.toFixed(2)}</td>
+          <td>${A}</td>
+          <td>${down}</td>
+          <td>${up}</td>
+          <td>${low}</td>
+          <td>${high}</td>
+        </tr>
+      `;
+    })
+    .join("");
+  els.anchorMath.innerHTML = `
+    ${rangeLine}
+    <table class="anchor-table">
+      <thead>
+        <tr>
+          <th>col</th>
+          <th>d</th>
+          <th>s</th>
+          <th>w</th>
+          <th>u (P/W)</th>
+          <th>a*</th>
+          <th>A</th>
+          <th>down</th>
+          <th>up</th>
+          <th>low</th>
+          <th>high</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
 function renderPitchNames(pitches) {
-  if (state.params.N !== 12) {
+  if (state.params.edoSteps !== 12) {
     return pitches.map((p) => `<span class="pitch-name" data-pitch="${p}">step${p}</span>`).join("");
   }
   const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -814,7 +1275,7 @@ function renderPitchNames(pitches) {
 }
 
 function renderPitchPcSup(pitches) {
-  const N = state.params.N;
+  const N = state.params.edoSteps;
   return pitches
     .map((p) => {
       const pc = ((p % N) + N) % N;
@@ -945,15 +1406,46 @@ function render() {
   }
 }
 
+function updatePlacementControls(mode) {
+  const isLegacy = mode === "v1";
+  const disabled = isLegacy;
+  [els.anchorAlpha, els.anchorBeta, els.anchorRho].forEach((el) => {
+    if (!el) return;
+    el.disabled = disabled;
+  });
+}
+
 function recompute() {
   const intervals = parseIntervals(els.intervals.value);
   if (intervals.length === 0) return;
-  const N = Math.max(1, parseInt(els.edo.value, 10) || 12);
+  const edoSteps = Math.max(1, parseInt(els.edo.value, 10) || 12);
   const minO = Math.max(1, parseInt(els.minO.value, 10) || 1);
   const maxO = Math.max(minO, parseInt(els.maxO.value, 10) || minO);
+  const anchorAlphaRaw = parseFloat(els.anchorAlpha.value);
+  const anchorBetaRaw = parseFloat(els.anchorBeta.value);
+  const anchorRhoRaw = parseFloat(els.anchorRho.value);
+  const anchorAlpha = Number.isFinite(anchorAlphaRaw)
+    ? Math.min(1, Math.max(0, anchorAlphaRaw))
+    : defaultParams.anchorAlpha;
+  const anchorBeta = Number.isFinite(anchorBetaRaw)
+    ? Math.max(0, anchorBetaRaw)
+    : defaultParams.anchorBeta;
+  const anchorRho = Number.isFinite(anchorRhoRaw)
+    ? Math.min(1, Math.max(0, anchorRhoRaw))
+    : defaultParams.anchorRho;
 
-  state.params = { ...defaultParams, N, useDamping: els.useDamping.value !== "off" };
-  state.params.alpha = calibrateAlpha(state.params, 0.5);
+  const placementMode = els.placementMode.value || "v2";
+  state.params = {
+    ...defaultParams,
+    edoSteps,
+    useDamping: els.useDamping.value !== "off",
+    placementMode,
+    anchorAlpha,
+    anchorBeta,
+    anchorRho
+  };
+  updatePlacementControls(placementMode);
+  state.params.roughAlpha = calibrateAlpha(state.params, 0.5);
   state.gRef = computeReferenceG(state.params);
   renderOddBiasToggles(intervals);
   state.resultsByO = {};
@@ -987,6 +1479,10 @@ function saveInputs() {
   localStorage.setItem(storageKeys.maxO, els.maxO.value);
   localStorage.setItem(storageKeys.xSpacing, els.xSpacing.value);
   localStorage.setItem(storageKeys.useDamping, els.useDamping.value);
+  localStorage.setItem(storageKeys.placementMode, els.placementMode.value);
+  localStorage.setItem(storageKeys.anchorAlpha, els.anchorAlpha.value);
+  localStorage.setItem(storageKeys.anchorBeta, els.anchorBeta.value);
+  localStorage.setItem(storageKeys.anchorRho, els.anchorRho.value);
 }
 
 function loadInputs() {
@@ -1006,6 +1502,14 @@ function loadInputs() {
   if (storedSpacing) els.xSpacing.value = storedSpacing;
   const storedDamping = localStorage.getItem(storageKeys.useDamping);
   if (storedDamping) els.useDamping.value = storedDamping;
+  const storedPlacementMode = localStorage.getItem(storageKeys.placementMode);
+  if (storedPlacementMode) els.placementMode.value = storedPlacementMode;
+  const storedAnchorAlpha = localStorage.getItem(storageKeys.anchorAlpha);
+  if (storedAnchorAlpha) els.anchorAlpha.value = storedAnchorAlpha;
+  const storedAnchorBeta = localStorage.getItem(storageKeys.anchorBeta);
+  if (storedAnchorBeta) els.anchorBeta.value = storedAnchorBeta;
+  const storedAnchorRho = localStorage.getItem(storageKeys.anchorRho);
+  if (storedAnchorRho) els.anchorRho.value = storedAnchorRho;
   const storedFilter = localStorage.getItem(storageKeys.filter);
   if (storedFilter) els.filter.value = storedFilter;
 }
@@ -1157,7 +1661,20 @@ els.runBtn.addEventListener("click", () => {
   saveInputs();
   recompute();
 });
-[els.intervals, els.edo, els.baseNote, els.baseOctave, els.minO, els.maxO, els.xSpacing, els.useDamping].forEach((el) => {
+[
+  els.intervals,
+  els.edo,
+  els.baseNote,
+  els.baseOctave,
+  els.minO,
+  els.maxO,
+  els.xSpacing,
+  els.useDamping,
+  els.placementMode,
+  els.anchorAlpha,
+  els.anchorBeta,
+  els.anchorRho
+].forEach((el) => {
   el.addEventListener("input", scheduleRecompute);
   el.addEventListener("change", scheduleRecompute);
 });
@@ -1183,7 +1700,7 @@ els.plot.addEventListener("mousemove", (event) => {
   const x = (event.clientX - rect.left) * scaleX;
   const y = (event.clientY - rect.top) * scaleY;
   const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
-  const L = state.activeO * state.params.N;
+  const L = state.activeO * state.params.edoSteps;
   let hit = null;
   if (rec) {
     const pad = 48;
@@ -1210,7 +1727,7 @@ els.plot.addEventListener("mousemove", (event) => {
   }
   if (hit !== state.hoverPitch) {
     state.hoverPitch = hit;
-    state.hoverWindowL = state.activeO * state.params.N;
+    state.hoverWindowL = state.activeO * state.params.edoSteps;
     const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
     if (rec) {
       const counts = intervalCountsFromPitch(rec.pitches, hit);
@@ -1232,4 +1749,5 @@ els.plot.addEventListener("mouseleave", () => {
 
 loadInputs();
 loadFavorites();
+updatePlacementControls(els.placementMode.value || "v2");
 recompute();

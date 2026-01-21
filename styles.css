@@ -149,6 +149,12 @@ input {
   background: white;
 }
 
+input:disabled,
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 select {
   padding: 10px 12px;
   border-radius: 10px;
@@ -230,6 +236,11 @@ button {
   gap: 20px;
 }
 
+.plot-stack {
+  display: grid;
+  gap: 12px;
+}
+
 .plot-wrap {
   background: white;
   border-radius: 16px;
@@ -265,6 +276,21 @@ canvas#plot {
 
 .meta-lines.small {
   font-size: 0.8rem;
+}
+
+.anchor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  margin-top: 8px;
+}
+
+.anchor-table th,
+.anchor-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
 }
 
 .meta-line {
