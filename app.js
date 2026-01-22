@@ -14,22 +14,30 @@ const defaultParams = {
   edoSteps: 12,
   compoundReliefM: 0.55,
   // Ratio cost targets and weighting.
-  sigma_cents: 20.0,
-  ratioLam: 0.20,
+  sigmaCents: 20.0,
+  ratioLambda: 0.20,
   // Roughness model and weighting.
   roughAlpha: 0.0,
   roughPartialsK: 12,
-  amp_power: 1.0,
-  rough_a: 3.5,
-  rough_b: 5.75,
+  ampPower: 1.0,
+  roughA: 3.5,
+  roughB: 5.75,
   // Register damping.
   registerDampingK: 1.6,
   // Anchor placement parameters (v2).
   anchorAlpha: 0.3,
   anchorBeta: 1.0,
   anchorRho: 0.5,
+  // Center repulsion placement parameters (Engine A).
+  repulseGamma: 1.0,
+  repulseKappa: 0.4,
+  repulseLambda: 0.1,
+  repulseEta: 0.08,
+  repulseIterations: 60,
+  repulseAlpha: 1.0,
+  midiTailMs: 200,
   // Reference tuning.
-  f_ref_hz: 55.0,
+  fRefHz: 55.0,
 };
 
 function hueForInterval(interval, windowL) {
@@ -58,7 +66,9 @@ const state = {
   hoverWindowL: null,
   gRef: null,
   oddBias: [],
-  favorites: []
+  favorites: [],
+  pendingOddBias: null,
+  favoritePromptHandlers: null
 };
 
 const els = {
@@ -75,6 +85,7 @@ const els = {
   plot: document.getElementById("plot"),
   selectedInfo: document.getElementById("selectedInfo"),
   hoverInfo: document.getElementById("hoverInfo"),
+  keyboard: document.getElementById("keyboard"),
   resultsTable: document.getElementById("resultsTable"),
   filter: document.getElementById("filter"),
   useDamping: document.getElementById("useDamping"),
@@ -84,10 +95,16 @@ const els = {
   anchorMath: document.getElementById("anchorMath"),
   midiOut: document.getElementById("midiOut"),
   midiPreview: document.getElementById("midiPreview"),
+  guitarTuning: document.getElementById("guitarTuning"),
   placementMode: document.getElementById("placementMode"),
-  anchorAlpha: document.getElementById("anchorAlpha"),
-  anchorBeta: document.getElementById("anchorBeta"),
-  anchorRho: document.getElementById("anchorRho")
+  placementParams: document.getElementById("placementParams"),
+  midiParams: document.getElementById("midiParams"),
+  fretboard: document.getElementById("fretboard"),
+  favoritePrompt: document.getElementById("favoritePrompt"),
+  favoritePromptText: document.getElementById("favoritePromptText"),
+  favoriteSwitchBtn: document.getElementById("favoriteSwitchBtn"),
+  favoriteImportBtn: document.getElementById("favoriteImportBtn"),
+  favoriteCancelBtn: document.getElementById("favoriteCancelBtn")
 };
 
 let midiAccess = null;
@@ -111,7 +128,15 @@ const storageKeys = {
   anchorAlpha: "intervalApplet.anchorAlpha",
   anchorBeta: "intervalApplet.anchorBeta",
   anchorRho: "intervalApplet.anchorRho",
-  placementMode: "intervalApplet.placementMode"
+  placementMode: "intervalApplet.placementMode",
+  guitarTuning: "intervalApplet.guitarTuning",
+  repulseGamma: "intervalApplet.repulseGamma",
+  repulseKappa: "intervalApplet.repulseKappa",
+  repulseLambda: "intervalApplet.repulseLambda",
+  repulseEta: "intervalApplet.repulseEta",
+  repulseIterations: "intervalApplet.repulseIterations",
+  repulseAlpha: "intervalApplet.repulseAlpha",
+  midiTailMs: "intervalApplet.midiTailMs"
 };
 
 function parseIntervals(text) {
@@ -119,6 +144,10 @@ function parseIntervals(text) {
     .split(/[,\s]+/)
     .map((v) => parseInt(v, 10))
     .filter((v) => Number.isFinite(v));
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function lowBiasSplit(length) {
@@ -211,6 +240,122 @@ function quantizeInterval(anchor, length, rho, oddBias) {
   return { A, low, high, down, up };
 }
 
+// Placement engine utilities.
+function centerBoundsForPerm(L, perm, rho) {
+  return perm.map((d, idx) => {
+    const cmin = rho * d;
+    const cmax = L - (1 - rho) * d;
+    const bias = state.oddBias[idx];
+    const split = quantizedSplit(d, rho, bias);
+    const min = Math.max(cmin, split.down);
+    const max = Math.min(cmax, L - split.up);
+    if (min > max) {
+      return { min: cmin, max: cmax };
+    }
+    return { min, max };
+  });
+}
+
+function neutralCentersFromBounds(bounds) {
+  const n = bounds.length;
+  if (n === 0) return [];
+  return bounds.map((b, idx) => {
+    const t = n === 1 ? 0.5 : idx / (n - 1);
+    return b.min + t * (b.max - b.min);
+  });
+}
+
+function projectedPairwiseSolve(initialCenters, bounds, iterations, step, accumulateForces) {
+  const n = initialCenters.length;
+  const centers = initialCenters.slice();
+  const forces = new Array(n).fill(0);
+  for (let iter = 0; iter < iterations; iter++) {
+    forces.fill(0);
+    accumulateForces(centers, forces);
+    for (let i = 0; i < n; i++) {
+      const next = centers[i] + step * forces[i];
+      centers[i] = clamp(next, bounds[i].min, bounds[i].max);
+    }
+  }
+  return centers;
+}
+
+function repulsionDeltasForPerm(perm, gamma, kappa, L) {
+  const n = perm.length;
+  const denom = Math.max(1e-9, L);
+  const radii = perm.map((d) => Math.pow(d / denom, gamma));
+  const deltas = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const delta = kappa * (radii[i] + radii[j]);
+      deltas[i][j] = delta;
+      deltas[j][i] = delta;
+    }
+  }
+  return { radii, deltas };
+}
+
+function accumulateRepulsionForces(centers, forces, deltas, lambda) {
+  const n = centers.length;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const dist = centers[i] - centers[j];
+      const dabs = Math.abs(dist);
+      const v = deltas[i][j] - dabs;
+      if (v > 0) {
+        const sign = dist >= 0 ? 1 : -1;
+        const F = 2 * lambda * v * sign;
+        forces[i] += F;
+        forces[j] -= F;
+      }
+    }
+  }
+}
+
+function repulsionDiagnostics(centers, deltas, lambda) {
+  const n = centers.length;
+  let minDistance = Number.POSITIVE_INFINITY;
+  let energy = 0;
+  const violations = [];
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const dist = Math.abs(centers[i] - centers[j]);
+      minDistance = Math.min(minDistance, dist);
+      const v = deltas[i][j] - dist;
+      if (v > 0) {
+        energy += lambda * v * v;
+        violations.push({ i, j, violation: v });
+      }
+    }
+  }
+  if (!Number.isFinite(minDistance)) minDistance = 0;
+  return { minDistance, energy, violations };
+}
+
+function minPairwiseDistance(centers) {
+  const n = centers.length;
+  if (n < 2) return 0;
+  let minDistance = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      minDistance = Math.min(minDistance, Math.abs(centers[i] - centers[j]));
+    }
+  }
+  return Number.isFinite(minDistance) ? minDistance : 0;
+}
+
+function anchorRangeFromBounds(bounds) {
+  if (!bounds || !bounds.length) return null;
+  let amin = Number.POSITIVE_INFINITY;
+  let amax = Number.NEGATIVE_INFINITY;
+  bounds.forEach((b) => {
+    amin = Math.min(amin, b.min);
+    amax = Math.max(amax, b.max);
+  });
+  if (!Number.isFinite(amin) || !Number.isFinite(amax)) return null;
+  return { amin, amax };
+}
+
 function anchorsForPerm(L, perm, params) {
   // v2 anchor generation: alpha/beta control how slack weights shape placement.
   const n = perm.length;
@@ -278,6 +423,295 @@ function anchorsForPerm(L, perm, params) {
   };
 }
 
+const placementEngines = {
+  alphaBeta: {
+    id: "v2",
+    label: "v2 (parametric)",
+    solveCenters(L, perm, params) {
+      const anchorData = anchorsForPerm(L, perm, params);
+      if (!anchorData) return null;
+      return {
+        engineId: "v2",
+        centers: anchorData.anchorFloats.slice(),
+        anchors: anchorData.anchors.slice(),
+        splits: anchorData.splits,
+        anchorRange: { amin: anchorData.amin, amax: anchorData.amax },
+        bounds: anchorData.anchorFloats.map(() => ({ min: anchorData.amin, max: anchorData.amax })),
+        debugFlags: {
+          showBounds: true,
+          showSplits: true,
+          showEndpointsFloat: true,
+          showWeights: true
+        },
+        meta: {
+          slack: anchorData.slack,
+          weights: anchorData.weights,
+          prefixSums: anchorData.prefixSums,
+          prefixFractions: anchorData.prefixFractions,
+          totalWeight: anchorData.totalWeight
+        }
+      };
+    }
+  },
+  repulsion: {
+    id: "repulse",
+    label: "A (center repulsion)",
+    solveCenters(L, perm, params) {
+      const rho = params.anchorRho;
+      const bounds = centerBoundsForPerm(L, perm, rho);
+      const neutral = neutralCentersFromBounds(bounds);
+      const { deltas } = repulsionDeltasForPerm(perm, params.repulseGamma, params.repulseKappa, L);
+      const repelled = projectedPairwiseSolve(
+        neutral,
+        bounds,
+        params.repulseIterations,
+        params.repulseEta,
+        (centers, forces) => accumulateRepulsionForces(centers, forces, deltas, params.repulseLambda)
+      );
+      const alpha = Number.isFinite(params.repulseAlpha)
+        ? clamp(params.repulseAlpha, 0, 1)
+        : 1;
+      const blended = Number.isFinite(alpha)
+        ? repelled.map((c, idx) => {
+          const mix = (1 - alpha) * neutral[idx] + alpha * c;
+          return clamp(mix, bounds[idx].min, bounds[idx].max);
+        })
+        : repelled.slice();
+      return {
+        engineId: "repulse",
+        centers: blended,
+        anchors: null,
+        splits: null,
+        anchorRange: null,
+        bounds,
+        debugFlags: {
+          showBounds: true,
+          showSplits: true,
+          showEndpointsFloat: true,
+          showWeights: false
+        },
+        diagnostics: repulsionDiagnostics(blended, deltas, params.repulseLambda)
+      };
+    }
+  }
+};
+
+function resolvePlacementEngine(mode) {
+  if (mode === "repulse") return placementEngines.repulsion;
+  return placementEngines.alphaBeta;
+}
+
+const placementParamRegistry = {
+  v1: [],
+  v2: [
+    {
+      id: "anchorAlpha",
+      label: "Anchor alpha (0..1)",
+      min: 0,
+      max: 1,
+      step: 0.05,
+      kind: "float",
+      help: "Blends between equal index spacing and prefix-weighted spacing. Higher alpha pulls centers toward the prefix-weighted layout. It affects only v2 placement before quantization."
+    },
+    {
+      id: "anchorBeta",
+      label: "Anchor beta (>=0)",
+      min: 0,
+      step: 0.1,
+      kind: "float",
+      help: "Exponent applied to slack when building prefix weights. Higher beta makes large-slack intervals dominate the placement. It affects only v2 placement before quantization."
+    },
+    {
+      id: "anchorRho",
+      label: "Anchor rho (0..1)",
+      min: 0,
+      max: 1,
+      step: 0.05,
+      kind: "float",
+      help: "Orientation parameter that splits each interval around its center. It affects the continuous endpoint position and the quantized split. Downstream scoring always uses the quantized endpoints."
+    }
+  ],
+  repulse: [
+    {
+      id: "anchorRho",
+      label: "Anchor rho (0..1)",
+      min: 0,
+      max: 1,
+      step: 0.05,
+      kind: "float",
+      help: "Orientation parameter that splits each interval around its center. It affects the continuous endpoint position and the quantized split. Downstream scoring always uses the quantized endpoints."
+    },
+    {
+      id: "repulseGamma",
+      label: "Repulse gamma (>=0)",
+      min: 0,
+      step: 0.1,
+      kind: "float",
+      help: "Exponent that scales how interval size affects personal space. Higher gamma gives large intervals stronger repulsion. It only affects the Delta target for center separation."
+    },
+    {
+      id: "repulseKappa",
+      label: "Repulse kappa (>0)",
+      min: 0,
+      step: 0.05,
+      kind: "float",
+      help: "Dimensionless scale for desired center separation. It multiplies the normalized radii sum to form Delta. Larger kappa pushes centers farther apart."
+    },
+    {
+      id: "repulseLambda",
+      label: "Repulse lambda (>=0)",
+      min: 0,
+      step: 0.05,
+      kind: "float",
+      help: "Strength of the repulsion penalty in the solver. Higher lambda reduces violations faster per iteration. It does not change the feasible bounds."
+    },
+    {
+      id: "repulseEta",
+      label: "Repulse eta (>0)",
+      min: 0,
+      step: 0.01,
+      kind: "float",
+      help: "Step size for each iteration update. Larger eta moves centers more per step, which can converge faster or overshoot. It is applied after forces are accumulated."
+    },
+    {
+      id: "repulseIterations",
+      label: "Repulse iterations",
+      min: 1,
+      step: 1,
+      kind: "int",
+      help: "Number of projected solver steps to run. More iterations give repulsion more time to settle. This affects performance linearly."
+    },
+    {
+      id: "repulseAlpha",
+      label: "Repulse alpha (0..1)",
+      min: 0,
+      max: 1,
+      step: 0.05,
+      kind: "float",
+      help: "Blend between neutral centers and fully repelled centers. 0 uses the neutral spacing, 1 uses the repelled result. It is applied after the solver iterations."
+    }
+  ]
+};
+
+const midiParamRegistry = [
+  {
+    id: "midiTailMs",
+    label: "MIDI tail (ms)",
+    min: 0,
+    step: 50,
+    kind: "int",
+    help: "Extra ring-out time added after the last note-on in sequences. This keeps notes sustaining before a final note-off. It applies to the b/n playback modes."
+  }
+];
+
+const placementParamDefs = Object.values(placementParamRegistry).flat();
+const placementParamIds = Array.from(new Set(placementParamDefs.map((def) => def.id)));
+const midiParamIds = midiParamRegistry.map((def) => def.id);
+
+function renderPlacementParams(mode) {
+  const container = els.placementParams;
+  if (!container) return;
+  container.innerHTML = "";
+  const defs = placementParamRegistry[mode] || [];
+  defs.forEach((def) => {
+    const field = document.createElement("div");
+    field.className = "field";
+    const label = document.createElement("label");
+    label.setAttribute("for", def.id);
+    label.textContent = def.label;
+    if (def.help) {
+      label.title = def.help;
+    }
+    const input = document.createElement("input");
+    input.type = "number";
+    input.id = def.id;
+    if (typeof def.min === "number") input.min = def.min.toString();
+    if (typeof def.max === "number") input.max = def.max.toString();
+    if (typeof def.step === "number") input.step = def.step.toString();
+    if (def.help) {
+      input.title = def.help;
+    }
+    const stored = localStorage.getItem(storageKeys[def.id] || "");
+    const fallback = defaultParams[def.id];
+    input.value = stored !== null ? stored : (fallback !== undefined ? `${fallback}` : "");
+    field.appendChild(label);
+    field.appendChild(input);
+    container.appendChild(field);
+  });
+  bindPlacementParamListeners();
+}
+
+function renderMidiParams() {
+  const container = els.midiParams;
+  if (!container) return;
+  container.innerHTML = "";
+  midiParamRegistry.forEach((def) => {
+    const field = document.createElement("div");
+    field.className = "field";
+    const label = document.createElement("label");
+    label.setAttribute("for", def.id);
+    label.textContent = def.label;
+    if (def.help) {
+      label.title = def.help;
+    }
+    const input = document.createElement("input");
+    input.type = "number";
+    input.id = def.id;
+    if (typeof def.min === "number") input.min = def.min.toString();
+    if (typeof def.max === "number") input.max = def.max.toString();
+    if (typeof def.step === "number") input.step = def.step.toString();
+    if (def.help) {
+      input.title = def.help;
+    }
+    const stored = localStorage.getItem(storageKeys[def.id] || "");
+    const fallback = defaultParams[def.id];
+    input.value = stored !== null ? stored : (fallback !== undefined ? `${fallback}` : "");
+    field.appendChild(label);
+    field.appendChild(input);
+    container.appendChild(field);
+  });
+  const inputs = Array.from(container.querySelectorAll("input"));
+  inputs.forEach((input) => {
+    input.addEventListener("input", scheduleRecompute);
+    input.addEventListener("change", scheduleRecompute);
+  });
+}
+
+function bindPlacementParamListeners() {
+  const container = els.placementParams;
+  if (!container) return;
+  const inputs = Array.from(container.querySelectorAll("input"));
+  inputs.forEach((input) => {
+    input.addEventListener("input", scheduleRecompute);
+    input.addEventListener("change", scheduleRecompute);
+  });
+}
+
+function readPlacementParam(id, fallback) {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  const raw = el.value;
+  const num = Number(raw);
+  if (!Number.isFinite(num)) return fallback;
+  return num;
+}
+
+function readPlacementParamInt(id, fallback, min) {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  const num = parseInt(el.value, 10);
+  if (!Number.isFinite(num)) return fallback;
+  if (typeof min === "number") return Math.max(min, num);
+  return num;
+}
+
+function engineLabelForId(id) {
+  if (id === "v1") return "v1 (legacy)";
+  if (id === "repulse") return placementEngines.repulsion.label;
+  if (id === "v2") return placementEngines.alphaBeta.label;
+  return id || "";
+}
+
 function endpointsListFromEndpoints(endpoints) {
   // Preserve duplicates for index-aligned comparisons.
   return endpoints.flat().sort((a, b) => a - b);
@@ -334,7 +768,7 @@ function inducedIntervals(pitches) {
   return out.sort((a, b) => a - b);
 }
 
-function ratioCost(cents, sigma, ratioLam) {
+function ratioCost(cents, sigma, ratioLambda) {
   // Match interval to nearest target ratio with a height penalty.
   let best = Number.POSITIVE_INFINITY;
   let bestRatio = [1, 1];
@@ -342,7 +776,7 @@ function ratioCost(cents, sigma, ratioLam) {
   for (const [n, d] of RATIO_TARGETS) {
     const target = 1200 * Math.log2(n / d);
     const height = Math.log2(n * d);
-    const cost = Math.pow(Math.abs(cents - target) / sigma, 2) + ratioLam * height;
+    const cost = Math.pow(Math.abs(cents - target) / sigma, 2) + ratioLambda * height;
     if (cost < best) {
       best = cost;
       bestRatio = [n, d];
@@ -400,19 +834,19 @@ function calibrateAlpha(params, gamma) {
   // Scale roughness into the same magnitude range as ratio cost.
   const L = params.edoSteps * 3;
   const lo = Math.floor(L / 4);
-  const f0Hz = f0FromLo(lo, params.edoSteps, params.f_ref_hz);
+  const f0Hz = f0FromLo(lo, params.edoSteps, params.fRefHz);
   const ratioVals = [];
   const roughVals = [];
   for (let dMod = 1; dMod < params.edoSteps; dMod++) {
     const cents = 1200 * (dMod / params.edoSteps);
-    const { cost } = ratioCost(cents, params.sigma_cents, params.ratioLam);
+    const { cost } = ratioCost(cents, params.sigmaCents, params.ratioLambda);
     const rough = roughnessKharm(
       cents,
       f0Hz,
       params.roughPartialsK,
-      params.amp_power,
-      params.rough_a,
-      params.rough_b
+      params.ampPower,
+      params.roughA,
+      params.roughB
     );
     ratioVals.push(cost);
     roughVals.push(rough);
@@ -438,15 +872,15 @@ function dyadPenalty(lo, hi, params, L) {
   const dSteps = hi - lo;
   const dMod = dSteps % params.edoSteps;
   const cents = 1200 * (dMod / params.edoSteps);
-  const { cost } = ratioCost(cents, params.sigma_cents, params.ratioLam);
-  const f0Hz = f0FromLo(lo, params.edoSteps, params.f_ref_hz);
+  const { cost } = ratioCost(cents, params.sigmaCents, params.ratioLambda);
+  const f0Hz = f0FromLo(lo, params.edoSteps, params.fRefHz);
   const rough = roughnessKharm(
     cents,
     f0Hz,
     params.roughPartialsK,
-    params.amp_power,
-    params.rough_a,
-    params.rough_b
+    params.ampPower,
+    params.roughA,
+    params.roughB
   );
   const r = registerDamping(lo, L, params.registerDampingK);
   const c = compoundRelief(dSteps, params.edoSteps, params.compoundReliefM);
@@ -458,15 +892,15 @@ function dyadPenaltyDetails(lo, hi, params, L) {
   const dSteps = hi - lo;
   const dMod = dSteps % params.edoSteps;
   const cents = 1200 * (dMod / params.edoSteps);
-  const { cost } = ratioCost(cents, params.sigma_cents, params.ratioLam);
-  const f0Hz = f0FromLo(lo, params.edoSteps, params.f_ref_hz);
+  const { cost } = ratioCost(cents, params.sigmaCents, params.ratioLambda);
+  const f0Hz = f0FromLo(lo, params.edoSteps, params.fRefHz);
   const rough = roughnessKharm(
     cents,
     f0Hz,
     params.roughPartialsK,
-    params.amp_power,
-    params.rough_a,
-    params.rough_b
+    params.ampPower,
+    params.roughA,
+    params.roughB
   );
   const r = registerDamping(lo, L, params.registerDampingK);
   const c = compoundRelief(dSteps, params.edoSteps, params.compoundReliefM);
@@ -600,45 +1034,106 @@ function uniquePermutations(values) {
 }
 
 function computeForWindow(intervals, params, O) {
-  // v1 vs v2: v1 uses legacy equal-spaced anchors; v2 uses parametric anchors.
+  // v1 vs newer engines: legacy anchors vs pluggable center solvers.
   const L = O * params.edoSteps;
-  const isLegacy = params.placementMode === "v1";
-  let anchors = null;
+  const mode = params.placementMode || "v2";
+  const isLegacy = mode === "v1";
+  const engine = isLegacy ? null : resolvePlacementEngine(mode);
+  let legacyAnchors = null;
   let legacyRange = null;
   if (isLegacy) {
     const [amin, amax] = safeAnchorRange(L, intervals);
-    anchors = equalSpacedAnchors(amin, amax, intervals.length);
+    legacyAnchors = equalSpacedAnchors(amin, amax, intervals.length);
     legacyRange = { amin, amax };
   }
   const perms = uniquePermutations(intervals);
   const records = perms.map((perm) => {
-    let anchorData = null;
     let endpoints = null;
+    let endpointsFloat = null;
+    let anchors = null;
+    let anchorFloats = null;
+    let anchorRange = null;
+    let splits = null;
+    let slack = null;
+    let weights = null;
+    let prefixSums = null;
+    let prefixFractions = null;
+    let totalWeight = null;
+    let centerBounds = null;
+    let centerDiagnostics = null;
+    let debugFlags = null;
+    let engineId = isLegacy ? "v1" : engine.id;
     if (isLegacy) {
       // Legacy placement: anchors fixed, odd-bias only flips split for odd d.
-      endpoints = endpointsForPerm(anchors, perm);
-      const splits = perm.map((d, idx) => {
+      endpoints = endpointsForPerm(legacyAnchors, perm);
+      endpointsFloat = endpoints.map(([low, high]) => [low, high]);
+      const splitsLegacy = perm.map((d, idx) => {
         const flipOdd = state.oddBias[idx] === "up";
         const [down, up] = biasedSplit(d, flipOdd);
         return { down, up };
       });
-      anchorData = {
-        anchors,
-        anchorFloats: anchors.map((a) => a),
-        splits,
-        amin: legacyRange ? legacyRange.amin : null,
-        amax: legacyRange ? legacyRange.amax : null
+      anchors = legacyAnchors;
+      anchorFloats = legacyAnchors.map((a) => a);
+      debugFlags = {
+        showBounds: true,
+        showSplits: true,
+        showEndpointsFloat: false,
+        showWeights: false
       };
+      splits = splitsLegacy;
+      anchorRange = legacyRange;
+      if (legacyRange) {
+        centerBounds = perm.map(() => ({ min: legacyRange.amin, max: legacyRange.amax }));
+      }
     } else {
-      // Parametric placement: compute anchors per permutation then quantize endpoints.
-      anchorData = anchorsForPerm(L, perm, params);
-      if (!anchorData) return null;
-      endpoints = anchorData.anchorFloats.map((a, idx) => {
+      const placement = engine.solveCenters(L, perm, params);
+      if (!placement) return null;
+      engineId = placement.engineId;
+      anchorFloats = placement.centers;
+      centerBounds = placement.bounds || null;
+      debugFlags = placement.debugFlags || null;
+      const rho = params.anchorRho;
+      endpointsFloat = anchorFloats.map((c, idx) => rhoPlace(c, perm[idx], rho));
+      const anchorsList = [];
+      const splitsList = [];
+      endpoints = anchorFloats.map((c, idx) => {
         const d = perm[idx];
         const bias = state.oddBias[idx];
-        const { low, high } = quantizeInterval(a, d, params.anchorRho, bias);
+        const { A, low, high, down, up } = quantizeInterval(c, d, rho, bias);
+        anchorsList.push(A);
+        splitsList.push({ down, up });
         return [low, high];
       });
+      if (placement.engineId === "v2") {
+        anchors = placement.anchors;
+        splits = placement.splits;
+        anchorRange = placement.anchorRange;
+        if (placement.meta) {
+          slack = placement.meta.slack;
+          weights = placement.meta.weights;
+          prefixSums = placement.meta.prefixSums;
+          prefixFractions = placement.meta.prefixFractions;
+          totalWeight = placement.meta.totalWeight;
+        }
+      } else {
+        anchors = anchorsList;
+        splits = splitsList;
+        anchorRange = placement.anchorRange;
+      }
+      if (!anchorRange && centerBounds) {
+        anchorRange = anchorRangeFromBounds(centerBounds);
+      }
+      centerDiagnostics = placement.diagnostics || null;
+    }
+    const centersForDiag = anchorFloats || anchors || [];
+    if (!centerDiagnostics) {
+      centerDiagnostics = {
+        minDistance: minPairwiseDistance(centersForDiag),
+        energy: null,
+        violations: null
+      };
+    } else if (!Number.isFinite(centerDiagnostics.minDistance)) {
+      centerDiagnostics.minDistance = minPairwiseDistance(centersForDiag);
     }
     const pitches = pitchesFromEndpoints(endpoints);
     const induced = inducedIntervals(pitches);
@@ -647,15 +1142,21 @@ function computeForWindow(intervals, params, O) {
     return {
       perm,
       endpoints,
-      anchors: anchorData ? anchorData.anchors : anchors,
-      anchorFloats: anchorData ? anchorData.anchorFloats : null,
-      anchorRange: anchorData ? { amin: anchorData.amin, amax: anchorData.amax } : null,
-      splits: anchorData ? anchorData.splits : null,
-      slack: anchorData ? anchorData.slack : null,
-      weights: anchorData ? anchorData.weights : null,
-      prefixSums: anchorData ? anchorData.prefixSums : null,
-      prefixFractions: anchorData ? anchorData.prefixFractions : null,
-      totalWeight: anchorData ? anchorData.totalWeight : null,
+      endpointsFloat,
+      centers: anchorFloats,
+      anchors,
+      anchorFloats,
+      anchorRange,
+      splits,
+      slack,
+      weights,
+      prefixSums,
+      prefixFractions,
+      totalWeight,
+      centerBounds,
+      centerDiagnostics,
+      debugFlags,
+      engine: engineId,
       pitches,
       induced,
       inducedCounts: intervalCounts(induced),
@@ -672,17 +1173,22 @@ function computeForWindow(intervals, params, O) {
 function renderOddBiasToggles(intervals) {
   els.oddBias.innerHTML = "";
   state.oddBias = intervals.map(() => "down");
+  const preset = state.pendingOddBias;
+  if (Array.isArray(preset) && preset.length === intervals.length) {
+    state.oddBias = preset.slice();
+  }
   const stored = localStorage.getItem(storageKeys.oddBias);
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length === intervals.length) {
+      if (!preset && Array.isArray(parsed) && parsed.length === intervals.length) {
         state.oddBias = parsed;
       }
     } catch {
       state.oddBias = intervals.map(() => "down");
     }
   }
+  state.pendingOddBias = null;
   intervals.forEach((val, idx) => {
     const btn = document.createElement("button");
     const isOdd = val % 2 === 1;
@@ -772,31 +1278,43 @@ function updateMeta() {
   }
   const O = state.activeO;
   const L = O * state.params.edoSteps;
+  const recs = state.resultsByO[state.activeO] || [];
+  const rankIndex = recs.findIndex((r) => r === rec);
+  const rankText = rankIndex >= 0 ? `${rankIndex + 1} / ${recs.length}` : "—";
   const slacks = rec.perm.map((d) => L - d);
   const minSlack = Math.min(...slacks);
   const maxSlack = Math.max(...slacks);
   const slackRatio = minSlack > 0 ? (maxSlack / minSlack) : Number.POSITIVE_INFINITY;
   const pitchCount = rec.pitches.length;
+  const engineLabel = engineLabelForId(rec.engine);
+  const centerMinDist = rec.centerDiagnostics ? rec.centerDiagnostics.minDistance : null;
+  const centerEnergy = rec.centerDiagnostics ? rec.centerDiagnostics.energy : null;
+  const centerViolations = rec.centerDiagnostics && rec.centerDiagnostics.violations
+    ? rec.centerDiagnostics.violations.length
+    : 0;
   // Anchor debug for visibility into the parametric placement math.
   const anchorRange = rec.anchorRange
     ? `anchor range: [${rec.anchorRange.amin}, ${rec.anchorRange.amax}]`
     : "";
-  const anchorLines = renderAnchorDebugLines(rec).join("");
   els.selectedInfo.innerHTML = [
-    `<div class="meta-line">perm: ${rec.perm.join(" ")}</div>`,
+    `<div class="meta-line perm-line">perm: ${rec.perm.join(" ")}</div>`,
+    engineLabel ? `<div class="meta-line">engine: ${engineLabel}</div>` : "",
+    `<div class="meta-line">rank: ${rankText}</div>`,
     `<div class="meta-line grid"><span class="label">pitches</span><span class="pitch-grid" style="--pitch-count:${pitchCount}">${renderPitches(rec.pitches)}</span></div>`,
     `<div class="meta-line grid"><span class="label">pitch names</span><span class="pitch-grid" style="--pitch-count:${pitchCount}">${renderPitchNames(rec.pitches)}</span></div>`,
     `<div class="meta-line grid"><span class="label">pitch pcs</span><span class="pitch-grid" style="--pitch-count:${pitchCount}">${renderPitchPcSup(rec.pitches)}</span></div>`,
-    `<div class="meta-line">intervals: ${renderIntervals(rec.induced)}</div>`,
-    `<div class="meta-line">counts: ${renderCounts(rec.inducedCounts)}</div>`,
+    `<div class="meta-line metric-block"><div class="metric-label">intervals</div><div class="metric-values">${renderIntervals(rec.induced)}</div></div>`,
+    `<div class="meta-line metric-block"><div class="metric-label">counts</div><div class="metric-values">${renderCounts(rec.inducedCounts)}</div></div>`,
     `<div class="meta-line" id="hoverCountsLine">hover counts: —</div>`,
     `<div class="meta-line">IV: ${rec.iv.join(" ")}</div>`,
     `<div class="meta-line">prime: ${rec.primeForm.join(" ")}</div>`,
     `<div class="meta-line">tension: ${rec.total.toFixed(6)}</div>`,
     `<div class="meta-line">per pair: ${rec.perPair.toFixed(6)}</div>`,
     `<div class="meta-line">slack ratio: ${Number.isFinite(slackRatio) ? slackRatio.toFixed(3) : "inf"}</div>`,
-    anchorRange ? `<div class="meta-line">${anchorRange}</div>` : "",
-    anchorLines ? `<div class="meta-line">anchor details:</div>${anchorLines}` : ""
+    Number.isFinite(centerMinDist) ? `<div class="meta-line">center min dist: ${centerMinDist.toFixed(3)}</div>` : "",
+    Number.isFinite(centerEnergy) ? `<div class="meta-line">center energy: ${centerEnergy.toFixed(3)}</div>` : "",
+    centerViolations ? `<div class="meta-line">center violations: ${centerViolations}</div>` : "",
+    anchorRange ? `<div class="meta-line">${anchorRange}</div>` : ""
   ].join("");
 
   void O;
@@ -974,6 +1492,19 @@ function renderPlot() {
     state.hoverPoints.push({ pitch: p, x: xAll, y: yToPx(p), type: "all" });
   });
 
+  if (state.hoverPitch !== null) {
+    const y = yToPx(state.hoverPitch);
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 210, 0, 0.35)";
+    ctx.strokeStyle = "rgba(255, 180, 0, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(xAll, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
   if (state.params.placementMode === "v2" && state.hoverPitch !== null) {
     const betaZeroData = betaZeroPitchesForPerm(rec.perm, state.params, L);
     if (betaZeroData) {
@@ -1131,39 +1662,160 @@ function renderPlot() {
 }
 
 function renderCounts(inducedCounts) {
-  return inducedCounts
-    .map(([d, c]) => `<span class="count-item" data-interval="${d}" data-total="${c}">${d}(${c})</span>`)
-    .join(" ");
+  const maxPerLine = 8;
+  const parts = inducedCounts.map(([d, c]) => (
+    `<span class="count-item" data-interval="${d}" data-total="${c}">${d}(${c})</span>`
+  ));
+  const rows = [];
+  for (let i = 0; i < parts.length; i += maxPerLine) {
+    rows.push(parts.slice(i, i + maxPerLine));
+  }
+  return rows.map((row) => `<div class="metric-row">${row.join("")}</div>`).join("");
 }
 
 function renderIntervals(intervals) {
+  const maxPerLine = 8;
   const counts = {};
-  return intervals
-    .map((d) => {
+  const groups = [];
+  intervals.forEach((d) => {
+    const last = groups[groups.length - 1];
+    if (!last || last.value !== d) {
+      groups.push({ value: d, items: [d] });
+    } else {
+      last.items.push(d);
+    }
+  });
+  const rows = [];
+  let current = [];
+  let currentCount = 0;
+  groups.forEach((group) => {
+    const items = group.items.map((d) => {
       counts[d] = (counts[d] || 0) + 1;
       return `<span class="interval-item" data-interval="${d}" data-occurrence="${counts[d]}">${d}</span>`;
-    })
-    .join(" ");
+    });
+    const groupCount = items.length;
+    const wouldExceed = currentCount > 0 && currentCount + groupCount > maxPerLine;
+    if (wouldExceed) {
+      rows.push(current);
+      current = [];
+      currentCount = 0;
+    }
+    current = current.concat(items);
+    currentCount += groupCount;
+    if (currentCount >= maxPerLine) {
+      rows.push(current);
+      current = [];
+      currentCount = 0;
+    }
+  });
+  if (currentCount > 0) {
+    rows.push(current);
+  }
+  return rows.map((row) => `<div class="metric-row">${row.join("")}</div>`).join("");
+}
+
+function formatNumber(value, digits) {
+  if (!Number.isFinite(value)) return "";
+  if (digits === 0) return `${Math.round(value)}`;
+  return value.toFixed(digits);
+}
+
+function placementDebugData(rec) {
+  if (!rec || !rec.perm || !rec.perm.length) return null;
+  const flags = rec.debugFlags || {};
+  const hasBounds = flags.showBounds && rec.centerBounds && rec.centerBounds.length === rec.perm.length;
+  const hasSplits = flags.showSplits && rec.splits && rec.splits.length === rec.perm.length;
+  const hasEndpointsFloat = flags.showEndpointsFloat
+    && rec.endpointsFloat
+    && rec.endpointsFloat.length === rec.perm.length;
+  const hasWeights = flags.showWeights
+    && rec.weights
+    && rec.prefixFractions
+    && rec.prefixSums
+    && rec.totalWeight;
+  const columns = [
+    { key: "col", label: "col", format: (v) => v },
+    { key: "d", label: "d", format: (v) => v }
+  ];
+  if (hasBounds || rec.anchorRange) {
+    columns.push(
+      { key: "cmin", label: "cmin", format: (v) => formatNumber(v, 2) },
+      { key: "cmax", label: "cmax", format: (v) => formatNumber(v, 2) }
+    );
+  }
+  columns.push({ key: "c", label: "c*", format: (v) => formatNumber(v, 2) });
+  if (hasEndpointsFloat) {
+    columns.push(
+      { key: "lowStar", label: "low*", format: (v) => formatNumber(v, 2) },
+      { key: "highStar", label: "high*", format: (v) => formatNumber(v, 2) }
+    );
+  }
+  if (hasSplits) {
+    columns.push(
+      { key: "down", label: "down", format: (v) => formatNumber(v, 0) },
+      { key: "up", label: "up", format: (v) => formatNumber(v, 0) }
+    );
+  }
+  columns.push(
+    { key: "low", label: "low", format: (v) => formatNumber(v, 0) },
+    { key: "high", label: "high", format: (v) => formatNumber(v, 0) }
+  );
+  if (hasWeights) {
+    columns.push(
+      { key: "slack", label: "s", format: (v) => formatNumber(v, 0) },
+      { key: "weight", label: "w", format: (v) => formatNumber(v, 2) },
+      { key: "prefix", label: "u (P/W)", format: (v) => v }
+    );
+  }
+  const metrics = hasWeights ? anchorMetricsFromRecord(rec) : null;
+  const rows = rec.perm.map((d, idx) => {
+    const bounds = hasBounds ? rec.centerBounds[idx] : null;
+    const range = rec.anchorRange || null;
+    const cmin = bounds ? bounds.min : (range ? range.amin : null);
+    const cmax = bounds ? bounds.max : (range ? range.amax : null);
+    const center = rec.centers
+      ? rec.centers[idx]
+      : (rec.anchorFloats ? rec.anchorFloats[idx] : rec.anchors[idx]);
+    const [lowStar, highStar] = hasEndpointsFloat
+      ? rec.endpointsFloat[idx]
+      : rec.endpoints[idx];
+    const [low, high] = rec.endpoints[idx];
+    const split = hasSplits ? rec.splits[idx] : null;
+    let prefix = "";
+    if (metrics) {
+      prefix = `${metrics.prefixSums[idx].toFixed(2)}/${metrics.totalWeight.toFixed(2)}`;
+    }
+    return {
+      col: idx + 1,
+      d,
+      cmin,
+      cmax,
+      c: center,
+      lowStar,
+      highStar,
+      down: split ? split.down : null,
+      up: split ? split.up : null,
+      low,
+      high,
+      slack: metrics ? metrics.slack[idx] : null,
+      weight: metrics ? metrics.weights[idx] : null,
+      prefix
+    };
+  });
+  return { columns, rows };
 }
 
 function renderAnchorDebugLines(rec) {
-  if (!rec.anchorFloats || !rec.splits) return [];
-  // Compact per-column summary for quick inspection.
-  const metrics = anchorMetricsFromRecord(rec);
-  const formatFrac = (num, den) => `${num.toFixed(2)}/${den.toFixed(2)}`;
-  return rec.perm.map((d, idx) => {
-    const aFloat = rec.anchorFloats[idx];
-    const A = rec.anchors[idx];
-    const [low, high] = rec.endpoints[idx];
-    const split = rec.splits[idx];
-    const down = split ? split.down : "";
-    const up = split ? split.up : "";
-    const s = metrics.slack[idx];
-    const w = metrics.weights[idx];
-    const u = metrics.prefixFractions[idx];
-    const p = metrics.prefixSums[idx];
-    const line = `col ${idx + 1}: d=${d} s=${s} w=${w.toFixed(2)} u=${formatFrac(p, metrics.totalWeight)} a*=${aFloat.toFixed(2)} A=${A} down=${down} up=${up} low=${low} high=${high}`;
-    return `<div class="meta-line small">${line}</div>`;
+  const data = placementDebugData(rec);
+  if (!data) return [];
+  return data.rows.map((row) => {
+    const parts = data.columns
+      .map((col) => {
+        const value = col.format(row[col.key]);
+        return value === "" ? null : `${col.label}=${value}`;
+      })
+      .filter(Boolean);
+    return `<div class="meta-line small">${parts.join(" ")}</div>`;
   });
 }
 
@@ -1194,62 +1846,31 @@ function anchorMetricsFromRecord(rec) {
 
 function updateAnchorMath(rec) {
   if (!els.anchorMath) return;
-  if (!rec || !rec.anchorFloats || !rec.splits) {
-    els.anchorMath.textContent = "No anchor data.";
+  const data = placementDebugData(rec);
+  if (!data) {
+    els.anchorMath.textContent = "No placement data.";
     return;
   }
-  // Full anchor table with float/int anchors and the chosen integer split.
-  const metrics = anchorMetricsFromRecord(rec);
-  const formatFrac = (num, den) => `${num.toFixed(2)}/${den.toFixed(2)}`;
   const rangeLine = rec.anchorRange
-    ? `<div class="meta-line">Amin=${rec.anchorRange.amin} Amax=${rec.anchorRange.amax}</div>`
+    ? `<div class="meta-line">Amin=${rec.anchorRange.amin.toFixed(2)} Amax=${rec.anchorRange.amax.toFixed(2)}</div>`
     : "";
-  const rows = rec.perm
-    .map((d, idx) => {
-      const aFloat = rec.anchorFloats[idx];
-      const A = rec.anchors[idx];
-      const [low, high] = rec.endpoints[idx];
-      const split = rec.splits[idx];
-      const down = split ? split.down : "";
-      const up = split ? split.up : "";
-      const s = metrics.slack[idx];
-      const w = metrics.weights[idx];
-      const u = metrics.prefixFractions[idx];
-      const p = metrics.prefixSums[idx];
-      return `
-        <tr>
-          <td>${idx + 1}</td>
-          <td>${d}</td>
-          <td>${s}</td>
-          <td>${w.toFixed ? w.toFixed(2) : w}</td>
-          <td>${formatFrac(p, metrics.totalWeight)}</td>
-          <td>${aFloat.toFixed(2)}</td>
-          <td>${A}</td>
-          <td>${down}</td>
-          <td>${up}</td>
-          <td>${low}</td>
-          <td>${high}</td>
-        </tr>
-      `;
+  const headers = data.columns.map((col) => `<th>${col.label}</th>`).join("");
+  const rows = data.rows
+    .map((row) => {
+      const cells = data.columns
+        .map((col) => {
+          const value = col.format(row[col.key]);
+          return `<td>${value}</td>`;
+        })
+        .join("");
+      return `<tr>${cells}</tr>`;
     })
     .join("");
   els.anchorMath.innerHTML = `
     ${rangeLine}
     <table class="anchor-table">
       <thead>
-        <tr>
-          <th>col</th>
-          <th>d</th>
-          <th>s</th>
-          <th>w</th>
-          <th>u (P/W)</th>
-          <th>a*</th>
-          <th>A</th>
-          <th>down</th>
-          <th>up</th>
-          <th>low</th>
-          <th>high</th>
-        </tr>
+        <tr>${headers}</tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
@@ -1310,6 +1931,9 @@ function clearCountHighlights() {
   items.forEach((el) => {
     el.classList.remove("highlight");
     el.classList.remove("partial");
+    el.classList.remove("hover-count");
+    el.removeAttribute("data-hover");
+    el.style.removeProperty("--hover-hue");
     el.style.color = "";
     el.style.borderColor = "";
   });
@@ -1334,13 +1958,18 @@ function highlightCounts(countMap) {
       if (total && localCount < total) {
         el.classList.add("partial");
       }
+      el.classList.add("hover-count");
+      el.dataset.hover = `${localCount}`;
       const maxInterval = state.hoverWindowL || interval || 1;
       const hue = hueForInterval(interval, maxInterval);
+      el.style.setProperty("--hover-hue", hue);
       el.style.color = `hsl(${hue}, 60%, 45%)`;
       el.style.borderColor = `hsla(${hue}, 60%, 45%, 0.85)`;
     } else {
       el.classList.remove("highlight");
       el.classList.remove("partial");
+      el.classList.remove("hover-count");
+      el.removeAttribute("data-hover");
       el.style.color = "";
       el.style.borderColor = "";
     }
@@ -1391,12 +2020,192 @@ function updateHoverCountsLine(countMap) {
   line.textContent = `hover counts: ${parts.join(" ")}`;
 }
 
+function renderKeyboard() {
+  if (!els.keyboard) return;
+  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+  const edo = state.params.edoSteps;
+  if (!rec || edo !== 12) {
+    els.keyboard.innerHTML = "<div class=\"meta-line\">Keyboard view uses 12-EDO.</div>";
+    return;
+  }
+  const O = state.activeO;
+  const L = O * edo;
+  const baseMidi = getBaseMidi();
+  const activeSet = new Set(rec.pitches.map((p) => p));
+  const hoverPitch = state.hoverPitch;
+  const whiteKeys = [];
+  const blackKeys = [];
+  let whiteIndex = 0;
+  const styles = getComputedStyle(els.keyboard);
+  const whiteWidth = parseFloat(styles.getPropertyValue("--white-width")) || 22;
+  const blackWidth = parseFloat(styles.getPropertyValue("--black-width")) || 14;
+  for (let step = 0; step <= L; step++) {
+    const midi = baseMidi + step;
+    const note = ((midi % 12) + 12) % 12;
+    const isBlack = note === 1 || note === 3 || note === 6 || note === 8 || note === 10;
+    if (!isBlack) {
+      const classes = ["white-key"];
+      if (activeSet.has(step)) classes.push("active");
+      if (hoverPitch === step) classes.push("hover");
+      whiteKeys.push(`<div class="${classes.join(" ")}" data-pitch="${step}"></div>`);
+      whiteIndex += 1;
+    } else {
+      const left = whiteIndex * whiteWidth - blackWidth / 2;
+      const classes = ["black-key"];
+      if (activeSet.has(step)) classes.push("active");
+      if (hoverPitch === step) classes.push("hover");
+      blackKeys.push(`<div class="${classes.join(" ")}" data-pitch="${step}" style="left:${left}px"></div>`);
+    }
+  }
+  els.keyboard.innerHTML = `
+    <div class="keyboard-keys">
+      <div class="white-keys">${whiteKeys.join("")}</div>
+      <div class="black-keys">${blackKeys.join("")}</div>
+    </div>
+  `;
+}
+
+function parseGuitarTuning(text) {
+  if (!text) return [];
+  const tokens = text.trim().includes(" ")
+    ? text.trim().split(/\s+/)
+    : (text.match(/[A-Ga-g](?:#|b)?/g) || []);
+  const semis = {
+    C: 0, "C#": 1, Db: 1,
+    D: 2, "D#": 3, Eb: 3,
+    E: 4,
+    F: 5, "F#": 6, Gb: 6,
+    G: 7, "G#": 8, Ab: 8,
+    A: 9, "A#": 10, Bb: 10,
+    B: 11
+  };
+  return tokens.map((t) => semis[t.toUpperCase()] ?? null).filter((v) => v !== null);
+}
+
+function noteNameFromMidi(midi) {
+  const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  const pc = ((midi % 12) + 12) % 12;
+  const octave = Math.floor(midi / 12) - 1;
+  return `${names[pc]}${octave}`;
+}
+
+function renderFretboard() {
+  if (!els.fretboard) return;
+  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+  const edo = state.params.edoSteps;
+  if (!rec || edo !== 12) {
+    els.fretboard.innerHTML = "<div class=\"meta-line\">Fretboard view uses 12-EDO.</div>";
+    return;
+  }
+  const tuning = parseGuitarTuning(els.guitarTuning.value || "EADGBE");
+  if (!tuning.length) {
+    els.fretboard.innerHTML = "<div class=\"meta-line\">Enter a tuning to show the fretboard.</div>";
+    return;
+  }
+  const baseMidi = getBaseMidi();
+  const pitchMidis = rec.pitches.map((p) => baseMidi + p);
+  const activeMidis = new Set(pitchMidis);
+  const midiToPitch = new Map(pitchMidis.map((midi, idx) => [midi, rec.pitches[idx]]));
+  const hoverMidi = state.hoverPitch === null ? null : baseMidi + state.hoverPitch;
+  const L = state.activeO * edo;
+  const styles = getComputedStyle(els.fretboard);
+  const baseWidth = parseFloat(styles.getPropertyValue("--fret-width")) || 29;
+  const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+  const paddingRight = parseFloat(styles.paddingRight) || 0;
+  const availableWidth = Math.max(0, els.fretboard.clientWidth - paddingLeft - paddingRight);
+  const fretDecay = Math.pow(1 / 1.3, 1 / 11);
+  let widths = Array.from({ length: 25 }, (_, idx) => {
+    if (idx === 0) return baseWidth;
+    const width = baseWidth * Math.pow(fretDecay, idx - 1);
+    return Math.max(baseWidth * 0.6, width);
+  });
+  const totalWidth = widths.reduce((sum, w) => sum + w, 0);
+  if (totalWidth > 0) {
+    const scale = 1.1;
+    widths = widths.map((w) => w * scale);
+  }
+  els.fretboard.style.setProperty("--nut-left", `${widths[0]}px`);
+  const openMidis = [];
+  tuning.forEach((pc, idx) => {
+    if (idx === 0) {
+      const offsetDown = (baseMidi - pc + 12) % 12;
+      openMidis.push(baseMidi - offsetDown);
+      return;
+    }
+    const prev = openMidis[idx - 1];
+    let offsetUp = (pc - (prev % 12) + 12) % 12;
+    if (offsetUp === 0) offsetUp = 12;
+    openMidis.push(prev + offsetUp);
+  });
+  const rows = [...openMidis].reverse().map((openMidi) => {
+    const cells = [];
+    for (let fret = 0; fret <= 24; fret++) {
+      const midi = openMidi + fret;
+      const isActive = activeMidis.has(midi);
+      const pitch = midiToPitch.get(midi);
+      const hue = Number.isFinite(pitch) ? hueForInterval(pitch, L || 1) : 0;
+      const dotClass = ["fret-dot"];
+      if (hoverMidi === midi) dotClass.push("hover");
+      const title = noteNameFromMidi(midi);
+      const dot = isActive
+        ? `<span class="${dotClass.join(" ")}" style="--fret-hue:${hue}">${pitch}</span>`
+        : "";
+      const cellClass = `fret-cell${(fret % 12 === 0 || fret % 12 === 3 || fret % 12 === 5 || fret % 12 === 7 || fret % 12 === 9) ? " marker" : ""}`;
+      cells.push(`<div class="${cellClass}" style="width:${widths[fret].toFixed(2)}px" title="${title}">${dot}</div>`);
+    }
+    return `<div class="fret-row">${cells.join("")}</div>`;
+  });
+  const markers = [];
+  for (let fret = 0; fret <= 24; fret++) {
+    const label = fret === 0
+      ? "OPEN"
+      : (fret % 12 === 0 || fret % 12 === 3 || fret % 12 === 5
+        || fret % 12 === 7 || fret % 12 === 9) ? `${fret}` : "";
+    markers.push(`<div class="fret-marker" style="width:${widths[fret].toFixed(2)}px">${label}</div>`);
+  }
+  els.fretboard.innerHTML = `
+    <div class="fretboard-rows">${rows.join("")}</div>
+    <div class="fretboard-markers">${markers.join("")}</div>
+  `;
+}
+
+function setHoverPitch(pitch) {
+  if (pitch === null) {
+    if (state.hoverPitch !== null) {
+      state.hoverPitch = null;
+      clearCountHighlights();
+      renderPlot();
+      updateHoverInfo();
+      updateHoverCountsLine(null);
+      renderKeyboard();
+      renderFretboard();
+    }
+    return;
+  }
+  if (pitch !== state.hoverPitch) {
+    state.hoverPitch = pitch;
+    state.hoverWindowL = state.activeO * state.params.edoSteps;
+    const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+    if (rec) {
+      const counts = intervalCountsFromPitch(rec.pitches, pitch);
+      highlightCounts(counts);
+      updateHoverCountsLine(counts);
+    }
+    renderPlot();
+    updateHoverInfo();
+    renderKeyboard();
+    renderFretboard();
+  }
+}
+
 function render() {
   buildTabs(Object.keys(state.resultsByO).map(Number));
   updateTable();
   renderPlot();
   updateMeta();
   updateHoverInfo();
+  renderKeyboard();
+  renderFretboard();
   renderFavorites();
   const rec = (state.resultsByO[state.activeO] || [])[0];
   if (rec) {
@@ -1406,33 +2215,26 @@ function render() {
   }
 }
 
-function updatePlacementControls(mode) {
-  const isLegacy = mode === "v1";
-  const disabled = isLegacy;
-  [els.anchorAlpha, els.anchorBeta, els.anchorRho].forEach((el) => {
-    if (!el) return;
-    el.disabled = disabled;
-  });
-}
-
 function recompute() {
   const intervals = parseIntervals(els.intervals.value);
   if (intervals.length === 0) return;
   const edoSteps = Math.max(1, parseInt(els.edo.value, 10) || 12);
   const minO = Math.max(1, parseInt(els.minO.value, 10) || 1);
   const maxO = Math.max(minO, parseInt(els.maxO.value, 10) || minO);
-  const anchorAlphaRaw = parseFloat(els.anchorAlpha.value);
-  const anchorBetaRaw = parseFloat(els.anchorBeta.value);
-  const anchorRhoRaw = parseFloat(els.anchorRho.value);
-  const anchorAlpha = Number.isFinite(anchorAlphaRaw)
-    ? Math.min(1, Math.max(0, anchorAlphaRaw))
-    : defaultParams.anchorAlpha;
-  const anchorBeta = Number.isFinite(anchorBetaRaw)
-    ? Math.max(0, anchorBetaRaw)
-    : defaultParams.anchorBeta;
-  const anchorRho = Number.isFinite(anchorRhoRaw)
-    ? Math.min(1, Math.max(0, anchorRhoRaw))
-    : defaultParams.anchorRho;
+  const anchorAlpha = clamp(readPlacementParam("anchorAlpha", defaultParams.anchorAlpha), 0, 1);
+  const anchorBeta = Math.max(0, readPlacementParam("anchorBeta", defaultParams.anchorBeta));
+  const anchorRho = clamp(readPlacementParam("anchorRho", defaultParams.anchorRho), 0, 1);
+  const repulseGamma = Math.max(0, readPlacementParam("repulseGamma", defaultParams.repulseGamma));
+  const repulseKappa = Math.max(0, readPlacementParam("repulseKappa", defaultParams.repulseKappa));
+  const repulseLambda = Math.max(0, readPlacementParam("repulseLambda", defaultParams.repulseLambda));
+  const repulseEta = Math.max(0, readPlacementParam("repulseEta", defaultParams.repulseEta));
+  const repulseIterations = readPlacementParamInt(
+    "repulseIterations",
+    defaultParams.repulseIterations,
+    1
+  );
+  const repulseAlpha = clamp(readPlacementParam("repulseAlpha", defaultParams.repulseAlpha), 0, 1);
+  const midiTailMs = Math.max(0, readPlacementParamInt("midiTailMs", defaultParams.midiTailMs, 0));
 
   const placementMode = els.placementMode.value || "v2";
   state.params = {
@@ -1442,9 +2244,15 @@ function recompute() {
     placementMode,
     anchorAlpha,
     anchorBeta,
-    anchorRho
+    anchorRho,
+    repulseGamma,
+    repulseKappa,
+    repulseLambda,
+    repulseEta,
+    repulseIterations,
+    repulseAlpha,
+    midiTailMs
   };
-  updatePlacementControls(placementMode);
   state.params.roughAlpha = calibrateAlpha(state.params, 0.5);
   state.gRef = computeReferenceG(state.params);
   renderOddBiasToggles(intervals);
@@ -1480,9 +2288,17 @@ function saveInputs() {
   localStorage.setItem(storageKeys.xSpacing, els.xSpacing.value);
   localStorage.setItem(storageKeys.useDamping, els.useDamping.value);
   localStorage.setItem(storageKeys.placementMode, els.placementMode.value);
-  localStorage.setItem(storageKeys.anchorAlpha, els.anchorAlpha.value);
-  localStorage.setItem(storageKeys.anchorBeta, els.anchorBeta.value);
-  localStorage.setItem(storageKeys.anchorRho, els.anchorRho.value);
+  localStorage.setItem(storageKeys.guitarTuning, els.guitarTuning.value);
+  placementParamIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el || !storageKeys[id]) return;
+    localStorage.setItem(storageKeys[id], el.value);
+  });
+  midiParamIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el || !storageKeys[id]) return;
+    localStorage.setItem(storageKeys[id], el.value);
+  });
 }
 
 function loadInputs() {
@@ -1504,12 +2320,10 @@ function loadInputs() {
   if (storedDamping) els.useDamping.value = storedDamping;
   const storedPlacementMode = localStorage.getItem(storageKeys.placementMode);
   if (storedPlacementMode) els.placementMode.value = storedPlacementMode;
-  const storedAnchorAlpha = localStorage.getItem(storageKeys.anchorAlpha);
-  if (storedAnchorAlpha) els.anchorAlpha.value = storedAnchorAlpha;
-  const storedAnchorBeta = localStorage.getItem(storageKeys.anchorBeta);
-  if (storedAnchorBeta) els.anchorBeta.value = storedAnchorBeta;
-  const storedAnchorRho = localStorage.getItem(storageKeys.anchorRho);
-  if (storedAnchorRho) els.anchorRho.value = storedAnchorRho;
+  const storedTuning = localStorage.getItem(storageKeys.guitarTuning);
+  if (storedTuning) els.guitarTuning.value = storedTuning;
+  renderPlacementParams(els.placementMode.value || "v2");
+  renderMidiParams();
   const storedFilter = localStorage.getItem(storageKeys.filter);
   if (storedFilter) els.filter.value = storedFilter;
 }
@@ -1532,27 +2346,169 @@ function saveFavorites() {
   localStorage.setItem(storageKeys.favorites, JSON.stringify(state.favorites));
 }
 
+function capturePlacementParamValues() {
+  const values = {};
+  placementParamIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    values[id] = el.value;
+  });
+  midiParamIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    values[id] = el.value;
+  });
+  return values;
+}
+
+function captureFavoriteSnapshot(rec) {
+  return {
+    intervals: els.intervals.value,
+    O: state.activeO,
+    perm: rec.perm,
+    pitches: rec.pitches,
+    placementMode: els.placementMode.value || "v2",
+    placementParams: capturePlacementParamValues(),
+    oddBias: state.oddBias.slice(),
+    edo: els.edo.value,
+    baseNote: els.baseNote.value,
+    baseOctave: els.baseOctave.value,
+    minO: els.minO.value,
+    maxO: els.maxO.value,
+    xSpacing: els.xSpacing.value,
+    useDamping: els.useDamping.value
+  };
+}
+
+function favoriteKeyFromSnapshot(snapshot) {
+  return JSON.stringify({
+    intervals: snapshot.intervals,
+    O: snapshot.O,
+    perm: snapshot.perm,
+    placementMode: snapshot.placementMode,
+    placementParams: snapshot.placementParams,
+    oddBias: snapshot.oddBias,
+    edo: snapshot.edo,
+    useDamping: snapshot.useDamping
+  });
+}
+
 function favoriteKey(rec) {
   const O = state.activeO;
   return `${els.intervals.value}|O${O}|${rec.perm.join(",")}|${rec.pitches.join(",")}`;
 }
 
 function toggleFavorite(rec) {
-  const key = favoriteKey(rec);
-  const idx = state.favorites.findIndex((f) => f.key === key);
+  const snapshot = captureFavoriteSnapshot(rec);
+  const key = favoriteKeyFromSnapshot(snapshot);
+  const legacyKey = favoriteKey(rec);
+  const idx = state.favorites.findIndex((f) => f.key === key || f.key === legacyKey);
   if (idx >= 0) {
     state.favorites.splice(idx, 1);
   } else {
     state.favorites.push({
       key,
+      snapshot,
       intervals: els.intervals.value,
       O: state.activeO,
       perm: rec.perm,
       pitches: rec.pitches,
-      total: rec.total
+      total: rec.total,
+      perPair: rec.perPair
     });
   }
   saveFavorites();
+}
+
+function applyFavoriteSnapshot(snapshot) {
+  els.intervals.value = snapshot.intervals || els.intervals.value;
+  els.edo.value = snapshot.edo || els.edo.value;
+  els.baseNote.value = snapshot.baseNote || els.baseNote.value;
+  els.baseOctave.value = snapshot.baseOctave || els.baseOctave.value;
+  els.minO.value = snapshot.minO || els.minO.value;
+  els.maxO.value = snapshot.maxO || els.maxO.value;
+  els.xSpacing.value = snapshot.xSpacing || els.xSpacing.value;
+  els.useDamping.value = snapshot.useDamping || els.useDamping.value;
+  els.placementMode.value = snapshot.placementMode || els.placementMode.value;
+  renderPlacementParams(els.placementMode.value || "v2");
+  const paramValues = snapshot.placementParams || {};
+  Object.entries(paramValues).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = value;
+  });
+  if (Array.isArray(snapshot.oddBias)) {
+    state.pendingOddBias = snapshot.oddBias.slice();
+    localStorage.setItem(storageKeys.oddBias, JSON.stringify(snapshot.oddBias));
+  }
+  saveInputs();
+  recompute();
+}
+
+function captureCurrentSettingsSnapshot() {
+  return {
+    intervals: els.intervals.value,
+    O: state.activeO,
+    perm: null,
+    pitches: null,
+    placementMode: els.placementMode.value || "v2",
+    placementParams: capturePlacementParamValues(),
+    oddBias: state.oddBias.slice(),
+    edo: els.edo.value,
+    baseNote: els.baseNote.value,
+    baseOctave: els.baseOctave.value,
+    minO: els.minO.value,
+    maxO: els.maxO.value,
+    xSpacing: els.xSpacing.value,
+    useDamping: els.useDamping.value
+  };
+}
+
+function snapshotsDiffer(a, b) {
+  if (!a || !b) return false;
+  const keys = [
+    "intervals",
+    "placementMode",
+    "edo",
+    "useDamping"
+  ];
+  if (keys.some((key) => `${a[key]}` !== `${b[key]}`)) return true;
+  const paramsA = { ...(a.placementParams || {}) };
+  const paramsB = { ...(b.placementParams || {}) };
+  delete paramsA.midiTailMs;
+  delete paramsB.midiTailMs;
+  const paramKeys = new Set([...Object.keys(paramsA), ...Object.keys(paramsB)]);
+  for (const key of paramKeys) {
+    if (`${paramsA[key]}` !== `${paramsB[key]}`) return true;
+  }
+  const biasA = Array.isArray(a.oddBias) ? a.oddBias.join("|") : "";
+  const biasB = Array.isArray(b.oddBias) ? b.oddBias.join("|") : "";
+  return biasA !== biasB;
+}
+
+function openFavoritePrompt(message, handlers) {
+  if (!els.favoritePrompt) return;
+  els.favoritePromptText.textContent = message;
+  state.favoritePromptHandlers = handlers;
+  els.favoritePrompt.classList.remove("hidden");
+}
+
+function closeFavoritePrompt() {
+  if (!els.favoritePrompt) return;
+  els.favoritePrompt.classList.add("hidden");
+  state.favoritePromptHandlers = null;
+}
+
+function finalizeFavoriteSelection(fav, targetO) {
+  const recs = state.resultsByO[targetO] || [];
+  const match = recs.find((r) => r.perm.join(" ") === fav.perm.join(" "));
+  if (match) {
+    state.activeO = targetO;
+    state.selected = match;
+    localStorage.setItem(storageKeys.activeO, targetO.toString());
+    localStorage.setItem(storageKeys.selectedPerm, match.perm.join(" "));
+    render();
+  }
 }
 
 function renderFavorites() {
@@ -1561,29 +2517,92 @@ function renderFavorites() {
     els.favoritesList.textContent = "No favorites yet.";
     return;
   }
-  const list = document.createElement("div");
+  const table = document.createElement("table");
+  table.className = "favorites-table";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Permutation</th>
+        <th>Pitches</th>
+        <th>O</th>
+        <th>Tension</th>
+        <th>Per pair</th>
+        <th>Engine</th>
+        <th>Select</th>
+        <th>Remove</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  const tbody = table.querySelector("tbody");
   state.favorites.forEach((fav) => {
-    const item = document.createElement("div");
-    item.className = "fav-item";
+    const row = document.createElement("tr");
     const total = typeof fav.total === "number" ? fav.total.toFixed(3) : "n/a";
-    item.innerHTML = `<span>O${fav.O} perm ${fav.perm.join(" ")} | ${fav.pitches.join(" ")} | t=${total}</span>`;
+    const perPair = typeof fav.perPair === "number" ? fav.perPair.toFixed(3) : "n/a";
+    const engineLabel = fav.snapshot ? engineLabelForId(fav.snapshot.placementMode) : "";
     const btn = document.createElement("button");
     btn.textContent = "Select";
     btn.addEventListener("click", () => {
-      const recs = state.resultsByO[fav.O] || [];
-      const match = recs.find((r) => r.perm.join(" ") === fav.perm.join(" "));
-      if (match) {
-        state.activeO = fav.O;
-        state.selected = match;
-        localStorage.setItem(storageKeys.activeO, fav.O.toString());
-        localStorage.setItem(storageKeys.selectedPerm, match.perm.join(" "));
-        render();
+      const snapshot = fav.snapshot;
+      if (snapshot) {
+        const currentSnapshot = captureCurrentSettingsSnapshot();
+        const snapshotMode = snapshot.placementMode || "v2";
+        if (snapshotsDiffer(currentSnapshot, snapshot)) {
+          const message = `Favorite settings differ from current. (Engine: ${engineLabelForId(snapshotMode)}.) Choose how to load it.`;
+          openFavoritePrompt(message, {
+            onSwitch: () => {
+              applyFavoriteSnapshot(snapshot);
+              finalizeFavoriteSelection(fav, snapshot.O);
+            },
+            onImport: () => {
+              els.intervals.value = snapshot.intervals || els.intervals.value;
+              saveInputs();
+              recompute();
+              finalizeFavoriteSelection(fav, snapshot.O);
+            },
+            onCancel: () => {}
+          });
+          return;
+        }
+        applyFavoriteSnapshot(snapshot);
+        finalizeFavoriteSelection(fav, snapshot.O);
+        return;
+      }
+      finalizeFavoriteSelection(fav, fav.O);
+    });
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "Remove";
+    removeBtn.className = "ghost";
+    removeBtn.addEventListener("click", () => {
+      const idx = state.favorites.findIndex((f) => f.key === fav.key);
+      if (idx >= 0) {
+        state.favorites.splice(idx, 1);
+        saveFavorites();
+        renderFavorites();
       }
     });
-    item.appendChild(btn);
-    list.appendChild(item);
+    const cells = [
+      fav.perm.join(" "),
+      fav.pitches.join(" "),
+      `O${fav.O}`,
+      total,
+      perPair,
+      engineLabel || "—"
+    ];
+    cells.forEach((text) => {
+      const td = document.createElement("td");
+      td.textContent = text;
+      row.appendChild(td);
+    });
+    const selectTd = document.createElement("td");
+    selectTd.appendChild(btn);
+    row.appendChild(selectTd);
+    const removeTd = document.createElement("td");
+    removeTd.appendChild(removeBtn);
+    row.appendChild(removeTd);
+    tbody.appendChild(row);
   });
-  els.favoritesList.appendChild(list);
+  els.favoritesList.appendChild(table);
 }
 
 async function requestMidiAccess() {
@@ -1637,13 +2656,106 @@ function previewSelected() {
       els.status.textContent = "Select a MIDI output";
       return;
     }
-    const base = 60;
-    const notes = rec.pitches.map((p) => base + p).filter((n) => n >= 0 && n <= 127);
+    const baseNote = parseInt(els.baseNote.value, 10) || 0;
+    const baseOctave = parseInt(els.baseOctave.value, 10) || 4;
+    const baseMidi = (baseOctave + 1) * 12 + baseNote;
+    const notes = rec.pitches.map((p) => baseMidi + p).filter((n) => n >= 0 && n <= 127);
     const now = window.performance.now();
     const durationMs = 2000;
     notes.forEach((note) => out.send([0x90, note, 80], now));
     notes.forEach((note) => out.send([0x80, note, 64], now + durationMs));
   });
+}
+
+function scheduleNoteOnOff(out, note, onTime, durationMs, velocity) {
+  out.send([0x90, note, velocity], onTime);
+  out.send([0x80, note, 64], onTime + durationMs);
+}
+
+function scheduleNoteOn(out, note, onTime, velocity) {
+  out.send([0x90, note, velocity], onTime);
+}
+
+function scheduleNoteOff(out, note, offTime) {
+  out.send([0x80, note, 64], offTime);
+}
+
+function getBaseMidi() {
+  const baseNote = parseInt(els.baseNote.value, 10) || 0;
+  const baseOctave = parseInt(els.baseOctave.value, 10) || 4;
+  return (baseOctave + 1) * 12 + baseNote;
+}
+
+function playIntervalSequence() {
+  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+  if (!rec) return;
+  requestMidiAccess().then(() => {
+    const out = getSelectedOutput();
+    if (!out) {
+      els.status.textContent = "Select a MIDI output";
+      return;
+    }
+    const baseMidi = getBaseMidi();
+    const now = window.performance.now();
+    const durationMs = 420;
+    const gapMs = 120;
+    const velocity = 80;
+    const usedNotes = new Set();
+    rec.endpoints.forEach(([low, high], idx) => {
+      const start = now + idx * (durationMs + gapMs);
+      const lowNote = baseMidi + low;
+      const highNote = baseMidi + high;
+      if (lowNote >= 0 && lowNote <= 127) {
+        scheduleNoteOn(out, lowNote, start, velocity);
+        usedNotes.add(lowNote);
+      }
+      if (highNote >= 0 && highNote <= 127) {
+        scheduleNoteOn(out, highNote, start, velocity);
+        usedNotes.add(highNote);
+      }
+    });
+    const tailMs = state.params.midiTailMs || 0;
+    const endTime = now + rec.endpoints.length * (durationMs + gapMs) + tailMs;
+    usedNotes.forEach((note) => scheduleNoteOff(out, note, endTime));
+  });
+}
+
+function playArpeggioSequence() {
+  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+  if (!rec) return;
+  requestMidiAccess().then(() => {
+    const out = getSelectedOutput();
+    if (!out) {
+      els.status.textContent = "Select a MIDI output";
+      return;
+    }
+    const baseMidi = getBaseMidi();
+    const now = window.performance.now();
+    const durationMs = 320;
+    const gapMs = 90;
+    const velocity = 78;
+    const usedNotes = new Set();
+    rec.pitches.forEach((pitch, idx) => {
+      const start = now + idx * (durationMs + gapMs);
+      const note = baseMidi + pitch;
+      if (note >= 0 && note <= 127) {
+        scheduleNoteOn(out, note, start, velocity);
+        usedNotes.add(note);
+      }
+    });
+    const tailMs = state.params.midiTailMs || 0;
+    const endTime = now + rec.pitches.length * (durationMs + gapMs) + tailMs;
+    usedNotes.forEach((note) => scheduleNoteOff(out, note, endTime));
+  });
+}
+
+function shouldIgnoreShortcut(event) {
+  const target = event.target;
+  if (!target) return false;
+  const tag = target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (target.isContentEditable) return true;
+  return false;
 }
 
 let recomputeTimer = null;
@@ -1655,6 +2767,12 @@ function scheduleRecompute() {
     saveInputs();
     recompute();
   }, 150);
+}
+
+function handlePlacementModeChange() {
+  renderPlacementParams(els.placementMode.value || "v2");
+  saveInputs();
+  scheduleRecompute();
 }
 
 els.runBtn.addEventListener("click", () => {
@@ -1669,15 +2787,21 @@ els.runBtn.addEventListener("click", () => {
   els.minO,
   els.maxO,
   els.xSpacing,
-  els.useDamping,
-  els.placementMode,
-  els.anchorAlpha,
-  els.anchorBeta,
-  els.anchorRho
+  els.useDamping
 ].forEach((el) => {
   el.addEventListener("input", scheduleRecompute);
   el.addEventListener("change", scheduleRecompute);
 });
+els.guitarTuning.addEventListener("input", () => {
+  saveInputs();
+  renderFretboard();
+});
+els.guitarTuning.addEventListener("change", () => {
+  saveInputs();
+  renderFretboard();
+});
+els.placementMode.addEventListener("change", handlePlacementModeChange);
+els.placementMode.addEventListener("input", handlePlacementModeChange);
 els.filter.addEventListener("input", () => {
   localStorage.setItem(storageKeys.filter, els.filter.value);
   updateTable();
@@ -1692,6 +2816,62 @@ els.midiPreview.addEventListener("click", previewSelected);
 window.addEventListener("resize", () => {
   renderPlot();
 });
+window.addEventListener("keydown", (event) => {
+  if (shouldIgnoreShortcut(event)) return;
+  if (event.key === "v" || event.key === "V") {
+    event.preventDefault();
+    previewSelected();
+    return;
+  }
+  if (event.key === "b" || event.key === "B") {
+    event.preventDefault();
+    playIntervalSequence();
+    return;
+  }
+  if (event.key === "n" || event.key === "N") {
+    event.preventDefault();
+    playArpeggioSequence();
+    return;
+  }
+  if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    const recs = state.resultsByO[state.activeO] || [];
+    if (!recs.length) return;
+    const current = state.selected || recs[0];
+    let idx = recs.findIndex((r) => r === current);
+    if (idx < 0) idx = 0;
+    const delta = event.key === "ArrowLeft" ? -1 : 1;
+    const nextIdx = (idx + delta + recs.length) % recs.length;
+    const next = recs[nextIdx];
+    if (next) {
+      event.preventDefault();
+      state.selected = next;
+      localStorage.setItem(storageKeys.selectedPerm, next.perm.join(" "));
+      render();
+    }
+  }
+});
+
+if (els.favoriteSwitchBtn) {
+  els.favoriteSwitchBtn.addEventListener("click", () => {
+    const handlers = state.favoritePromptHandlers;
+    closeFavoritePrompt();
+    if (handlers && handlers.onSwitch) handlers.onSwitch();
+  });
+}
+if (els.favoriteImportBtn) {
+  els.favoriteImportBtn.addEventListener("click", () => {
+    const handlers = state.favoritePromptHandlers;
+    closeFavoritePrompt();
+    if (handlers && handlers.onImport) handlers.onImport();
+  });
+}
+if (els.favoriteCancelBtn) {
+  els.favoriteCancelBtn.addEventListener("click", () => {
+    const handlers = state.favoritePromptHandlers;
+    closeFavoritePrompt();
+    if (handlers && handlers.onCancel) handlers.onCancel();
+  });
+}
 
 els.plot.addEventListener("mousemove", (event) => {
   const rect = els.plot.getBoundingClientRect();
@@ -1716,38 +2896,25 @@ els.plot.addEventListener("mousemove", (event) => {
     }
   }
   if (hit === null) {
-    if (state.hoverPitch !== null) {
-      state.hoverPitch = null;
-      clearCountHighlights();
-      renderPlot();
-      updateHoverInfo();
-      updateHoverCountsLine(null);
-    }
+    setHoverPitch(null);
     return;
   }
-  if (hit !== state.hoverPitch) {
-    state.hoverPitch = hit;
-    state.hoverWindowL = state.activeO * state.params.edoSteps;
-    const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
-    if (rec) {
-      const counts = intervalCountsFromPitch(rec.pitches, hit);
-      highlightCounts(counts);
-      updateHoverCountsLine(counts);
-    }
-    renderPlot();
-    updateHoverInfo();
-  }
+  setHoverPitch(hit);
 });
 
 els.plot.addEventListener("mouseleave", () => {
-  state.hoverPitch = null;
-  clearCountHighlights();
-  renderPlot();
-  updateHoverInfo();
-  updateHoverCountsLine(null);
+  setHoverPitch(null);
+});
+
+els.selectedInfo.addEventListener("mouseover", (event) => {
+  const target = event.target;
+  if (!target) return;
+  if (!target.matches(".pitch-item, .pitch-name, .pitch-pc")) return;
+  const pitch = parseInt(target.dataset.pitch, 10);
+  if (!Number.isFinite(pitch)) return;
+  setHoverPitch(pitch);
 });
 
 loadInputs();
 loadFavorites();
-updatePlacementControls(els.placementMode.value || "v2");
 recompute();
