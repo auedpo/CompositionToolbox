@@ -1,4 +1,5 @@
 import { intervalPlacementLens } from "./intervalPlacementLens.js";
+import { euclideanPatternsLens } from "./euclideanPatternsLens.js";
 
 const registry = new Map();
 
@@ -16,3 +17,4 @@ export function listLenses() {
 }
 
 registerLens(intervalPlacementLens);
+registerLens(euclideanPatternsLens);

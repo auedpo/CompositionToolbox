@@ -8,6 +8,17 @@
  */
 
 /**
+ * @typedef {"binaryMask" | "indexMask" | "weights" | "order" | "curve"} PatternKind
+ */
+
+/**
+ * @typedef {Object} PatternData
+ * @property {PatternKind} kind
+ * @property {number[]} values
+ * @property {Object} [domain]
+ */
+
+/**
  * @typedef {Object} MaterialReference
  * @property {number} edo
  * @property {number} refStep
@@ -21,7 +32,7 @@
  * @property {string} [lensVersion]
  * @property {Object} params
  * @property {Object} [inputs]
- * @property {string} timestamp
+ * @property {string | number} timestamp
  */
 
 /**
@@ -37,11 +48,28 @@
 
 /**
  * @typedef {Object} MaterialDraft
- * @property {MaterialType} type
- * @property {PitchListData|Object} data
- * @property {Object} meta
- * @property {MaterialReference} ref
- * @property {MaterialProvenance} provenance
+ * @property {string} type
+ * @property {*} data
+ * @property {Object} [meta]
+ * @property {Object} [ref]
+ * @property {Object} provenance
+ */
+
+/**
+ * @typedef {Object} PatternProvenance
+ * @property {string} lensId
+ * @property {Object} params
+ * @property {string[]} [inputs]
+ * @property {number} timestamp
+ */
+
+/**
+ * @typedef {Object} PatternDraft
+ * @property {"Pattern"} type
+ * @property {PatternData} data
+ * @property {{ tags?: string[], units?: string, resolution?: number }} [meta]
+ * @property {{ type: "pattern" }} [ref]
+ * @property {PatternProvenance} provenance
  */
 
 export const MATERIAL_TYPES = {

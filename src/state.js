@@ -47,6 +47,7 @@ export const state = {
   selectedOutputKeys: new Set(),
   selectedInventoryId: null,
   selectedDeskId: null,
+  lastCapturedMaterialId: null,
   inventoryFilter: ""
 };
 
@@ -97,10 +98,22 @@ export const els = {
   deskCount: document.getElementById("deskCount"),
   deskLanes: document.getElementById("deskLanes"),
   deskDetails: document.getElementById("deskDetails"),
+  deskRemoveBtn: document.getElementById("deskRemoveBtn"),
   deskLane: document.getElementById("deskLane"),
   deskDuration: document.getElementById("deskDuration"),
+  deskGridStep: document.getElementById("deskGridStep"),
   layoutSplitter: document.getElementById("layoutSplitter"),
-  instrumentSplitter: document.getElementById("instrumentSplitter")
+  instrumentSplitter: document.getElementById("instrumentSplitter"),
+  euclidSteps: document.getElementById("euclidSteps"),
+  euclidPulses: document.getElementById("euclidPulses"),
+  euclidRotation: document.getElementById("euclidRotation"),
+  euclidRotationValue: document.getElementById("euclidRotationValue"),
+  euclidCaptureBtn: document.getElementById("euclidCaptureBtn"),
+  euclidSendBtn: document.getElementById("euclidSendBtn"),
+  euclidPreview: document.getElementById("euclidPreview"),
+  euclidWheel: document.getElementById("euclidWheel"),
+  lensShowAllBtn: document.getElementById("lensShowAllBtn"),
+  lensHideAllBtn: document.getElementById("lensHideAllBtn")
 };
 
 export const storageKeys = {
@@ -132,7 +145,10 @@ export const storageKeys = {
   midiTailMs: "intervalApplet.midiTailMs",
   inventory: "intervalApplet.inventory",
   desk: "intervalApplet.desk",
+  deskGridStep: "intervalApplet.deskGridStep",
+  deskLaneNames: "intervalApplet.deskLaneNames",
   inventoryFilter: "intervalApplet.inventoryFilter",
   layoutSplit: "intervalApplet.layoutSplit",
-  instrumentSplit: "intervalApplet.instrumentSplit"
+  instrumentSplit: "intervalApplet.instrumentSplit",
+  lensMode: "intervalApplet.lensMode"
 };

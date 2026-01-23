@@ -10,15 +10,27 @@ export function renderInventoryDetails() {
     els.inventoryDetails.textContent = "Select a material to see details.";
     return;
   }
-  const steps = selected.data && Array.isArray(selected.data.steps)
-    ? selected.data.steps.join(" ")
-    : "";
+  let detailLine = "";
+  if (selected.type === "Pattern") {
+    const values = selected.data && Array.isArray(selected.data.values) ? selected.data.values : [];
+    const kind = selected.data && selected.data.kind ? selected.data.kind : "pattern";
+    if (kind === "indexMask") {
+      detailLine = `values: [${values.join(", ")}]`;
+    } else {
+      detailLine = `values: ${values.join("")}`;
+    }
+  } else {
+    const steps = selected.data && Array.isArray(selected.data.steps)
+      ? selected.data.steps.join(" ")
+      : "";
+    detailLine = `steps: ${steps}`;
+  }
   const provenance = selected.provenance || {};
   const metaTags = selected.meta && Array.isArray(selected.meta.tags) ? selected.meta.tags.join(", ") : "";
   els.inventoryDetails.innerHTML = `
     <div class="meta-line"><strong>${selected.name}</strong> (${selected.type})</div>
     <div class="meta-line">id: ${selected.id}</div>
-    <div class="meta-line">steps: ${steps}</div>
+    <div class="meta-line">${detailLine}</div>
     <div class="meta-line">tags: ${metaTags || "none"}</div>
     <div class="meta-line">lens: ${provenance.lensId || "n/a"}</div>
     <div class="meta-line">time: ${provenance.timestamp || "n/a"}</div>

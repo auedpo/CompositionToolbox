@@ -17,7 +17,7 @@
       <div class="hero-badge">v1</div>
     </header>
 
-    <section class="panel control-panel">
+    <section class="panel control-panel" data-lens-scope="intervalPlacement">
       <div class="field">
         <label for="intervals" title="Comma or space-separated interval sizes in steps. These are the d[i] values that stay fixed through placement and quantization.">Intervals (steps)</label>
         <input id="intervals" type="text" value="11, 7, 16" title="Comma or space-separated interval sizes in steps. These are the d[i] values that stay fixed through placement and quantization." />
@@ -121,7 +121,7 @@
       </details>
     </section>
 
-    <section class="layout-grid">
+    <section class="layout-grid" data-lens-scope="intervalPlacement">
       <div class="panel layout-panel">
         <div class="layout-header">
           <h2>Permutation layout</h2>
@@ -207,7 +207,78 @@
     </section>
 
     <section class="lens-grid">
-      <div class="panel outputs-panel">
+      <div class="panel lens-switcher" data-lens-scope="shared">
+        <div class="panel-header">
+          <div>
+            <h2>Lens</h2>
+            <p class="hint">Choose a lens to focus the workspace.</p>
+          </div>
+          <div class="lens-buttons" role="group" aria-label="Active lens">
+            <button type="button" class="lens-btn ghost" data-lens="intervalPlacement">Interval Placement</button>
+            <button type="button" class="lens-btn ghost" data-lens="euclideanPatterns">Euclidean Patterns</button>
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button id="lensShowAllBtn" type="button" class="ghost">Show all</button>
+          <button id="lensHideAllBtn" type="button" class="ghost">Hide all</button>
+        </div>
+      </div>
+
+      <div class="panel euclid-panel" data-lens-scope="euclideanPatterns">
+        <div class="panel-header">
+          <div>
+            <h2>Euclidean Patterns</h2>
+          </div>
+          <div class="panel-actions">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="euclidSteps">Steps (N)</label>
+            <input id="euclidSteps" type="number" min="1" value="8" />
+          </div>
+          <div class="field">
+            <label for="euclidPulses">Pulses (K)</label>
+            <input id="euclidPulses" type="number" min="0" value="3" />
+          </div>
+          <div class="field">
+            <label for="euclidRotation">Rotation (R)</label>
+            <div class="range-row">
+              <input id="euclidRotation" type="range" min="-32" max="32" step="1" value="0" />
+              <span id="euclidRotationValue" class="range-value">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="euclidOutputKind">Output kind</label>
+            <div class="toggle-buttons" role="group" aria-label="Output kind">
+              <button type="button" class="toggle-btn ghost" data-toggle-group="outputKind" data-value="binaryMask">binaryMask</button>
+              <button type="button" class="toggle-btn ghost" data-toggle-group="outputKind" data-value="indexMask">indexMask</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="euclidIndexBase">Index base</label>
+            <div class="toggle-buttons" role="group" aria-label="Index base">
+              <button type="button" class="toggle-btn ghost" data-toggle-group="indexBase" data-value="0">0</button>
+              <button type="button" class="toggle-btn ghost" data-toggle-group="indexBase" data-value="1">1</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button id="euclidCaptureBtn" type="button">Capture to Inventory</button>
+          <button id="euclidSendBtn" type="button" class="ghost">Send to Desk</button>
+        </div>
+        <div class="meta-card">
+          <h3>Preview</h3>
+          <div id="euclidPreview" class="pattern-preview">No draft yet.</div>
+        </div>
+        <div class="meta-card">
+          <canvas id="euclidWheel" class="euclid-wheel" width="300" height="300"></canvas>
+        </div>
+      </div>
+
+      <div class="panel outputs-panel" data-lens-scope="intervalPlacement">
         <div class="panel-header">
           <div>
             <h2>Outputs</h2>
@@ -221,44 +292,53 @@
         <div id="outputsList" class="outputs-list"></div>
       </div>
 
-      <div class="panel inventory-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Inventory</h2>
-            <p id="inventoryCount" class="hint">Inventory empty.</p>
+      <div class="inventory-desk-row" data-lens-scope="shared">
+        <div class="panel inventory-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Inventory</h2>
+              <p id="inventoryCount" class="hint">Inventory empty.</p>
+            </div>
+            <div class="filter">
+              <label for="inventorySearch">Search</label>
+              <input id="inventorySearch" type="text" placeholder="name, type, tag" />
+            </div>
           </div>
-          <div class="filter">
-            <label for="inventorySearch">Search</label>
-            <input id="inventorySearch" type="text" placeholder="name, type, tag" />
+          <div class="panel-actions">
+            <button id="inventorySendBtn" type="button" class="ghost">Send selected to Desk</button>
+            <button id="inventoryRemoveBtn" type="button" class="ghost">Remove selected</button>
           </div>
+          <div id="inventoryList" class="inventory-list"></div>
+          <div id="inventoryDetails" class="meta-card"></div>
         </div>
-        <div class="panel-actions">
-          <button id="inventorySendBtn" type="button" class="ghost">Send selected to Desk</button>
-          <button id="inventoryRemoveBtn" type="button" class="ghost">Remove selected</button>
-        </div>
-        <div id="inventoryList" class="inventory-list"></div>
-        <div id="inventoryDetails" class="meta-card"></div>
-      </div>
 
-      <div class="panel desk-panel">
-        <div class="panel-header">
-          <div>
-            <h2>Desk</h2>
-            <p id="deskCount" class="hint">Desk empty.</p>
+        <div class="panel desk-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Desk</h2>
+              <p id="deskCount" class="hint">Desk empty.</p>
+            </div>
+            <div class="panel-actions">
+              <button id="deskRemoveBtn" type="button" class="ghost">Remove selected</button>
+            </div>
           </div>
+          <div class="desk-controls">
+            <div class="field compact">
+              <label for="deskLane">Lane</label>
+              <input id="deskLane" type="number" min="1" value="1" />
+            </div>
+            <div class="field compact">
+              <label for="deskDuration">Duration</label>
+              <input id="deskDuration" type="number" min="0.25" step="0.25" value="1" />
+            </div>
+            <div class="field compact">
+              <label for="deskGridStep">Grid</label>
+              <input id="deskGridStep" type="number" min="0.05" step="0.05" value="0.25" />
+            </div>
+          </div>
+          <div id="deskLanes" class="desk-lanes"></div>
+          <div id="deskDetails" class="meta-card"></div>
         </div>
-        <div class="desk-controls">
-          <div class="field compact">
-            <label for="deskLane">Lane</label>
-            <input id="deskLane" type="number" min="1" value="1" />
-          </div>
-          <div class="field compact">
-            <label for="deskDuration">Duration</label>
-            <input id="deskDuration" type="number" min="0.25" step="0.25" value="1" />
-          </div>
-        </div>
-        <div id="deskLanes" class="desk-lanes"></div>
-        <div id="deskDetails" class="meta-card"></div>
       </div>
     </section>
   </div>

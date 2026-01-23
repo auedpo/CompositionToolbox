@@ -1,6 +1,7 @@
 import { defaultParams, els, state, storageKeys } from "./state.js";
 import { getLens } from "./lenses/lensRegistry.js";
-import { loadDesk, loadInventory } from "./core/persistence.js";
+import { loadDesk, loadInventory, saveDesk, saveInventory } from "./core/persistence.js";
+import { inventoryStore, deskStore } from "./core/stores.js";
 import { calibrateAlpha, computeReferenceG } from "./core/intervalMath.js";
 import { engineLabelForId } from "./core/placementLabels.js";
 import { renderKeyboard, renderFretboard } from "./ui/keyboardFretboard.js";
@@ -28,7 +29,8 @@ import {
   bindInventorySearch
 } from "./ui/inventoryPanel.js";
 import {
-  renderDesk
+  renderDesk,
+  removeSelectedDeskItem
 } from "./ui/deskPanel.js";
 import {
   bindFavoritePromptButtons,
@@ -946,6 +948,9 @@ function saveInputs() {
   localStorage.setItem(storageKeys.useDamping, els.useDamping.value);
   localStorage.setItem(storageKeys.placementMode, els.placementMode.value);
   localStorage.setItem(storageKeys.guitarTuning, els.guitarTuning.value);
+  if (els.deskGridStep) {
+    localStorage.setItem(storageKeys.deskGridStep, els.deskGridStep.value);
+  }
   placementParamIds.forEach((id) => {
     const el = document.getElementById(id);
     if (!el || !storageKeys[id]) return;
@@ -979,6 +984,10 @@ function loadInputs() {
   if (storedPlacementMode) els.placementMode.value = storedPlacementMode;
   const storedTuning = localStorage.getItem(storageKeys.guitarTuning);
   if (storedTuning) els.guitarTuning.value = storedTuning;
+  const storedDeskGrid = localStorage.getItem(storageKeys.deskGridStep);
+  if (storedDeskGrid && els.deskGridStep) {
+    els.deskGridStep.value = storedDeskGrid;
+  }
   renderPlacementParams(els.placementMode.value || "v2");
   renderMidiParams();
   const storedFilter = localStorage.getItem(storageKeys.filter);
@@ -1017,6 +1026,309 @@ function getFavoritesDeps() {
     saveInputs,
     recompute
   };
+}
+
+function applyLensMode(activeLenses) {
+  document.querySelectorAll("[data-lens-scope]").forEach((el) => {
+    const scope = el.getAttribute("data-lens-scope");
+    const visible = scope === "shared" || (activeLenses && activeLenses.has(scope));
+    el.classList.toggle("lens-hidden", !visible);
+  });
+}
+
+function initLensMode() {
+  const buttons = Array.from(document.querySelectorAll(".lens-btn[data-lens]"));
+  if (!buttons.length) return;
+  const allLensIds = buttons.map((btn) => btn.dataset.lens).filter(Boolean);
+  let active = null;
+  const stored = localStorage.getItem(storageKeys.lensMode);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        active = new Set(parsed.filter(Boolean));
+      }
+    } catch {
+      active = null;
+    }
+  }
+  if (!active || active.size === 0) {
+    active = new Set(["intervalPlacement"]);
+  }
+  applyLensMode(active);
+  buttons.forEach((btn) => {
+    const lens = btn.dataset.lens;
+    const isActive = active.has(lens);
+    btn.classList.toggle("active", isActive);
+    btn.classList.toggle("ghost", !isActive);
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.lens;
+      if (!key) return;
+      if (active.has(key)) {
+        active.delete(key);
+      } else {
+        active.add(key);
+      }
+      localStorage.setItem(storageKeys.lensMode, JSON.stringify(Array.from(active)));
+      applyLensMode(active);
+      buttons.forEach((item) => {
+        const on = active.has(item.dataset.lens);
+        item.classList.toggle("active", on);
+        item.classList.toggle("ghost", !on);
+      });
+    });
+  });
+  if (els.lensShowAllBtn) {
+    els.lensShowAllBtn.addEventListener("click", () => {
+      active = new Set(allLensIds);
+      localStorage.setItem(storageKeys.lensMode, JSON.stringify(Array.from(active)));
+      applyLensMode(active);
+      buttons.forEach((item) => {
+        const on = active.has(item.dataset.lens);
+        item.classList.toggle("active", on);
+        item.classList.toggle("ghost", !on);
+      });
+    });
+  }
+  if (els.lensHideAllBtn) {
+    els.lensHideAllBtn.addEventListener("click", () => {
+      active = new Set();
+      localStorage.setItem(storageKeys.lensMode, JSON.stringify([]));
+      applyLensMode(active);
+      buttons.forEach((item) => {
+        const on = active.has(item.dataset.lens);
+        item.classList.toggle("active", on);
+        item.classList.toggle("ghost", !on);
+      });
+    });
+  }
+}
+
+function setToggleGroupValue(group, value) {
+  const buttons = Array.from(document.querySelectorAll(`.toggle-btn[data-toggle-group="${group}"]`));
+  buttons.forEach((btn) => {
+    const isActive = btn.dataset.value === value;
+    btn.classList.toggle("active", isActive);
+    btn.classList.toggle("ghost", !isActive);
+  });
+}
+
+function bindToggleGroups() {
+  const buttons = Array.from(document.querySelectorAll(".toggle-btn[data-toggle-group]"));
+  if (!buttons.length) return;
+  const activeByGroup = new Map();
+  buttons.forEach((btn) => {
+    const group = btn.dataset.toggleGroup;
+    if (!group) return;
+    if (!activeByGroup.has(group)) {
+      activeByGroup.set(group, btn.dataset.value);
+    }
+  });
+  activeByGroup.forEach((value, group) => setToggleGroupValue(group, value));
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const group = btn.dataset.toggleGroup;
+      const value = btn.dataset.value;
+      if (!group || value === undefined) return;
+      setToggleGroupValue(group, value);
+      scheduleEuclidUpdate();
+    });
+  });
+}
+
+let euclidDraft = null;
+let euclidCapturedId = null;
+let euclidRecomputeTimer = null;
+
+function readEuclidParams() {
+  if (!els.euclidSteps || !els.euclidPulses || !els.euclidRotation) {
+    return null;
+  }
+  const stepsRaw = parseInt(els.euclidSteps.value, 10);
+  const steps = Number.isFinite(stepsRaw) ? Math.max(1, stepsRaw) : 1;
+  if (els.euclidRotation) {
+    els.euclidRotation.min = `${-steps}`;
+    els.euclidRotation.max = `${steps}`;
+  }
+  const pulsesRaw = parseInt(els.euclidPulses.value, 10);
+  const pulses = Number.isFinite(pulsesRaw) ? Math.max(0, Math.min(steps, pulsesRaw)) : 0;
+  const rotationRaw = parseInt(els.euclidRotation.value, 10);
+  const rotation = Number.isFinite(rotationRaw)
+    ? Math.max(-steps, Math.min(steps, rotationRaw))
+    : 0;
+  const outputBtn = document.querySelector(".toggle-btn[data-toggle-group=\"outputKind\"].active");
+  const outputKind = outputBtn && outputBtn.dataset.value === "indexMask" ? "indexMask" : "binaryMask";
+  const rotationNorm = steps ? ((rotation % steps) + steps) % steps : 0;
+  els.euclidSteps.value = `${steps}`;
+  els.euclidPulses.value = `${pulses}`;
+  els.euclidRotation.value = `${rotation}`;
+  if (els.euclidRotationValue) {
+    els.euclidRotationValue.textContent = `${rotation}`;
+  }
+  return { steps, pulses, rotation, rotationNorm, outputKind };
+}
+
+function formatEuclidPreview(draft) {
+  if (!draft || !draft.data) return "No draft yet.";
+  const kind = draft.data.kind;
+  const values = Array.isArray(draft.data.values) ? draft.data.values : [];
+  if (kind === "indexMask") {
+    return `[${values.join(", ")}]`;
+  }
+  return values.join("");
+}
+
+function drawEuclidWheel(draft) {
+  const canvas = els.euclidWheel;
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const width = canvas.width;
+  const height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
+  if (!draft || !draft.data) return;
+  const domain = draft.data.domain || {};
+  const steps = Number.isFinite(domain.steps) ? domain.steps : 0;
+  if (!steps) return;
+  const values = Array.isArray(draft.data.values) ? draft.data.values : [];
+  let mask = [];
+  if (draft.data.kind === "indexMask") {
+    mask = new Array(steps).fill(0);
+    values.forEach((idx) => {
+      if (Number.isFinite(idx) && idx >= 0 && idx < steps) {
+        mask[idx] = 1;
+      }
+    });
+  } else {
+    mask = values.slice(0, steps).map((v) => (v ? 1 : 0));
+  }
+  const cx = width / 2;
+  const cy = height / 2;
+  const outerRadius = Math.min(width, height) * 0.42;
+  const indexBtn = document.querySelector(".toggle-btn[data-toggle-group=\"indexBase\"].active");
+  const indexBase = indexBtn && indexBtn.dataset.value === "1" ? 1 : 0;
+  const activeIndices = [];
+  mask.forEach((value, idx) => {
+    if (value) activeIndices.push(idx);
+  });
+  if (activeIndices.length >= 2) {
+    ctx.beginPath();
+    activeIndices.forEach((idx, i) => {
+      const angle = -Math.PI / 2 + (idx / steps) * Math.PI * 2;
+      const x = cx + Math.cos(angle) * outerRadius;
+      const y = cy + Math.sin(angle) * outerRadius;
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    ctx.closePath();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+    ctx.lineWidth = 2;
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  for (let i = 0; i < steps; i++) {
+    const angle = -Math.PI / 2 + (i / steps) * Math.PI * 2;
+    const x = cx + Math.cos(angle) * outerRadius;
+    const y = cy + Math.sin(angle) * outerRadius;
+    const isOn = mask[i] === 1;
+    const dotRadius = isOn ? 6 : 4;
+    ctx.beginPath();
+    ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
+    if (isOn) {
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.2)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    } else {
+      ctx.strokeStyle = "rgba(0,0,0,0.4)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    const labelRadius = outerRadius + 14;
+    const lx = cx + Math.cos(angle) * labelRadius;
+    const ly = cy + Math.sin(angle) * labelRadius;
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.font = "11px Figtree, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(i + indexBase), lx, ly);
+  }
+}
+
+function scheduleEuclidUpdate() {
+  if (euclidRecomputeTimer) {
+    clearTimeout(euclidRecomputeTimer);
+  }
+  euclidRecomputeTimer = setTimeout(() => {
+    updateEuclidDraft();
+  }, 80);
+}
+
+function updateEuclidDraft() {
+  const params = readEuclidParams();
+  if (!params) return;
+  const lens = getLens("euclideanPatterns");
+  if (!lens) {
+    return;
+  }
+  const result = lens.run({ params, state });
+  euclidDraft = result && Array.isArray(result.outputs) ? result.outputs[0] : null;
+  euclidCapturedId = null;
+  renderEuclidPanel();
+}
+
+function renderEuclidPanel() {
+  if (els.euclidPreview) {
+    els.euclidPreview.textContent = formatEuclidPreview(euclidDraft);
+  }
+  drawEuclidWheel(euclidDraft);
+  const hasDraft = !!euclidDraft;
+  if (els.euclidCaptureBtn) els.euclidCaptureBtn.disabled = !hasDraft;
+  if (els.euclidSendBtn) els.euclidSendBtn.disabled = !hasDraft;
+}
+
+function buildEuclidName(draft) {
+  const domain = (draft && draft.data && draft.data.domain) || {};
+  const steps = Number.isFinite(domain.steps) ? domain.steps : "?";
+  const pulses = Number.isFinite(domain.pulses) ? domain.pulses : "?";
+  const rotation = Number.isFinite(domain.rotation) ? domain.rotation : 0;
+  return `E(${steps},${pulses}) r${rotation}`;
+}
+
+function captureEuclidDraft() {
+  if (!euclidDraft) return null;
+  const name = buildEuclidName(euclidDraft);
+  const material = inventoryStore.add(euclidDraft, { name });
+  if (!material) return null;
+  euclidCapturedId = material.id;
+  state.lastCapturedMaterialId = material.id;
+  state.selectedInventoryId = material.id;
+  saveInventory();
+  renderInventory();
+  return material;
+}
+
+function copyText(text) {
+  if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "absolute";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
+  return Promise.resolve();
 }
 
 
@@ -1198,6 +1510,16 @@ els.guitarTuning.addEventListener("change", () => {
   saveInputs();
   renderFretboard();
 });
+if (els.deskGridStep) {
+  els.deskGridStep.addEventListener("input", () => {
+    saveInputs();
+    renderDesk();
+  });
+  els.deskGridStep.addEventListener("change", () => {
+    saveInputs();
+    renderDesk();
+  });
+}
 els.placementMode.addEventListener("change", handlePlacementModeChange);
 els.placementMode.addEventListener("input", handlePlacementModeChange);
 els.filter.addEventListener("input", () => {
@@ -1219,6 +1541,43 @@ if (els.captureOutputsBtn) {
 if (els.sendToDeskBtn) {
   els.sendToDeskBtn.addEventListener("click", () => {
     sendSelectedOutputsToDesk();
+  });
+}
+if (els.deskRemoveBtn) {
+  els.deskRemoveBtn.addEventListener("click", () => {
+    if (!state.selectedDeskId) return;
+    const removed = removeSelectedDeskItem();
+    if (removed) {
+      saveDesk();
+      renderDesk();
+      els.status.textContent = "Removed desk item.";
+    }
+  });
+}
+if (els.euclidCaptureBtn) {
+  els.euclidCaptureBtn.addEventListener("click", () => {
+    if (!euclidDraft) {
+      return;
+    }
+    const material = captureEuclidDraft();
+    void material;
+  });
+}
+if (els.euclidSendBtn) {
+  els.euclidSendBtn.addEventListener("click", () => {
+    if (!euclidDraft) {
+      return;
+    }
+    let material = euclidCapturedId ? inventoryStore.get(euclidCapturedId) : null;
+    if (!material) {
+      material = captureEuclidDraft();
+    }
+    if (!material) {
+      return;
+    }
+    deskStore.add({ materialId: material.id, start: 0, lane: 0 });
+    saveDesk();
+    renderDesk();
   });
 }
 bindInventoryActions();
@@ -1313,4 +1672,14 @@ loadInputs();
 loadFavorites();
 loadInventory();
 loadDesk();
+initLensMode();
+bindToggleGroups();
+renderEuclidPanel();
+if (els.euclidSteps && els.euclidPulses && els.euclidRotation) {
+  [els.euclidSteps, els.euclidPulses, els.euclidRotation].forEach((el) => {
+    el.addEventListener("input", scheduleEuclidUpdate);
+    el.addEventListener("change", scheduleEuclidUpdate);
+  });
+  updateEuclidDraft();
+}
 recompute();
