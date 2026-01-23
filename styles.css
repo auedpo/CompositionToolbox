@@ -440,6 +440,17 @@ canvas#plot {
   align-items: center;
 }
 
+.metric-row.interval-row {
+  grid-template-columns: none;
+}
+
+.interval-spacer {
+  display: block;
+  width: 100%;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
 .metric-values .count-item,
 .metric-values .interval-item {
   display: inline-flex;
@@ -473,6 +484,14 @@ canvas#plot {
   border-radius: 10px;
   background: rgba(15, 76, 92, 0.08);
   border: 1px solid transparent;
+}
+
+.interval-item.inactive {
+  background: transparent;
+  border-color: rgba(15, 76, 92, 0.12);
+  color: rgba(15, 76, 92, 0.22);
+  opacity: 0.7;
+  border-style: dashed;
 }
 
 .count-item.hover-count::after {
@@ -806,7 +825,7 @@ tr.selected {
   height: 16px;
   transform: translate(-50%, -50%);
   border-radius: 999px;
-  background: hsl(var(--fret-hue, 185), 60%, 45%);
+  background: hsl(var(--fret-hue, 185), 60%, var(--fret-lightness, 45%));
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;

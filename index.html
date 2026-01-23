@@ -129,9 +129,10 @@
             <div class="field compact">
               <label for="placementMode" title="Select the placement engine that chooses continuous centers. All modes share rho orientation, quantization, and scoring downstream.">Placement</label>
               <select id="placementMode" title="Select the placement engine that chooses continuous centers. All modes share rho orientation, quantization, and scoring downstream.">
-                <option value="v1">v1 (legacy)</option>
-                <option value="v2">v2 (alpha-beta)</option>
-                <option value="repulse">A (center repulsion)</option>
+                <option value="v1">uniform-centers</option>
+                <option value="v2">prefix-slack</option>
+                <option value="prefixDominance">prefix-dominance</option>
+                <option value="repulse">repulsion-centers</option>
               </select>
             </div>
             <div id="tabBar" class="tabs"></div>
@@ -214,6 +215,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

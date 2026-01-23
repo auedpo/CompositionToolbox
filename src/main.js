@@ -1,3 +1,8 @@
+import { defaultParams, els, state, storageKeys } from "./state.js";
+import { computePrefixDominanceAnchors } from "./placementEngines/prefixDominanceEngine.js";
+import { createPrefixSlackEngine } from "./placementEngines/prefixSlackEngine.js";
+import { createRepulsionCentersEngine } from "./placementEngines/repulsionCentersEngine.js";
+
 const RATIO_TARGETS = [
   [1, 1],           // unison
   [9, 8], [16, 15], // seconds
@@ -9,36 +14,6 @@ const RATIO_TARGETS = [
   [45, 32]          // tritone proxy
 ];
 
-const defaultParams = {
-  // Pitch/EDO geometry and compound interval handling.
-  edoSteps: 12,
-  compoundReliefM: 0.55,
-  // Ratio cost targets and weighting.
-  sigmaCents: 20.0,
-  ratioLambda: 0.20,
-  // Roughness model and weighting.
-  roughAlpha: 0.0,
-  roughPartialsK: 12,
-  ampPower: 1.0,
-  roughA: 3.5,
-  roughB: 5.75,
-  // Register damping.
-  registerDampingK: 1.6,
-  // Anchor placement parameters (v2).
-  anchorAlpha: 0.3,
-  anchorBeta: 1.0,
-  anchorRho: 0.5,
-  // Center repulsion placement parameters (Engine A).
-  repulseGamma: 1.0,
-  repulseKappa: 0.4,
-  repulseLambda: 0.1,
-  repulseEta: 0.08,
-  repulseIterations: 60,
-  repulseAlpha: 1.0,
-  midiTailMs: 200,
-  // Reference tuning.
-  fRefHz: 55.0,
-};
 
 function hueForInterval(interval, edoSteps) {
   const N = Math.max(1, Math.round(edoSteps || 1));
@@ -67,89 +42,8 @@ function intervalColor(interval, baseSteps) {
   return `hsl(${hue}, 60%, ${lightness}%)`;
 }
 
-const state = {
-  resultsByO: {},
-  activeO: null,
-  selected: null,
-  anchorsByO: {},
-  params: { ...defaultParams },
-  hoverPitch: null,
-  hoverPoints: [],
-  hoverWindowL: null,
-  gRef: null,
-  oddBias: [],
-  favorites: [],
-  pendingOddBias: null,
-  favoritePromptHandlers: null
-};
-
-const els = {
-  intervals: document.getElementById("intervals"),
-  edo: document.getElementById("edo"),
-  baseNote: document.getElementById("baseNote"),
-  baseOctave: document.getElementById("baseOctave"),
-  minO: document.getElementById("minO"),
-  maxO: document.getElementById("maxO"),
-  xSpacing: document.getElementById("xSpacing"),
-  runBtn: document.getElementById("runBtn"),
-  status: document.getElementById("status"),
-  tabBar: document.getElementById("tabBar"),
-  plot: document.getElementById("plot"),
-  selectedInfo: document.getElementById("selectedInfo"),
-  hoverInfo: document.getElementById("hoverInfo"),
-  keyboard: document.getElementById("keyboard"),
-  resultsTable: document.getElementById("resultsTable"),
-  filter: document.getElementById("filter"),
-  useDamping: document.getElementById("useDamping"),
-  oddBias: document.getElementById("oddBias"),
-  favoritesList: document.getElementById("favoritesList"),
-  anchorSummary: document.getElementById("anchorSummary"),
-  anchorMath: document.getElementById("anchorMath"),
-  midiOut: document.getElementById("midiOut"),
-  midiPreview: document.getElementById("midiPreview"),
-  guitarTuning: document.getElementById("guitarTuning"),
-  placementMode: document.getElementById("placementMode"),
-  placementParams: document.getElementById("placementParams"),
-  midiParams: document.getElementById("midiParams"),
-  fretboard: document.getElementById("fretboard"),
-  favoritePrompt: document.getElementById("favoritePrompt"),
-  favoritePromptText: document.getElementById("favoritePromptText"),
-  favoriteSwitchBtn: document.getElementById("favoriteSwitchBtn"),
-  favoriteImportBtn: document.getElementById("favoriteImportBtn"),
-  favoriteCancelBtn: document.getElementById("favoriteCancelBtn")
-};
-
 let midiAccess = null;
 let midiOutputs = [];
-
-const storageKeys = {
-  intervals: "intervalApplet.intervals",
-  edo: "intervalApplet.edo",
-  baseNote: "intervalApplet.baseNote",
-  baseOctave: "intervalApplet.baseOctave",
-  minO: "intervalApplet.minO",
-  maxO: "intervalApplet.maxO",
-  xSpacing: "intervalApplet.xSpacing",
-  useDamping: "intervalApplet.useDamping",
-  oddBias: "intervalApplet.oddBias",
-  favorites: "intervalApplet.favorites",
-  activeO: "intervalApplet.activeO",
-  filter: "intervalApplet.filter",
-  midiOut: "intervalApplet.midiOut",
-  selectedPerm: "intervalApplet.selectedPerm",
-  anchorAlpha: "intervalApplet.anchorAlpha",
-  anchorBeta: "intervalApplet.anchorBeta",
-  anchorRho: "intervalApplet.anchorRho",
-  placementMode: "intervalApplet.placementMode",
-  guitarTuning: "intervalApplet.guitarTuning",
-  repulseGamma: "intervalApplet.repulseGamma",
-  repulseKappa: "intervalApplet.repulseKappa",
-  repulseLambda: "intervalApplet.repulseLambda",
-  repulseEta: "intervalApplet.repulseEta",
-  repulseIterations: "intervalApplet.repulseIterations",
-  repulseAlpha: "intervalApplet.repulseAlpha",
-  midiTailMs: "intervalApplet.midiTailMs"
-};
 
 function parseIntervals(text) {
   return text
@@ -436,27 +330,27 @@ function anchorsForPerm(L, perm, params) {
 }
 
 const placementEngines = {
-  alphaBeta: {
-    id: "v2",
-    label: "v2 (parametric)",
+  prefixSlack: createPrefixSlackEngine(anchorsForPerm),
+  prefixDominance: {
+    id: "prefixDominance",
+    label: "prefix-dominance",
     solveCenters(L, perm, params) {
-      const anchorData = anchorsForPerm(L, perm, params);
+      const anchorData = computePrefixDominanceAnchors(L, perm, params);
       if (!anchorData) return null;
       return {
-        engineId: "v2",
+        engineId: "prefixDominance",
         centers: anchorData.anchorFloats.slice(),
-        anchors: anchorData.anchors.slice(),
-        splits: anchorData.splits,
+        anchors: null,
+        splits: null,
         anchorRange: { amin: anchorData.amin, amax: anchorData.amax },
         bounds: anchorData.anchorFloats.map(() => ({ min: anchorData.amin, max: anchorData.amax })),
         debugFlags: {
           showBounds: true,
-          showSplits: true,
+          showSplits: false,
           showEndpointsFloat: true,
           showWeights: true
         },
         meta: {
-          slack: anchorData.slack,
           weights: anchorData.weights,
           prefixSums: anchorData.prefixSums,
           prefixFractions: anchorData.prefixFractions,
@@ -465,52 +359,21 @@ const placementEngines = {
       };
     }
   },
-  repulsion: {
-    id: "repulse",
-    label: "A (center repulsion)",
-    solveCenters(L, perm, params) {
-      const rho = params.anchorRho;
-      const bounds = centerBoundsForPerm(L, perm, rho);
-      const neutral = neutralCentersFromBounds(bounds);
-      const { deltas } = repulsionDeltasForPerm(perm, params.repulseGamma, params.repulseKappa, L);
-      const repelled = projectedPairwiseSolve(
-        neutral,
-        bounds,
-        params.repulseIterations,
-        params.repulseEta,
-        (centers, forces) => accumulateRepulsionForces(centers, forces, deltas, params.repulseLambda)
-      );
-      const alpha = Number.isFinite(params.repulseAlpha)
-        ? clamp(params.repulseAlpha, 0, 1)
-        : 1;
-      const blended = Number.isFinite(alpha)
-        ? repelled.map((c, idx) => {
-          const mix = (1 - alpha) * neutral[idx] + alpha * c;
-          return clamp(mix, bounds[idx].min, bounds[idx].max);
-        })
-        : repelled.slice();
-      return {
-        engineId: "repulse",
-        centers: blended,
-        anchors: null,
-        splits: null,
-        anchorRange: null,
-        bounds,
-        debugFlags: {
-          showBounds: true,
-          showSplits: true,
-          showEndpointsFloat: true,
-          showWeights: false
-        },
-        diagnostics: repulsionDiagnostics(blended, deltas, params.repulseLambda)
-      };
-    }
-  }
+  repulsion: createRepulsionCentersEngine({
+    clamp,
+    centerBoundsForPerm,
+    neutralCentersFromBounds,
+    repulsionDeltasForPerm,
+    projectedPairwiseSolve,
+    accumulateRepulsionForces,
+    repulsionDiagnostics
+  })
 };
 
 function resolvePlacementEngine(mode) {
   if (mode === "repulse") return placementEngines.repulsion;
-  return placementEngines.alphaBeta;
+  if (mode === "prefixDominance") return placementEngines.prefixDominance;
+  return placementEngines.prefixSlack;
 }
 
 const placementParamRegistry = {
@@ -541,6 +404,34 @@ const placementParamRegistry = {
       step: 0.05,
       kind: "float",
       help: "Orientation parameter that splits each interval around its center. It affects the continuous endpoint position and the quantized split. Downstream scoring always uses the quantized endpoints."
+    }
+  ],
+  prefixDominance: [
+    {
+      id: "anchorAlpha",
+      label: "Dominance alpha (reserved)",
+      min: 0,
+      max: 1,
+      step: 0.05,
+      kind: "float",
+      help: "Reserved for future blends in the prefix-dominance engine. Current implementation uses beta and rho only."
+    },
+    {
+      id: "anchorBeta",
+      label: "Dominance beta (>=0)",
+      min: 0,
+      step: 0.1,
+      kind: "float",
+      help: "Exponent applied to interval length when building prefix dominance weights. Higher beta makes large intervals dominate earlier."
+    },
+    {
+      id: "anchorRho",
+      label: "Dominance rho (0..1)",
+      min: 0,
+      max: 1,
+      step: 0.05,
+      kind: "float",
+      help: "Orientation parameter that defines the shared feasible anchor band for the dominance engine. Downstream scoring always uses the quantized endpoints."
     }
   ],
   repulse: [
@@ -718,9 +609,10 @@ function readPlacementParamInt(id, fallback, min) {
 }
 
 function engineLabelForId(id) {
-  if (id === "v1") return "v1 (legacy)";
+  if (id === "v1") return "uniform-centers";
   if (id === "repulse") return placementEngines.repulsion.label;
-  if (id === "v2") return placementEngines.alphaBeta.label;
+  if (id === "prefixDominance") return placementEngines.prefixDominance.label;
+  if (id === "v2") return placementEngines.prefixSlack.label;
   return id || "";
 }
 
@@ -1120,17 +1012,17 @@ function computeForWindow(intervals, params, O) {
         anchors = placement.anchors;
         splits = placement.splits;
         anchorRange = placement.anchorRange;
-        if (placement.meta) {
-          slack = placement.meta.slack;
-          weights = placement.meta.weights;
-          prefixSums = placement.meta.prefixSums;
-          prefixFractions = placement.meta.prefixFractions;
-          totalWeight = placement.meta.totalWeight;
-        }
       } else {
         anchors = anchorsList;
         splits = splitsList;
         anchorRange = placement.anchorRange;
+      }
+      if (placement.meta) {
+        slack = placement.meta.slack ?? slack;
+        weights = placement.meta.weights ?? weights;
+        prefixSums = placement.meta.prefixSums ?? prefixSums;
+        prefixFractions = placement.meta.prefixFractions ?? prefixFractions;
+        totalWeight = placement.meta.totalWeight ?? totalWeight;
       }
       if (!anchorRange && centerBounds) {
         anchorRange = anchorRangeFromBounds(centerBounds);
@@ -1816,14 +1708,17 @@ function placementDebugData(rec) {
     { key: "low", label: "low", format: (v) => formatNumber(v, 0) },
     { key: "high", label: "high", format: (v) => formatNumber(v, 0) }
   );
+  const metrics = hasWeights ? anchorMetricsFromRecord(rec) : null;
+  const showSlack = metrics && metrics.slackLabel;
   if (hasWeights) {
+    if (showSlack) {
+      columns.push({ key: "slack", label: metrics.slackLabel, format: (v) => formatNumber(v, 0) });
+    }
     columns.push(
-      { key: "slack", label: "s", format: (v) => formatNumber(v, 0) },
       { key: "weight", label: "w", format: (v) => formatNumber(v, 2) },
       { key: "prefix", label: "u (P/W)", format: (v) => v }
     );
   }
-  const metrics = hasWeights ? anchorMetricsFromRecord(rec) : null;
   const rows = rec.perm.map((d, idx) => {
     const bounds = hasBounds ? rec.centerBounds[idx] : null;
     const range = rec.anchorRange || null;
@@ -1853,7 +1748,7 @@ function placementDebugData(rec) {
       up: split ? split.up : null,
       low,
       high,
-      slack: metrics ? metrics.slack[idx] : null,
+      slack: showSlack ? metrics.slack[idx] : null,
       weight: metrics ? metrics.weights[idx] : null,
       prefix
     };
@@ -1876,9 +1771,11 @@ function renderAnchorDebugLines(rec) {
 }
 
 function anchorMetricsFromRecord(rec) {
-  if (rec.slack && rec.weights && rec.prefixFractions && rec.prefixSums && rec.totalWeight) {
+  if (rec.weights && rec.prefixFractions && rec.prefixSums && rec.totalWeight) {
+    const slack = Array.isArray(rec.slack) ? rec.slack : null;
     return {
-      slack: rec.slack,
+      slack,
+      slackLabel: slack ? "s" : null,
       weights: rec.weights,
       prefixSums: rec.prefixSums,
       prefixFractions: rec.prefixFractions,
@@ -1897,7 +1794,7 @@ function anchorMetricsFromRecord(rec) {
     prefix += w;
     return u;
   });
-  return { slack, weights, prefixSums, prefixFractions, totalWeight };
+  return { slack, slackLabel: "s", weights, prefixSums, prefixFractions, totalWeight };
 }
 
 function updateAnchorMath(rec) {
