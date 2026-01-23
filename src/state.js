@@ -42,7 +42,12 @@ export const state = {
   oddBias: [],
   favorites: [],
   pendingOddBias: null,
-  favoritePromptHandlers: null
+  favoritePromptHandlers: null,
+  outputsByO: {},
+  selectedOutputKeys: new Set(),
+  selectedInventoryId: null,
+  selectedDeskId: null,
+  inventoryFilter: ""
 };
 
 export const els = {
@@ -78,7 +83,24 @@ export const els = {
   favoritePromptText: document.getElementById("favoritePromptText"),
   favoriteSwitchBtn: document.getElementById("favoriteSwitchBtn"),
   favoriteImportBtn: document.getElementById("favoriteImportBtn"),
-  favoriteCancelBtn: document.getElementById("favoriteCancelBtn")
+  favoriteCancelBtn: document.getElementById("favoriteCancelBtn"),
+  outputsCount: document.getElementById("outputsCount"),
+  outputsList: document.getElementById("outputsList"),
+  captureOutputsBtn: document.getElementById("captureOutputsBtn"),
+  sendToDeskBtn: document.getElementById("sendToDeskBtn"),
+  inventorySearch: document.getElementById("inventorySearch"),
+  inventorySendBtn: document.getElementById("inventorySendBtn"),
+  inventoryRemoveBtn: document.getElementById("inventoryRemoveBtn"),
+  inventoryCount: document.getElementById("inventoryCount"),
+  inventoryList: document.getElementById("inventoryList"),
+  inventoryDetails: document.getElementById("inventoryDetails"),
+  deskCount: document.getElementById("deskCount"),
+  deskLanes: document.getElementById("deskLanes"),
+  deskDetails: document.getElementById("deskDetails"),
+  deskLane: document.getElementById("deskLane"),
+  deskDuration: document.getElementById("deskDuration"),
+  layoutSplitter: document.getElementById("layoutSplitter"),
+  instrumentSplitter: document.getElementById("instrumentSplitter")
 };
 
 export const storageKeys = {
@@ -107,5 +129,10 @@ export const storageKeys = {
   repulseEta: "intervalApplet.repulseEta",
   repulseIterations: "intervalApplet.repulseIterations",
   repulseAlpha: "intervalApplet.repulseAlpha",
-  midiTailMs: "intervalApplet.midiTailMs"
+  midiTailMs: "intervalApplet.midiTailMs",
+  inventory: "intervalApplet.inventory",
+  desk: "intervalApplet.desk",
+  inventoryFilter: "intervalApplet.inventoryFilter",
+  layoutSplit: "intervalApplet.layoutSplit",
+  instrumentSplit: "intervalApplet.instrumentSplit"
 };

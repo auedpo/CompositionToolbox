@@ -143,15 +143,12 @@
             <div class="plot-wrap">
               <canvas id="plot" width="640" height="720"></canvas>
             </div>
-            <div class="meta-card">
-              <h3>Keyboard</h3>
-              <div id="keyboard" class="keyboard"></div>
-            </div>
-            <div class="meta-card">
-              <h3>Fretboard</h3>
-              <div id="fretboard" class="fretboard"></div>
-            </div>
+            <details class="meta-card anchor-math">
+              <summary>Anchor math</summary>
+              <div id="anchorMath" class="meta-lines small"></div>
+            </details>
           </div>
+          <div id="layoutSplitter" class="layout-splitter" aria-hidden="true"></div>
           <div class="plot-meta">
             <div class="meta-card">
               <h3>Selected permutation</h3>
@@ -161,9 +158,16 @@
               <h3>Hover dyads</h3>
               <div id="hoverInfo" class="meta-lines"></div>
             </div>
-            <div class="meta-card anchor-math">
-              <h3>Anchor math</h3>
-              <div id="anchorMath" class="meta-lines small"></div>
+          </div>
+          <div class="layout-wide layout-wide-row">
+            <div class="meta-card">
+              <h3>Keyboard</h3>
+              <div id="keyboard" class="keyboard"></div>
+            </div>
+            <div id="instrumentSplitter" class="layout-splitter" aria-hidden="true"></div>
+            <div class="meta-card">
+              <h3>Fretboard</h3>
+              <div id="fretboard" class="fretboard"></div>
             </div>
           </div>
         </div>
@@ -199,6 +203,62 @@
           <h3>Favorites</h3>
           <div id="favoritesList" class="meta-lines"></div>
         </div>
+      </div>
+    </section>
+
+    <section class="lens-grid">
+      <div class="panel outputs-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Outputs</h2>
+            <p id="outputsCount" class="hint">No drafts yet.</p>
+          </div>
+          <div class="panel-actions">
+            <button id="captureOutputsBtn" type="button">Capture to Inventory</button>
+            <button id="sendToDeskBtn" type="button" class="ghost">Send to Desk</button>
+          </div>
+        </div>
+        <div id="outputsList" class="outputs-list"></div>
+      </div>
+
+      <div class="panel inventory-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Inventory</h2>
+            <p id="inventoryCount" class="hint">Inventory empty.</p>
+          </div>
+          <div class="filter">
+            <label for="inventorySearch">Search</label>
+            <input id="inventorySearch" type="text" placeholder="name, type, tag" />
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button id="inventorySendBtn" type="button" class="ghost">Send selected to Desk</button>
+          <button id="inventoryRemoveBtn" type="button" class="ghost">Remove selected</button>
+        </div>
+        <div id="inventoryList" class="inventory-list"></div>
+        <div id="inventoryDetails" class="meta-card"></div>
+      </div>
+
+      <div class="panel desk-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Desk</h2>
+            <p id="deskCount" class="hint">Desk empty.</p>
+          </div>
+        </div>
+        <div class="desk-controls">
+          <div class="field compact">
+            <label for="deskLane">Lane</label>
+            <input id="deskLane" type="number" min="1" value="1" />
+          </div>
+          <div class="field compact">
+            <label for="deskDuration">Duration</label>
+            <input id="deskDuration" type="number" min="0.25" step="0.25" value="1" />
+          </div>
+        </div>
+        <div id="deskLanes" class="desk-lanes"></div>
+        <div id="deskDetails" class="meta-card"></div>
       </div>
     </section>
   </div>
