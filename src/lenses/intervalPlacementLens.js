@@ -8,8 +8,10 @@ import {
   octaveReducedIntervalVector,
   pitchesFromEndpoints,
   primeFormRahnForte,
-  sonorityPenalty
+  sonorityPenalty,
+  calibrateAlpha
 } from "../core/intervalMath.js";
+import { defaultParams } from "../core/defaultParams.js";
 
 const LENS_ID = "intervalPlacement";
 const LENS_VERSION = "1.0";
@@ -368,29 +370,25 @@ function normalizeOddBias(intervals, oddBias) {
   return oddBias.map((bias, idx) => (intervals[idx] % 2 === 1 ? bias : "down"));
 }
 
-function buildPitchListDraft(record, params, windowOctaves, intervals, timestamp) {
+function buildPitchListDraft(record) {
   return {
     type: MATERIAL_TYPES.PitchList,
-    data: { steps: record.pitches.slice() },
-    meta: {
-      perm: record.perm.slice(),
-      windowOctaves,
-      engine: record.engine,
-      intervals: intervals.slice(),
-      tension: record.total
+    payload: {
+      steps: record.pitches.slice(),
+      meta: {
+        perm: record.perm.slice(),
+        engine: record.engine,
+        tension: record.total,
+        perPair: record.perPair
+      }
     },
-    ref: {
-      edo: params.edoSteps,
-      refStep: 0,
-      refHz: params.fRefHz,
-      refLabel: "ref"
-    },
-    provenance: {
-      lensId: LENS_ID,
-      lensVersion: LENS_VERSION,
-      params: { ...params },
-      inputs: { intervals: intervals.slice(), windowOctaves },
-      timestamp
+    summary: {
+      title: `perm ${record.perm.join(" ")}`,
+      description: `pitches: ${record.pitches.join(" ")}`,
+      stats: {
+        tension: record.total,
+        perPair: record.perPair
+      }
     }
   };
 }
@@ -531,29 +529,94 @@ function computeForWindow(intervals, params, oddBias, windowOctaves) {
   return { L, records };
 }
 
-export function runIntervalPlacementLens(input) {
-  const intervals = Array.isArray(input.intervals) ? input.intervals.slice() : [];
-  const params = { ...(input.params || {}) };
-  const windowOctaves = Number.isFinite(input.windowOctaves) ? input.windowOctaves : 1;
-  const oddBias = normalizeOddBias(intervals, input.oddBias);
-  const now = input.timestamp || new Date().toISOString();
+export function evaluateIntervalPlacementLens(input = {}) {
+  const generatorInput = input.generatorInput || {};
+  const intervals = Array.isArray(generatorInput.intervals) ? generatorInput.intervals.slice() : [];
+  if (!intervals.length) {
+    return {
+      ok: false,
+      drafts: [],
+      errors: ["Enter at least one interval."]
+    };
+  }
+  const params = { ...defaultParams, ...(input.params || {}) };
+  params.useDamping = params.useDamping !== false;
+  params.roughAlpha = calibrateAlpha(params, 0.5);
+  const windowOctaves = Number.isFinite(generatorInput.windowOctaves)
+    ? generatorInput.windowOctaves
+    : 1;
+  const rawBias = Array.isArray(generatorInput.oddBias) ? generatorInput.oddBias : [];
+  const biasFlags = rawBias.map((v) => (v === 1 ? "up" : "down"));
+  const oddBias = normalizeOddBias(intervals, biasFlags);
   const start = typeof performance !== "undefined" ? performance.now() : Date.now();
   const { L, records } = computeForWindow(intervals, params, oddBias, windowOctaves);
-  const outputs = records.map((record) => buildPitchListDraft(record, params, windowOctaves, intervals, now));
+  const outputs = records.map((record) => buildPitchListDraft(record));
   const end = typeof performance !== "undefined" ? performance.now() : Date.now();
   return {
-    records,
-    outputs,
-    diagnostics: {
-      windowL: L,
-      permCount: records.length,
-      durationMs: end - start
-    }
+    ok: true,
+    drafts: outputs,
+    vizModel: {
+      records,
+      intervals,
+      oddBias,
+      windowOctaves,
+      params,
+      diagnostics: {
+        windowL: L,
+        permCount: records.length,
+        durationMs: end - start
+      }
+    },
+    warnings: []
   };
 }
 
 export const intervalPlacementLens = {
-  id: LENS_ID,
-  version: LENS_VERSION,
-  run: runIntervalPlacementLens
+  meta: {
+    id: LENS_ID,
+    name: "Interval Placement",
+    kind: "generator"
+  },
+  params: [
+    { key: "placementMode", label: "Placement mode", kind: "select", default: "v2", options: [
+      { value: "v1", label: "uniform-centers" },
+      { value: "v2", label: "prefix-slack" },
+      { value: "prefixDominance", label: "prefix-dominance" },
+      { value: "repulse", label: "repulsion-centers" }
+    ] },
+    { key: "edoSteps", label: "N-EDO", kind: "int", default: 12, min: 1 },
+    { key: "baseNote", label: "Base note", kind: "select", default: "0", options: [
+      { value: "0", label: "C" },
+      { value: "1", label: "C#" },
+      { value: "2", label: "D" },
+      { value: "3", label: "D#" },
+      { value: "4", label: "E" },
+      { value: "5", label: "F" },
+      { value: "6", label: "F#" },
+      { value: "7", label: "G" },
+      { value: "8", label: "G#" },
+      { value: "9", label: "A" },
+      { value: "10", label: "A#" },
+      { value: "11", label: "B" }
+    ] },
+    { key: "baseOctave", label: "Base octave", kind: "int", default: 4 },
+    { key: "xSpacing", label: "X spacing", kind: "number", default: 0.8, min: 0.1, step: 0.1 },
+    { key: "useDamping", label: "Register damping", kind: "bool", default: true },
+    { key: "anchorAlpha", label: "Anchor alpha", kind: "number", default: 0.3, min: 0, max: 1, step: 0.05 },
+    { key: "anchorBeta", label: "Anchor beta", kind: "number", default: 1.0, min: 0, step: 0.1 },
+    { key: "anchorRho", label: "Anchor rho", kind: "number", default: 0.5, min: 0, max: 1, step: 0.05 },
+    { key: "repulseGamma", label: "Repulse gamma", kind: "number", default: 1.0, min: 0, step: 0.1 },
+    { key: "repulseKappa", label: "Repulse kappa", kind: "number", default: 0.4, min: 0, step: 0.05 },
+    { key: "repulseLambda", label: "Repulse lambda", kind: "number", default: 0.1, min: 0, step: 0.05 },
+    { key: "repulseEta", label: "Repulse eta", kind: "number", default: 0.08, min: 0, step: 0.01 },
+    { key: "repulseIterations", label: "Repulse iterations", kind: "int", default: 60, min: 1 },
+    { key: "repulseAlpha", label: "Repulse alpha", kind: "number", default: 1.0, min: 0, max: 1, step: 0.05 },
+    { key: "fRefHz", label: "Reference Hz", kind: "number", default: 55.0, min: 1 }
+  ],
+  generatorInputs: [
+    { key: "intervals", label: "Intervals (steps)", kind: "list:int", default: [11, 7, 16], help: "Comma or space separated." },
+    { key: "windowOctaves", label: "Window (octaves)", kind: "int", default: 3, min: 1 },
+    { key: "oddBias", label: "Odd bias (0=down,1=up)", kind: "list:int", default: [] }
+  ],
+  evaluate: evaluateIntervalPlacementLens
 };

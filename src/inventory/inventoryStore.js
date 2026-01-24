@@ -1,12 +1,15 @@
 import { newId } from "../core/ids.js";
+import { warnIfDraftHasId, warnIfMaterialMissingId } from "../core/guards.js";
 
 export function createInventoryStore() {
   const items = new Map();
 
   function add(draft, options = {}) {
     if (!draft || !draft.type) return null;
+    warnIfDraftHasId(draft, "inventoryStore.add");
     const id = newId("mat");
-    const name = options.name || `${draft.type} ${items.size + 1}`;
+    const name = options.name || (draft.summary && draft.summary.title)
+      || `${draft.type} ${items.size + 1}`;
     const tags = Array.isArray(options.tags) ? options.tags.slice() : [];
     const meta = { ...(draft.meta || {}) };
     if (tags.length) meta.tags = tags;
@@ -15,11 +18,12 @@ export function createInventoryStore() {
       id,
       type: draft.type,
       name,
-      data: draft.data,
+      data: draft.payload,
+      summary: draft.summary || null,
       meta,
-      ref: draft.ref,
-      provenance: draft.provenance
+      provenance: draft.provenance || null
     };
+    warnIfMaterialMissingId(material, "inventoryStore.add");
     items.set(id, material);
     return material;
   }

@@ -74,7 +74,7 @@ export function renderInventory() {
 
 export function sendSelectedInventoryToDesk() {
   if (!state.selectedInventoryId) {
-    els.status.textContent = "Select an inventory item.";
+    els.status.textContent = "Select a material.";
     return;
   }
   const material = inventoryStore.get(state.selectedInventoryId);
@@ -87,7 +87,7 @@ export function sendSelectedInventoryToDesk() {
   deskStore.add({ materialId: material.id, start, duration, lane });
   saveDesk();
   renderDesk();
-  els.status.textContent = `Sent ${material.name} to desk.`;
+  els.status.textContent = `Placed clip for ${material.name} on desk.`;
 }
 
 export function removeSelectedInventory() {

@@ -2,6 +2,7 @@ import { els, state } from "../state.js";
 import { dyadPenaltyDetails, pitchesFromEndpoints } from "../core/intervalMath.js";
 import { hueForInterval, intervalLightness, intervalColor } from "../core/visuals.js";
 import { renderKeyboard, renderFretboard } from "./keyboardFretboard.js";
+import { getFocusedIntervalPlacementRecord } from "../core/activePlacement.js";
 
 const TEXT_FONT = "12px 'Figtree', 'Segoe UI', sans-serif";
 
@@ -236,6 +237,12 @@ export function renderIntervals(intervals, L, edoSteps, iv = []) {
   return rows.join("");
 }
 
+function getActiveIntervalPlacementRecord() {
+  const focused = getFocusedIntervalPlacementRecord();
+  if (focused) return focused;
+  return state.selected || (state.resultsByO[state.activeO] || [])[0];
+}
+
 function intervalCountsFromPitch(pitches, pitch) {
   const counts = new Map();
   pitches.forEach((p) => {
@@ -327,7 +334,7 @@ export function updateHoverCountsLine(countMap) {
 }
 
 export function updateHoverInfo() {
-  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+  const rec = getActiveIntervalPlacementRecord();
   if (!rec || state.hoverPitch === null) {
     els.hoverInfo.textContent = "Hover a pitch to see dyad details.";
     return;
@@ -351,27 +358,31 @@ export function updateHoverInfo() {
   els.hoverInfo.innerHTML = lines.join("<br>");
 }
 
-export function renderPlot() {
-  const canvas = els.plot;
+export function drawPlotOnCanvas(canvas, rec, options = {}) {
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
-  if (!rec) return;
-
+  if (!ctx) return;
+  if (!rec) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
   const wrap = canvas.parentElement;
-  if (wrap) {
-    const targetWidth = Math.max(320, wrap.clientWidth - 24);
-    if (!canvas.height) {
-      canvas.height = 560;
-    }
-    canvas.style.height = `${canvas.height}px`;
-    if (canvas.width !== targetWidth) {
-      canvas.width = targetWidth;
-    }
+  const targetWidth = typeof options.targetWidth === "number"
+    ? options.targetWidth
+    : (wrap ? Math.max(320, wrap.clientWidth - 24) : canvas.width || 0);
+  const targetHeight = typeof options.targetHeight === "number"
+    ? options.targetHeight
+    : 560;
+  if (!canvas.height || canvas.height !== targetHeight) {
+    canvas.height = targetHeight;
+  }
+  canvas.style.height = `${canvas.height}px`;
+  if (canvas.width !== targetWidth) {
+    canvas.width = targetWidth;
   }
 
   const O = state.activeO;
   const L = O * state.params.edoSteps;
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const pad = 48;
   const width = canvas.width - pad * 2;
@@ -382,6 +393,8 @@ export function renderPlot() {
   const intervalLeft = pad;
   const auxLeft = pad + 2 * quarter;
   const compositeX = pad + 3 * quarter;
+  const updateHoverPoints = options.updateHoverPoints !== false;
+  const hoverPoints = updateHoverPoints ? [] : null;
 
   function yToPx(y) {
     return canvas.height - pad - (y / L) * height;
@@ -426,7 +439,9 @@ export function renderPlot() {
 
   ctx.fillStyle = "#1b1b1b";
   ctx.font = TEXT_FONT;
-  state.hoverPoints = [];
+  if (hoverPoints) {
+    hoverPoints.length = 0;
+  }
   rec.endpoints.forEach(([lo, hi], idx) => {
     const x = xIntervalToPx(idx);
     ctx.strokeStyle = "#1b1b1b";
@@ -440,11 +455,11 @@ export function renderPlot() {
     ctx.beginPath();
     ctx.arc(x, yToPx(lo), 3.5, 0, Math.PI * 2);
     ctx.fill();
-    state.hoverPoints.push({ pitch: lo, x, y: yToPx(lo), type: "endpoint" });
+    if (hoverPoints) hoverPoints.push({ pitch: lo, x, y: yToPx(lo), type: "endpoint" });
     ctx.beginPath();
     ctx.arc(x, yToPx(hi), 3.5, 0, Math.PI * 2);
     ctx.fill();
-    state.hoverPoints.push({ pitch: hi, x, y: yToPx(hi), type: "endpoint" });
+    if (hoverPoints) hoverPoints.push({ pitch: hi, x, y: yToPx(hi), type: "endpoint" });
     ctx.save();
     ctx.globalAlpha = 0.3;
     ctx.beginPath();
@@ -467,11 +482,15 @@ export function renderPlot() {
   const xAll = compositeX;
   const xAlpha = auxLeft + quarter / 3;
   const xBeta = auxLeft + (2 * quarter) / 3;
-  state.hoverPoints = rec.pitches.map((p) => ({
+  const pitchPoints = rec.pitches.map((p) => ({
     pitch: p,
     x: xAll,
     y: yToPx(p)
   }));
+  if (hoverPoints) {
+    hoverPoints.push(...pitchPoints);
+    state.hoverPoints = hoverPoints;
+  }
   ctx.save();
   ctx.setLineDash([4, 4]);
   ctx.strokeStyle = "rgba(0,0,0,0.35)";
@@ -492,7 +511,6 @@ export function renderPlot() {
     ctx.arc(xAll, yToPx(p), 3.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillText(`${p}`, xAll + 6, yToPx(p) + 4);
-    state.hoverPoints.push({ pitch: p, x: xAll, y: yToPx(p), type: "all" });
   });
 
   if (state.hoverPitch !== null) {
@@ -667,6 +685,10 @@ export function renderPlot() {
   }
 }
 
+export function renderPlot() {
+  drawPlotOnCanvas(els.plot, getActiveIntervalPlacementRecord(), { updateHoverPoints: true });
+}
+
 export function setHoverPitch(pitch) {
   if (pitch === null) {
     if (state.hoverPitch !== null) {
@@ -684,7 +706,7 @@ export function setHoverPitch(pitch) {
   if (pitch !== state.hoverPitch) {
     state.hoverPitch = pitch;
     state.hoverWindowL = state.activeO * state.params.edoSteps;
-    const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+    const rec = getActiveIntervalPlacementRecord();
     if (rec) {
       const counts = intervalCountsFromPitch(rec.pitches, pitch);
       highlightCounts(counts);

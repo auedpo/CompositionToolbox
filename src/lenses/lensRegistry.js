@@ -1,11 +1,12 @@
 import { intervalPlacementLens } from "./intervalPlacementLens.js";
 import { euclideanPatternsLens } from "./euclideanPatternsLens.js";
+import { passthroughLens } from "./passthroughLens.js";
 
 const registry = new Map();
 
 export function registerLens(lens) {
-  if (!lens || !lens.id) return;
-  registry.set(lens.id, lens);
+  if (!lens || !lens.meta || !lens.meta.id) return;
+  registry.set(lens.meta.id, lens);
 }
 
 export function getLens(id) {
@@ -18,3 +19,4 @@ export function listLenses() {
 
 registerLens(intervalPlacementLens);
 registerLens(euclideanPatternsLens);
+registerLens(passthroughLens);

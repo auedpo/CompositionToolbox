@@ -76,15 +76,16 @@ function toIndexMask(binary) {
   return indices;
 }
 
-export function runEuclideanPatternsLens(ctx = {}) {
-  const { params = {} } = ctx;
-  const normalized = normalizeParams(params);
+export function evaluateEuclideanPatternsLens(ctx = {}) {
+  const { params = {}, generatorInput = {} } = ctx;
+  const merged = { ...params, ...generatorInput };
+  const normalized = normalizeParams(merged);
   const base = bjorklund(normalized.steps, normalized.pulses);
   const rotated = rotateRight(base, normalized.rotationNorm);
   const values = normalized.outputKind === "indexMask" ? toIndexMask(rotated) : rotated;
   const draft = {
     type: "Pattern",
-    data: {
+    payload: {
       kind: normalized.outputKind,
       values,
       domain: {
@@ -94,19 +95,45 @@ export function runEuclideanPatternsLens(ctx = {}) {
         rotationDir: "right"
       }
     },
-    ref: { type: "pattern" },
-    provenance: {
-      lensId: LENS_ID,
-      params: { ...params },
-      timestamp: Date.now()
+    summary: {
+      title: `E(${normalized.steps},${normalized.pulses})`,
+      description: normalized.outputKind === "indexMask"
+        ? `values: [${values.join(", ")}]`
+        : `values: ${values.join("")}`
     }
   };
-  return { outputs: [draft] };
+  return {
+    ok: true,
+    drafts: [draft],
+    vizModel: {
+      pattern: draft.payload
+    },
+    warnings: []
+  };
 }
 
 export const euclideanPatternsLens = {
-  id: LENS_ID,
-  label: "Euclidean Patterns",
-  kind: "generator",
-  run: runEuclideanPatternsLens
+  meta: {
+    id: LENS_ID,
+    name: "Euclidean Patterns",
+    kind: "generator"
+  },
+  params: [
+    {
+      key: "outputKind",
+      label: "Output kind",
+      kind: "select",
+      default: "binaryMask",
+      options: [
+        { value: "binaryMask", label: "binaryMask" },
+        { value: "indexMask", label: "indexMask" }
+      ]
+    }
+  ],
+  generatorInputs: [
+    { key: "steps", label: "Steps (N)", kind: "int", default: 8, min: 1 },
+    { key: "pulses", label: "Pulses (K)", kind: "int", default: 3, min: 0 },
+    { key: "rotation", label: "Rotation (R)", kind: "int", default: 0 }
+  ],
+  evaluate: evaluateEuclideanPatternsLens
 };

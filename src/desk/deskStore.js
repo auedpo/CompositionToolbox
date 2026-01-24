@@ -1,11 +1,13 @@
 import { newId } from "../core/ids.js";
 import { DESK_DEFAULT_DURATION } from "./deskModel.js";
+import { warnIfInvalidMaterialId } from "../core/guards.js";
 
 export function createDeskStore() {
   const items = [];
 
   function add({ materialId, start = 0, duration = DESK_DEFAULT_DURATION, lane = 0, localTransforms = null }) {
     if (!materialId) return null;
+    warnIfInvalidMaterialId(materialId, "deskStore.add");
     const id = newId("desk");
     const obj = {
       id,

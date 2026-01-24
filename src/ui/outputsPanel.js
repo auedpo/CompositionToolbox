@@ -6,97 +6,107 @@ import { renderInventory } from "./inventoryPanel.js";
 
 let onPreview = null;
 
-export function setOutputsPreviewHandler(handler) {
+export function setDraftsPreviewHandler(handler) {
   onPreview = handler;
 }
 
-export function outputKeyForRecord(O, rec) {
+export function draftKeyForRecord(O, rec) {
   return `${O}|${rec.perm.join(",")}|${rec.pitches.join(",")}`;
 }
 
-export function getSelectedOutputEntries() {
-  const outputs = state.outputsByO[state.activeO] || [];
+export function getSelectedDraftEntries() {
+  const drafts = state.draftsByO[state.activeO] || [];
   const records = state.resultsByO[state.activeO] || [];
   const selected = [];
-  outputs.forEach((draft, idx) => {
+  const activeKey = state.activeDraftKey;
+  if (!activeKey) return selected;
+  drafts.forEach((draft, idx) => {
     const record = records[idx];
     if (!record) return;
-    const key = outputKeyForRecord(state.activeO, record);
-    if (!state.selectedOutputKeys.has(key)) return;
+    const key = draftKeyForRecord(state.activeO, record);
+    if (key !== activeKey) return;
     selected.push({ draft, record });
   });
   return selected;
 }
 
-function buildOutputName(record, windowOctaves, index) {
+function buildDraftName(record, windowOctaves, index) {
   const perm = record.perm.join(" ");
   return `O${windowOctaves} perm ${perm} #${index}`;
 }
 
-export function renderOutputs() {
-  if (!els.outputsList || !els.outputsCount) return;
-  const outputs = state.outputsByO[state.activeO] || [];
+export function renderDrafts() {
+  if (!els.draftsList || !els.draftsCount) return;
+  const drafts = state.draftsByO[state.activeO] || [];
   const records = state.resultsByO[state.activeO] || [];
-  els.outputsList.innerHTML = "";
-  els.outputsCount.textContent = outputs.length ? `${outputs.length} drafts` : "No drafts yet.";
-  if (!outputs.length) {
-    els.outputsList.textContent = "No outputs yet.";
-    if (els.captureOutputsBtn) els.captureOutputsBtn.disabled = true;
-    if (els.sendToDeskBtn) els.sendToDeskBtn.disabled = true;
+  els.draftsList.innerHTML = "";
+  els.draftsCount.textContent = drafts.length ? `${drafts.length} drafts` : "No drafts yet.";
+  if (!drafts.length) {
+    els.draftsList.textContent = "No drafts yet.";
+    if (els.captureDraftsBtn) els.captureDraftsBtn.disabled = true;
+    if (els.placeDraftsBtn) els.placeDraftsBtn.disabled = true;
     return;
   }
-  outputs.forEach((draft, idx) => {
+  if (!state.activeDraftKey) {
+    const firstRecord = records[0];
+    if (firstRecord) {
+      state.activeDraftKey = draftKeyForRecord(state.activeO, firstRecord);
+    }
+  }
+  drafts.forEach((draft, idx) => {
     const record = records[idx];
     if (!record) return;
-    const key = outputKeyForRecord(state.activeO, record);
+    const key = draftKeyForRecord(state.activeO, record);
     const row = document.createElement("div");
-    row.className = "output-item";
+    row.className = "draft-item";
+    if (key === state.activeDraftKey) {
+      row.classList.add("active");
+    }
 
     const left = document.createElement("div");
-    left.className = "output-left";
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = state.selectedOutputKeys.has(key);
-    checkbox.addEventListener("change", () => {
-      if (checkbox.checked) {
-        state.selectedOutputKeys.add(key);
-      } else {
-        state.selectedOutputKeys.delete(key);
-      }
-      renderOutputs();
-    });
+    left.className = "draft-left";
     const label = document.createElement("div");
-    label.className = "output-label";
-    label.textContent = `#${idx + 1} perm ${record.perm.join(" ")} -> ${record.pitches.join(" ")}`;
-    left.appendChild(checkbox);
+    label.className = "draft-label";
+    label.textContent = `Draft #${idx + 1}: perm ${record.perm.join(" ")} -> ${record.pitches.join(" ")}`;
+    if (key === state.activeDraftKey) {
+      const status = document.createElement("span");
+      status.className = "draft-status";
+      status.textContent = "Active";
+      label.appendChild(status);
+    }
     left.appendChild(label);
+    row.addEventListener("click", () => {
+      state.activeDraftKey = key;
+      renderDrafts();
+    });
 
     const previewBtn = document.createElement("button");
     previewBtn.type = "button";
     previewBtn.className = "ghost";
     previewBtn.textContent = "Preview";
-    previewBtn.addEventListener("click", () => {
+    previewBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
       if (onPreview) onPreview(record);
     });
 
     row.appendChild(left);
     row.appendChild(previewBtn);
-    els.outputsList.appendChild(row);
+    els.draftsList.appendChild(row);
     void draft;
   });
-  const hasSelection = state.selectedOutputKeys.size > 0;
-  if (els.captureOutputsBtn) els.captureOutputsBtn.disabled = !hasSelection;
-  if (els.sendToDeskBtn) els.sendToDeskBtn.disabled = !hasSelection;
+  const hasSelection = Boolean(state.activeDraftKey);
+  if (els.captureDraftsBtn) els.captureDraftsBtn.disabled = !hasSelection;
+  if (els.placeDraftsBtn) els.placeDraftsBtn.disabled = !hasSelection;
 }
 
-export function captureSelectedOutputs() {
-  const selected = getSelectedOutputEntries();
+export function captureSelectedDrafts() {
+  const selected = getSelectedDraftEntries();
   if (!selected.length) {
-    els.status.textContent = "Select outputs to capture.";
+    els.status.textContent = "Select an active draft to capture.";
     return [];
   }
   const captured = selected.map((entry, idx) => {
-    const name = buildOutputName(entry.record, state.activeO, idx + 1);
+    const name = buildDraftName(entry.record, state.activeO, idx + 1);
     return inventoryStore.add(entry.draft, { name });
   }).filter(Boolean);
   saveInventory();
@@ -105,8 +115,8 @@ export function captureSelectedOutputs() {
   return captured;
 }
 
-export function sendSelectedOutputsToDesk() {
-  const captured = captureSelectedOutputs();
+export function placeSelectedDraftsOnDesk() {
+  const captured = captureSelectedDrafts();
   if (!captured.length) return;
   const { lane, duration } = getDeskPlacementSettings();
   let cursor = nextDeskStart(lane);
@@ -116,5 +126,5 @@ export function sendSelectedOutputsToDesk() {
   });
   saveDesk();
   renderDesk();
-  els.status.textContent = `Sent ${captured.length} materials to desk.`;
+  els.status.textContent = `Placed ${captured.length} clips on desk.`;
 }

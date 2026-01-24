@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node tests/prefixDominanceEngine.test.js && node tests/intervalPlacementLens.test.js && node tests/euclideanPatternsLens.test.js"
+    "test": "node tests/prefixDominanceEngine.test.js && node tests/intervalPlacementLens.test.js && node tests/euclideanPatternsLens.test.js && node tests/transformerPipeline.test.js"
   },
   "devDependencies": {
     "vite": "^5.4.8"

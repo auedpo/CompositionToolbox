@@ -7,342 +7,242 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="page">
-    <header class="hero">
-      <div class="hero-text">
-        <p class="eyebrow">Interval Placement Lab</p>
-        <h1>Vertical interval placement + tension scoring</h1>
-        <p class="subhead">Explore permutations across window sizes and EDOs with live ranking and visual layout.</p>
-      </div>
-      <div class="hero-badge">v1</div>
-    </header>
-
-    <section class="panel control-panel" data-lens-scope="intervalPlacement">
-      <div class="field">
-        <label for="intervals" title="Comma or space-separated interval sizes in steps. These are the d[i] values that stay fixed through placement and quantization.">Intervals (steps)</label>
-        <input id="intervals" type="text" value="11, 7, 16" title="Comma or space-separated interval sizes in steps. These are the d[i] values that stay fixed through placement and quantization." />
-        <p class="hint">Comma or space separated. Example: 11, 7, 16</p>
-      </div>
-      <details class="config-fold">
-        <summary>Config & MIDI</summary>
-        <div class="config-body">
-          <div class="config-section">
-            <div class="config-title">Bias + Orientation</div>
-            <div class="field">
-              <label title="Controls which side gets the extra step for odd intervals. This affects quantization (Q) only, not the continuous placement. Use it to flip individual columns.">Odd interval bias (per column)</label>
-              <div id="oddBias" class="odd-bias"></div>
-              <p class="hint">Flip odd intervals between down-bias and up-bias. Even intervals are fixed.</p>
-            </div>
-          </div>
-          <div class="config-section">
-            <div class="config-title">Window + Display</div>
-            <div class="field-row">
-              <div class="field">
-                <label for="edo" title="Steps per octave used for tuning and tension calculations. This does not change interval sizes; it changes how they are interpreted for pitch and cost.">N-EDO</label>
-                <input id="edo" type="number" min="1" value="12" title="Steps per octave used for tuning and tension calculations. This does not change interval sizes; it changes how they are interpreted for pitch and cost." />
-              </div>
-              <div class="field">
-                <label for="baseNote" title="Root note used only for pitch-name rendering. It does not affect placement or scoring.">Base note</label>
-                <select id="baseNote" title="Root note used only for pitch-name rendering. It does not affect placement or scoring.">
-                  <option value="0">C</option>
-                  <option value="1">C#</option>
-                  <option value="2">D</option>
-                  <option value="3">D#</option>
-                  <option value="4">E</option>
-                  <option value="5">F</option>
-                  <option value="6">F#</option>
-                  <option value="7">G</option>
-                  <option value="8">G#</option>
-                  <option value="9">A</option>
-                  <option value="10">A#</option>
-                  <option value="11">B</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="baseOctave" title="Octave for the base note used in pitch-name display. This does not affect placement or scoring.">Base octave</label>
-                <input id="baseOctave" type="number" value="4" title="Octave for the base note used in pitch-name display. This does not affect placement or scoring." />
-              </div>
-              <div class="field">
-                <label for="minO" title="Smallest window height in octaves to evaluate. Results are computed for each O between min and max.">Min octaves</label>
-                <input id="minO" type="number" min="1" value="2" title="Smallest window height in octaves to evaluate. Results are computed for each O between min and max." />
-              </div>
-              <div class="field">
-                <label for="maxO" title="Largest window height in octaves to evaluate. Use a bigger range to compare how placement changes with L.">Max octaves</label>
-                <input id="maxO" type="number" min="1" value="4" title="Largest window height in octaves to evaluate. Use a bigger range to compare how placement changes with L." />
-              </div>
-              <div class="field">
-                <label for="xSpacing" title="Horizontal spread for plotting permutations. This changes only the visual spacing, not the underlying placement.">X spacing</label>
-                <input id="xSpacing" type="number" min="0.1" step="0.1" value="0.8" title="Horizontal spread for plotting permutations. This changes only the visual spacing, not the underlying placement." />
+  <div class="app-shell">
+    <div class="app-stack">
+      <div class="app-scroll">
+        <div class="page">
+                    <section class="workspace-region">
+            <div class="workspace-toolbar panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <h2>Workspace</h2>
+                  <p class="hint">Manage tracks, inventory, and desk placements.</p>
+                </div>
+                <div class="panel-actions">
+                  <details class="global-config">
+                    <summary>Global Config</summary>
+                    <div class="global-config-body">
+                      <div class="field-row">
+                        <div class="field">
+                          <label for="midiOut" title="Select a MIDI device for preview playback. This does not affect scoring or placement.">MIDI output</label>
+                          <select id="midiOut" title="Select a MIDI device for preview playback. This does not affect scoring or placement.">
+                            <option value="">No device</option>
+                          </select>
+                          <p class="hint">Requires browser permission. Chromium-based browsers only.</p>
+                        </div>
+                        <div class="field">
+                          <label>&nbsp;</label>
+                          <button id="midiPreview" type="button" title="Plays the selected permutation through the chosen MIDI device. This is a preview only and does not change any state.">Preview selected</button>
+                        </div>
+                      </div>
+                      <div id="midiParams" class="field-row"></div>
+                      <div class="field-row">
+                        <div class="field">
+                          <label for="guitarTuning" title="Guitar tuning as note names, e.g. EADGBE or E A D G B E. Used for the fretboard visualization only. This does not affect placement or scoring.">Guitar tuning</label>
+                          <input id="guitarTuning" type="text" value="EADGBE" title="Guitar tuning as note names, e.g. EADGBE or E A D G B E. Used for the fretboard visualization only. This does not affect placement or scoring." />
+                        </div>
+                      </div>
+                      <div class="global-status">
+                        <span id="status" class="status">Ready</span>
+                      </div>
+                    </div>
+                  </details>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="config-section">
-            <div class="config-title">Placement Parameters</div>
-            <div id="placementParams" class="field-row"></div>
-          </div>
-          <div class="config-section">
-            <div class="config-title">Damping + MIDI</div>
-            <div class="field-row">
-              <div class="field">
-                <label for="useDamping" title="Applies a register-dependent weight so lower-register dyads contribute more to tension. This affects scoring only, not placement.">Register damping</label>
-                <select id="useDamping" title="Applies a register-dependent weight so lower-register dyads contribute more to tension. This affects scoring only, not placement.">
-                  <option value="on">On</option>
-                  <option value="off">Off</option>
-                </select>
+            <div class="workspace-stage">
+              <div class="app-dock">
+                <div class="inventory-desk-row" data-lens-scope="shared">
+                  <div class="panel inventory-panel">
+                    <div class="panel-header">
+                      <div class="panel-title">
+                        <h2>Inventory</h2>
+                        <p id="inventoryCount" class="hint">Inventory empty.</p>
+                      </div>
+                      <div class="panel-actions filter">
+                        <label for="inventorySearch">Search</label>
+                        <input id="inventorySearch" type="text" placeholder="name, type, tag" />
+                      </div>
+                    </div>
+                    <div class="panel-body panel-scroll">
+                      <div id="inventoryList" class="inventory-list"></div>
+                      <div class="panel subpanel">
+                        <div class="panel-header">
+                          <div class="panel-title">
+                            <h3>Details</h3>
+                          </div>
+                        </div>
+                        <div class="panel-body">
+                          <div id="inventoryDetails" class="meta-lines"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="panel-footer">
+                      <button id="inventorySendBtn" type="button" class="ghost">Place selected on Desk</button>
+                      <button id="inventoryRemoveBtn" type="button" class="ghost">Remove selected</button>
+                    </div>
+                  </div>
+                  <div class="panel desk-panel">
+                    <div class="panel-header">
+                      <div class="panel-title">
+                        <h2>Desk</h2>
+                        <p id="deskCount" class="hint">Desk empty.</p>
+                      </div>
+                    </div>
+                    <div class="panel-body panel-scroll">
+                      <div class="desk-controls">
+                        <div class="field compact">
+                          <label for="deskLane">Lane</label>
+                          <input id="deskLane" type="number" min="1" value="1" />
+                        </div>
+                        <div class="field compact">
+                          <label for="deskDuration">Duration</label>
+                          <input id="deskDuration" type="number" min="0.25" step="0.25" value="1" />
+                        </div>
+                        <div class="field compact">
+                          <label for="deskGridStep">Grid</label>
+                          <input id="deskGridStep" type="number" min="0.05" step="0.05" value="0.25" />
+                        </div>
+                      </div>
+                      <div id="deskLanes" class="desk-lanes"></div>
+                      <div class="panel subpanel">
+                        <div class="panel-header">
+                          <div class="panel-title">
+                            <h3>Details</h3>
+                          </div>
+                        </div>
+                        <div class="panel-body">
+                          <div id="deskDetails" class="meta-lines"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="panel-footer">
+                      <button id="deskRemoveBtn" type="button" class="ghost">Remove selected</button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="field">
-                <label for="midiOut" title="Select a MIDI device for preview playback. This does not affect scoring or placement.">MIDI output</label>
-                <select id="midiOut" title="Select a MIDI device for preview playback. This does not affect scoring or placement.">
-                  <option value="">No device</option>
-                </select>
-                <p class="hint">Requires browser permission. Chromium-based browsers only.</p>
-              </div>
-              <div class="field">
-                <label>&nbsp;</label>
-                <button id="midiPreview" type="button" title="Plays the selected permutation through the chosen MIDI device. This is a preview only and does not change any state.">Preview selected</button>
+              <div id="workspaceView" class="workspace-view">
+                <div id="workspaceTracks"></div>
+                <div id="workspaceDockSplitter" class="workspace-dock-splitter"></div>
+                <div id="workspaceDock" class="workspace-dock">
+                  <div class="dock-header">
+                    <div class="dock-title">Dock</div>
+                    <button id="dockToggleBtn" class="ghost" type="button">Hide</button>
+                  </div>
+                  <div id="workspaceDockBody" class="workspace-dock-body"></div>
+                </div>
               </div>
             </div>
-            <div id="midiParams" class="field-row"></div>
+          </section>
+  <div id="visualizerPopout" class="visualizer-popout" role="dialog" aria-label="Expanded interval placement visualizer">
+    <button type="button" class="ghost popout-close">Close</button>
+    <div class="viz-stack">
+      <div class="panel subpanel plot-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Placement plot</h3>
           </div>
-          <div class="config-section">
-            <div class="config-title">Guitar</div>
-            <div class="field-row">
-              <div class="field">
-                <label for="guitarTuning" title="Guitar tuning as note names, e.g. EADGBE or E A D G B E. Used for the fretboard visualization only. This does not affect placement or scoring.">Tuning</label>
-                <input id="guitarTuning" type="text" value="EADGBE" title="Guitar tuning as note names, e.g. EADGBE or E A D G B E. Used for the fretboard visualization only. This does not affect placement or scoring." />
-              </div>
-            </div>
-          </div>
-          <div class="actions">
-            <button id="runBtn" title="Recompute all permutations with the current settings. This recalculates placement, quantization, and tension.">Recompute</button>
-            <span id="status" class="status">Ready</span>
-          </div>
-        </div>
-      </details>
-    </section>
-
-    <section class="layout-grid" data-lens-scope="intervalPlacement">
-      <div class="panel layout-panel">
-        <div class="layout-header">
-          <h2>Permutation layout</h2>
-          <div class="tab-controls">
-            <div class="field compact">
-              <label for="placementMode" title="Select the placement engine that chooses continuous centers. All modes share rho orientation, quantization, and scoring downstream.">Placement</label>
-              <select id="placementMode" title="Select the placement engine that chooses continuous centers. All modes share rho orientation, quantization, and scoring downstream.">
-                <option value="v1">uniform-centers</option>
-                <option value="v2">prefix-slack</option>
-                <option value="prefixDominance">prefix-dominance</option>
-                <option value="repulse">repulsion-centers</option>
-              </select>
-            </div>
+          <div class="panel-actions">
             <div id="tabBar" class="tabs"></div>
           </div>
         </div>
-        <div class="layout-body">
-          <div class="plot-stack">
-            <div class="plot-wrap">
-              <canvas id="plot" width="640" height="720"></canvas>
-            </div>
-            <details class="meta-card anchor-math">
-              <summary>Anchor math</summary>
-              <div id="anchorMath" class="meta-lines small"></div>
-            </details>
+        <div class="panel-body">
+          <div class="plot-wrap">
+            <canvas id="plot" width="640" height="720"></canvas>
           </div>
-          <div id="layoutSplitter" class="layout-splitter" aria-hidden="true"></div>
-          <div class="plot-meta">
-            <div class="meta-card">
+          <p id="anchorSummary" class="hint"></p>
+        </div>
+      </div>
+      <details class="panel subpanel anchor-math">
+        <summary>Anchor math</summary>
+        <div id="anchorMath" class="meta-lines small"></div>
+      </details>
+      <div class="viz-meta-row">
+        <div class="panel subpanel">
+          <div class="panel-header">
+            <div class="panel-title">
               <h3>Selected permutation</h3>
-              <div id="selectedInfo" class="meta-lines"></div>
-            </div>
-            <div class="meta-card">
-              <h3>Hover dyads</h3>
-              <div id="hoverInfo" class="meta-lines"></div>
             </div>
           </div>
-          <div class="layout-wide layout-wide-row">
-            <div class="meta-card">
-              <h3>Keyboard</h3>
-              <div id="keyboard" class="keyboard"></div>
+          <div class="panel-body">
+            <div id="selectedInfo" class="meta-lines"></div>
+            <div id="hoverCountsLine" class="meta-line">hover counts: --</div>
+          </div>
+        </div>
+        <div class="panel subpanel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <h3>Hover dyads</h3>
             </div>
-            <div id="instrumentSplitter" class="layout-splitter" aria-hidden="true"></div>
-            <div class="meta-card">
-              <h3>Fretboard</h3>
-              <div id="fretboard" class="fretboard"></div>
-            </div>
+          </div>
+          <div class="panel-body">
+            <div id="hoverInfo" class="meta-lines"></div>
           </div>
         </div>
       </div>
-
-      <div class="panel table-panel">
-        <div class="table-header">
-          <div>
-            <h2>Ranked results</h2>
-            <p id="anchorSummary" class="hint"></p>
+      <div class="panel subpanel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Ranked results</h3>
           </div>
-          <div class="filter">
+          <div class="panel-actions filter">
             <label for="filter">Filter</label>
             <input id="filter" type="text" placeholder="perm or pitch" />
           </div>
         </div>
-        <div class="table-wrap">
-          <table id="resultsTable">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Permutation</th>
-                <th>Pitches</th>
-                <th>Fav</th>
-                <th>Total</th>
-                <th>Per pair</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <div class="panel-body panel-scroll">
+          <div class="table-wrap">
+            <table id="resultsTable">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Permutation</th>
+                  <th>Pitches</th>
+                  <th>Fav</th>
+                  <th>Total</th>
+                  <th>Per pair</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
-      <div class="meta-card">
-          <h3>Favorites</h3>
+      </div>
+      <div class="panel subpanel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Favorites</h3>
+          </div>
+        </div>
+        <div class="panel-body">
           <div id="favoritesList" class="meta-lines"></div>
         </div>
       </div>
-    </section>
-
-    <section class="lens-grid">
-      <div class="panel lens-switcher" data-lens-scope="shared">
-        <div class="panel-header">
-          <div>
-            <h2>Lens</h2>
-            <p class="hint">Choose a lens to focus the workspace.</p>
-          </div>
-          <div class="lens-buttons" role="group" aria-label="Active lens">
-            <button type="button" class="lens-btn ghost" data-lens="intervalPlacement">Interval Placement</button>
-            <button type="button" class="lens-btn ghost" data-lens="euclideanPatterns">Euclidean Patterns</button>
-          </div>
-        </div>
-        <div class="panel-actions">
-          <button id="lensShowAllBtn" type="button" class="ghost">Show all</button>
-          <button id="lensHideAllBtn" type="button" class="ghost">Hide all</button>
-        </div>
-      </div>
-
-      <div class="panel euclid-panel" data-lens-scope="euclideanPatterns">
-        <div class="panel-header">
-          <div>
-            <h2>Euclidean Patterns</h2>
-          </div>
-          <div class="panel-actions">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="euclidSteps">Steps (N)</label>
-            <input id="euclidSteps" type="number" min="1" value="8" />
-          </div>
-          <div class="field">
-            <label for="euclidPulses">Pulses (K)</label>
-            <input id="euclidPulses" type="number" min="0" value="3" />
-          </div>
-          <div class="field">
-            <label for="euclidRotation">Rotation (R)</label>
-            <div class="range-row">
-              <input id="euclidRotation" type="range" min="-32" max="32" step="1" value="0" />
-              <span id="euclidRotationValue" class="range-value">0</span>
-            </div>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="euclidOutputKind">Output kind</label>
-            <div class="toggle-buttons" role="group" aria-label="Output kind">
-              <button type="button" class="toggle-btn ghost" data-toggle-group="outputKind" data-value="binaryMask">binaryMask</button>
-              <button type="button" class="toggle-btn ghost" data-toggle-group="outputKind" data-value="indexMask">indexMask</button>
-            </div>
-          </div>
-          <div class="field">
-            <label for="euclidIndexBase">Index base</label>
-            <div class="toggle-buttons" role="group" aria-label="Index base">
-              <button type="button" class="toggle-btn ghost" data-toggle-group="indexBase" data-value="0">0</button>
-              <button type="button" class="toggle-btn ghost" data-toggle-group="indexBase" data-value="1">1</button>
-            </div>
-          </div>
-        </div>
-        <div class="panel-actions">
-          <button id="euclidCaptureBtn" type="button">Capture to Inventory</button>
-          <button id="euclidSendBtn" type="button" class="ghost">Send to Desk</button>
-        </div>
-        <div class="meta-card">
-          <h3>Preview</h3>
-          <div id="euclidPreview" class="pattern-preview">No draft yet.</div>
-        </div>
-        <div class="meta-card">
-          <canvas id="euclidWheel" class="euclid-wheel" width="300" height="300"></canvas>
-        </div>
-      </div>
-
-      <div class="panel outputs-panel" data-lens-scope="intervalPlacement">
-        <div class="panel-header">
-          <div>
-            <h2>Outputs</h2>
-            <p id="outputsCount" class="hint">No drafts yet.</p>
-          </div>
-          <div class="panel-actions">
-            <button id="captureOutputsBtn" type="button">Capture to Inventory</button>
-            <button id="sendToDeskBtn" type="button" class="ghost">Send to Desk</button>
-          </div>
-        </div>
-        <div id="outputsList" class="outputs-list"></div>
-      </div>
-
-      <div class="inventory-desk-row" data-lens-scope="shared">
-        <div class="panel inventory-panel">
+      <div class="viz-instruments">
+        <div class="panel subpanel">
           <div class="panel-header">
-            <div>
-              <h2>Inventory</h2>
-              <p id="inventoryCount" class="hint">Inventory empty.</p>
-            </div>
-            <div class="filter">
-              <label for="inventorySearch">Search</label>
-              <input id="inventorySearch" type="text" placeholder="name, type, tag" />
+            <div class="panel-title">
+              <h3>Keyboard</h3>
             </div>
           </div>
-          <div class="panel-actions">
-            <button id="inventorySendBtn" type="button" class="ghost">Send selected to Desk</button>
-            <button id="inventoryRemoveBtn" type="button" class="ghost">Remove selected</button>
+          <div class="panel-body">
+            <div id="keyboard" class="keyboard"></div>
           </div>
-          <div id="inventoryList" class="inventory-list"></div>
-          <div id="inventoryDetails" class="meta-card"></div>
         </div>
-
-        <div class="panel desk-panel">
+        <div class="panel subpanel">
           <div class="panel-header">
-            <div>
-              <h2>Desk</h2>
-              <p id="deskCount" class="hint">Desk empty.</p>
-            </div>
-            <div class="panel-actions">
-              <button id="deskRemoveBtn" type="button" class="ghost">Remove selected</button>
+            <div class="panel-title">
+              <h3>Fretboard</h3>
             </div>
           </div>
-          <div class="desk-controls">
-            <div class="field compact">
-              <label for="deskLane">Lane</label>
-              <input id="deskLane" type="number" min="1" value="1" />
-            </div>
-            <div class="field compact">
-              <label for="deskDuration">Duration</label>
-              <input id="deskDuration" type="number" min="0.25" step="0.25" value="1" />
-            </div>
-            <div class="field compact">
-              <label for="deskGridStep">Grid</label>
-              <input id="deskGridStep" type="number" min="0.05" step="0.05" value="0.25" />
-            </div>
+          <div class="panel-body">
+            <div id="fretboard" class="fretboard"></div>
           </div>
-          <div id="deskLanes" class="desk-lanes"></div>
-          <div id="deskDetails" class="meta-card"></div>
         </div>
       </div>
-    </section>
+    </div>
   </div>
-
   <div id="favoritePrompt" class="modal hidden">
     <div class="modal-card">
       <h3>Favorite settings</h3>

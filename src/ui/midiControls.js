@@ -1,5 +1,6 @@
 import { els, state, storageKeys } from "../state.js";
 import { getBaseMidi } from "../core/pitchUtils.js";
+import { getFocusedIntervalPlacementRecord } from "../core/activePlacement.js";
 
 let midiAccess = null;
 let midiOutputs = [];
@@ -46,8 +47,12 @@ function getSelectedOutput() {
   return midiOutputs.find((out) => out.id === id) || null;
 }
 
+function getPlaybackRecord() {
+  return getFocusedIntervalPlacementRecord() || state.selected || (state.resultsByO[state.activeO] || [])[0];
+}
+
 export function previewSelected() {
-  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+  const rec = getPlaybackRecord();
   if (!rec) return;
   requestMidiAccess().then(() => {
     const out = getSelectedOutput();
@@ -78,7 +83,7 @@ function scheduleNoteOff(out, note, offTime) {
 }
 
 export function playIntervalSequence() {
-  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+  const rec = getPlaybackRecord();
   if (!rec) return;
   requestMidiAccess().then(() => {
     const out = getSelectedOutput();
@@ -112,7 +117,7 @@ export function playIntervalSequence() {
 }
 
 export function playArpeggioSequence() {
-  const rec = state.selected || (state.resultsByO[state.activeO] || [])[0];
+  const rec = getPlaybackRecord();
   if (!rec) return;
   requestMidiAccess().then(() => {
     const out = getSelectedOutput();

@@ -1,6 +1,13 @@
 import { els, state, storageKeys } from "../state.js";
 import { engineLabelForId } from "../core/placementLabels.js";
 
+function getFocusedIntervalPlacementInstance() {
+  if (state.focusedIntervalPlacementId && state.lensInstancesById) {
+    return state.lensInstancesById.get(state.focusedIntervalPlacementId) || null;
+  }
+  return state.lensInstances ? state.lensInstances.intervalPlacement : null;
+}
+
 export function loadFavorites() {
   const stored = localStorage.getItem(storageKeys.favorites);
   if (!stored) {
@@ -23,21 +30,22 @@ export function captureFavoriteSnapshot(rec, capturePlacementParamValues) {
   const values = typeof capturePlacementParamValues === "function"
     ? capturePlacementParamValues()
     : {};
+  const instance = getFocusedIntervalPlacementInstance();
+  const generatorInput = instance ? instance.generatorInputValues : {};
   return {
-    intervals: els.intervals.value,
+    intervals: Array.isArray(generatorInput.intervals) ? generatorInput.intervals.slice() : [],
+    windowOctaves: generatorInput.windowOctaves,
+    oddBias: Array.isArray(generatorInput.oddBias) ? generatorInput.oddBias.slice() : [],
     O: state.activeO,
     perm: rec.perm,
     pitches: rec.pitches,
-    placementMode: els.placementMode.value || "v2",
+    placementMode: values.placementMode || "v2",
     placementParams: values,
-    oddBias: state.oddBias.slice(),
-    edo: els.edo.value,
-    baseNote: els.baseNote.value,
-    baseOctave: els.baseOctave.value,
-    minO: els.minO.value,
-    maxO: els.maxO.value,
-    xSpacing: els.xSpacing.value,
-    useDamping: els.useDamping.value
+    edo: values.edoSteps,
+    baseNote: values.baseNote,
+    baseOctave: values.baseOctave,
+    xSpacing: values.xSpacing,
+    useDamping: values.useDamping
   };
 }
 
@@ -45,6 +53,7 @@ export function favoriteKeyFromSnapshot(snapshot) {
   return JSON.stringify({
     intervals: snapshot.intervals,
     O: snapshot.O,
+    windowOctaves: snapshot.windowOctaves,
     perm: snapshot.perm,
     placementMode: snapshot.placementMode,
     placementParams: snapshot.placementParams,
@@ -56,7 +65,11 @@ export function favoriteKeyFromSnapshot(snapshot) {
 
 export function favoriteKey(rec) {
   const O = state.activeO;
-  return `${els.intervals.value}|O${O}|${rec.perm.join(",")}|${rec.pitches.join(",")}`;
+  const instance = getFocusedIntervalPlacementInstance();
+  const intervals = instance && Array.isArray(instance.generatorInputValues.intervals)
+    ? instance.generatorInputValues.intervals.join(",")
+    : "";
+  return `${intervals}|O${O}|${rec.perm.join(",")}|${rec.pitches.join(",")}`;
 }
 
 export function toggleFavorite(rec, capturePlacementParamValues) {
@@ -70,7 +83,7 @@ export function toggleFavorite(rec, capturePlacementParamValues) {
     state.favorites.push({
       key,
       snapshot,
-      intervals: els.intervals.value,
+      intervals: snapshot.intervals,
       O: state.activeO,
       perm: rec.perm,
       pitches: rec.pitches,
@@ -83,52 +96,32 @@ export function toggleFavorite(rec, capturePlacementParamValues) {
 
 export function applyFavoriteSnapshot(snapshot, deps) {
   if (!snapshot) return;
-  const { renderPlacementParams, saveInputs, recompute } = deps;
-  els.intervals.value = snapshot.intervals || els.intervals.value;
-  els.edo.value = snapshot.edo || els.edo.value;
-  els.baseNote.value = snapshot.baseNote || els.baseNote.value;
-  els.baseOctave.value = snapshot.baseOctave || els.baseOctave.value;
-  els.minO.value = snapshot.minO || els.minO.value;
-  els.maxO.value = snapshot.maxO || els.maxO.value;
-  els.xSpacing.value = snapshot.xSpacing || els.xSpacing.value;
-  els.useDamping.value = snapshot.useDamping || els.useDamping.value;
-  els.placementMode.value = snapshot.placementMode || els.placementMode.value;
-  if (typeof renderPlacementParams === "function") {
-    renderPlacementParams(els.placementMode.value || "v2");
+  const { applyLensSnapshot } = deps;
+  if (typeof applyLensSnapshot === "function") {
+    applyLensSnapshot(snapshot);
   }
-  const paramValues = snapshot.placementParams || {};
-  Object.entries(paramValues).forEach(([id, value]) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.value = value;
-  });
-  if (Array.isArray(snapshot.oddBias)) {
-    state.pendingOddBias = snapshot.oddBias.slice();
-    localStorage.setItem(storageKeys.oddBias, JSON.stringify(snapshot.oddBias));
-  }
-  if (typeof saveInputs === "function") saveInputs();
-  if (typeof recompute === "function") recompute();
 }
 
 export function captureCurrentSettingsSnapshot(capturePlacementParamValues) {
   const values = typeof capturePlacementParamValues === "function"
     ? capturePlacementParamValues()
     : {};
+  const instance = getFocusedIntervalPlacementInstance();
+  const generatorInput = instance ? instance.generatorInputValues : {};
   return {
-    intervals: els.intervals.value,
+    intervals: Array.isArray(generatorInput.intervals) ? generatorInput.intervals.slice() : [],
     O: state.activeO,
+    windowOctaves: generatorInput.windowOctaves,
     perm: null,
     pitches: null,
-    placementMode: els.placementMode.value || "v2",
+    placementMode: values.placementMode || "v2",
     placementParams: values,
-    oddBias: state.oddBias.slice(),
-    edo: els.edo.value,
-    baseNote: els.baseNote.value,
-    baseOctave: els.baseOctave.value,
-    minO: els.minO.value,
-    maxO: els.maxO.value,
-    xSpacing: els.xSpacing.value,
-    useDamping: els.useDamping.value
+    oddBias: Array.isArray(generatorInput.oddBias) ? generatorInput.oddBias.slice() : [],
+    edo: values.edoSteps,
+    baseNote: values.baseNote,
+    baseOctave: values.baseOctave,
+    xSpacing: values.xSpacing,
+    useDamping: values.useDamping
   };
 }
 
@@ -136,6 +129,7 @@ export function snapshotsDiffer(a, b) {
   if (!a || !b) return false;
   const keys = [
     "intervals",
+    "windowOctaves",
     "placementMode",
     "edo",
     "useDamping"
@@ -180,7 +174,7 @@ export function finalizeFavoriteSelection(fav, targetO, render) {
 }
 
 export function renderFavorites(deps) {
-  const { capturePlacementParamValues, render, renderPlacementParams, saveInputs, recompute } = deps;
+  const { capturePlacementParamValues, render, applyLensSnapshot, applyIntervalsOnly } = deps;
   els.favoritesList.innerHTML = "";
   if (!state.favorites.length) {
     els.favoritesList.textContent = "No favorites yet.";
@@ -220,20 +214,22 @@ export function renderFavorites(deps) {
           const message = `Favorite settings differ from current. (Engine: ${engineLabelForId(snapshotMode)}.) Choose how to load it.`;
           openFavoritePrompt(message, {
             onSwitch: () => {
-              applyFavoriteSnapshot(snapshot, { renderPlacementParams, saveInputs, recompute });
+              applyFavoriteSnapshot(snapshot, { applyLensSnapshot });
               finalizeFavoriteSelection(fav, snapshot.O, render);
             },
             onImport: () => {
-              els.intervals.value = snapshot.intervals || els.intervals.value;
-              if (typeof saveInputs === "function") saveInputs();
-              if (typeof recompute === "function") recompute();
+              if (typeof applyIntervalsOnly === "function") {
+                applyIntervalsOnly(snapshot);
+              } else {
+                applyFavoriteSnapshot(snapshot, { applyLensSnapshot });
+              }
               finalizeFavoriteSelection(fav, snapshot.O, render);
             },
             onCancel: () => {}
           });
           return;
         }
-        applyFavoriteSnapshot(snapshot, { renderPlacementParams, saveInputs, recompute });
+        applyFavoriteSnapshot(snapshot, { applyLensSnapshot });
         finalizeFavoriteSelection(fav, snapshot.O, render);
         return;
       }

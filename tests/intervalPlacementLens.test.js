@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { runIntervalPlacementLens } from "../src/lenses/intervalPlacementLens.js";
+import { evaluateIntervalPlacementLens } from "../src/lenses/intervalPlacementLens.js";
 import { calibrateAlpha } from "../src/core/intervalMath.js";
 
 const params = {
@@ -30,17 +30,18 @@ const params = {
 params.roughAlpha = calibrateAlpha(params, 0.5);
 
 const input = {
-  intervals: [11, 7, 16],
-  params,
-  oddBias: ["down", "down", "down"],
-  windowOctaves: 3,
-  timestamp: "2025-01-01T00:00:00.000Z"
+  generatorInput: {
+    intervals: [11, 7, 16],
+    oddBias: [0, 0, 0],
+    windowOctaves: 3
+  },
+  params
 };
 
-const resultA = runIntervalPlacementLens(input);
-const resultB = runIntervalPlacementLens(input);
+const resultA = evaluateIntervalPlacementLens(input);
+const resultB = evaluateIntervalPlacementLens(input);
 
-assert.deepStrictEqual(resultA.records, resultB.records);
-assert.deepStrictEqual(resultA.outputs, resultB.outputs);
+assert.deepStrictEqual(resultA.vizModel.records, resultB.vizModel.records);
+assert.deepStrictEqual(resultA.drafts, resultB.drafts);
 
 console.log("intervalPlacementLens determinism ok");

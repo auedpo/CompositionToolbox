@@ -135,7 +135,7 @@ export function renderDeskDetails() {
   if (!els.deskDetails) return;
   const selected = state.selectedDeskId ? deskStore.list().find((item) => item.id === state.selectedDeskId) : null;
   if (!selected) {
-    els.deskDetails.textContent = "Select a desk item to see details.";
+    els.deskDetails.textContent = "Select a clip to see details.";
     return;
   }
   const material = inventoryStore.get(selected.materialId);

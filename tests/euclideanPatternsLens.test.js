@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { runEuclideanPatternsLens } from "../src/lenses/euclideanPatternsLens.js";
+import { evaluateEuclideanPatternsLens } from "../src/lenses/euclideanPatternsLens.js";
 
 function sum(values) {
   return values.reduce((acc, v) => acc + v, 0);
@@ -29,10 +29,11 @@ function rotateRight(values, shift) {
 }
 
 function getBinaryMask(steps, pulses, rotation) {
-  const { outputs } = runEuclideanPatternsLens({
-    params: { steps, pulses, rotation, outputKind: "binaryMask" }
+  const { drafts } = evaluateEuclideanPatternsLens({
+    generatorInput: { steps, pulses, rotation },
+    params: { outputKind: "binaryMask" }
   });
-  return outputs[0].data.values;
+  return drafts[0].payload.values;
 }
 
 const maskA = getBinaryMask(8, 3, 0);
