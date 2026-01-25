@@ -1,3 +1,4 @@
+import { basicMathTransformerLens } from "./basicMathTransformerLens.js";
 import { intervalPlacementLens } from "./intervalPlacementLens.js";
 import { euclideanPatternsLens } from "./euclideanPatternsLens.js";
 import { passthroughLens } from "./passthroughLens.js";
@@ -20,3 +21,4 @@ export function listLenses() {
 registerLens(intervalPlacementLens);
 registerLens(euclideanPatternsLens);
 registerLens(passthroughLens);
+registerLens(basicMathTransformerLens);

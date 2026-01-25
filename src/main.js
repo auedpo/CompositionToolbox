@@ -1180,12 +1180,6 @@ function getLensHeaderLabel(instance) {
   return `${label} - ${name}`;
 }
 
-function getLensDraftsHeader(instance) {
-  const label = getLensInstanceLabel(instance);
-  const name = instance.lens && instance.lens.meta ? instance.lens.meta.name : "Lens";
-  return `Drafts from ${label} - ${name}`;
-}
-
 function setFocusedLensInstance(lensId, instanceId) {
   if (!lensId || !instanceId) return;
   focusedLensInstances.set(lensId, instanceId);
@@ -1426,7 +1420,6 @@ function getLensElements(lensId) {
     viz: root.querySelector("[data-lens-viz]"),
     popout: root.querySelector("[data-lens-popout]"),
     headerTitle: root.querySelector(".lens-rail span"),
-    draftsHeader: root.querySelector(".lens-column.lens-right .lens-title"),
     euclidPreview: root.querySelector("#euclidPreview"),
     euclidCanvas: root.querySelector("#euclidWheel")
   };
@@ -1437,8 +1430,31 @@ function setLensElementLabels(instance, elements) {
   if (elements.headerTitle) {
     elements.headerTitle.textContent = getLensHeaderLabel(instance);
   }
-  if (elements.draftsHeader) {
-    elements.draftsHeader.textContent = getLensDraftsHeader(instance);
+}
+
+function updateLensVisualizerState(instance, elements, hasVisualizer) {
+  if (!elements || !elements.root) return;
+  const root = elements.root;
+  const supportsViz = Boolean(hasVisualizer);
+  root.classList.toggle("lens-has-viz", supportsViz);
+  root.classList.toggle("lens-no-viz", !supportsViz);
+  if (!supportsViz) {
+    instance.vizCollapsed = false;
+  }
+  const toggle = elements.vizToggle;
+  if (toggle) {
+    toggle.hidden = !supportsViz;
+    if (supportsViz) {
+      const collapsed = Boolean(instance.vizCollapsed);
+      root.classList.toggle("lens-viz-collapsed", collapsed);
+      toggle.textContent = collapsed ? "▶" : "▼";
+      toggle.setAttribute("aria-label", collapsed ? "Show visualizer panel" : "Hide visualizer panel");
+      toggle.setAttribute("title", collapsed ? "Show visualizer panel" : "Hide visualizer panel");
+    } else {
+      root.classList.remove("lens-viz-collapsed");
+    }
+  } else if (!supportsViz) {
+    root.classList.remove("lens-viz-collapsed");
   }
 }
 
@@ -1496,6 +1512,61 @@ function syncIntervalPlacementState(instance) {
   }
 }
 
+function formatNumericList(values, maxLength = 128) {
+  if (!Array.isArray(values) || !values.length) return "n/a";
+  const text = values.map((value) => (Number.isFinite(value) ? value : String(value))).join(", ");
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}…`;
+}
+
+function renderTransformerVisualizer(elements, instance) {
+  if (!elements || !elements.viz) return false;
+  const container = elements.viz;
+  container.innerHTML = "";
+  const vizModel = instance.evaluateResult && instance.evaluateResult.vizModel;
+  if (!vizModel) {
+    const placeholder = document.createElement("div");
+    placeholder.className = "lens-viz-placeholder";
+    placeholder.textContent = "No preview available.";
+    container.appendChild(placeholder);
+    return false;
+  }
+  const title = document.createElement("div");
+  title.className = "lens-viz-title";
+  title.textContent = vizModel.operationLabel
+    ? `Operation: ${vizModel.operationLabel}`
+    : "Raw data";
+  container.appendChild(title);
+  const rows = document.createElement("div");
+  rows.className = "lens-viz-rows";
+  const appendRow = (label, value) => {
+    const row = document.createElement("div");
+    row.className = "lens-viz-row";
+    const labelEl = document.createElement("span");
+    labelEl.className = "lens-viz-label";
+    labelEl.textContent = label;
+    const valueEl = document.createElement("span");
+    valueEl.className = "lens-viz-value";
+    valueEl.textContent = value;
+    row.appendChild(labelEl);
+    row.appendChild(valueEl);
+    rows.appendChild(row);
+  };
+  appendRow("Inputs", formatNumericList(vizModel.inputValues));
+  appendRow(
+    "Operands",
+    Array.isArray(vizModel.operands) && vizModel.operands.length
+      ? formatNumericList(vizModel.operands)
+    : "auto"
+  );
+  appendRow("Mod", vizModel.modActive ? `${vizModel.modValue}` : "off");
+  if (vizModel.sourceName) {
+    appendRow("Source", vizModel.sourceName);
+  }
+  container.appendChild(rows);
+  return true;
+}
+
 function handleLensUpdate(instance) {
   const lensId = instance.lens.meta.id;
   const trackElements = lensElements.get(instance.id);
@@ -1540,9 +1611,17 @@ function handleLensUpdate(instance) {
       }
     };
     renderLensDrafts(elements.drafts, instance, draftHandlers);
+    const lensSupportsVisualizer = Boolean(instance.lens && instance.lens.meta && instance.lens.meta.hasVisualizer !== false);
+    let vizActive = false;
     if (lensId === "euclideanPatterns") {
       renderEuclidPanel(instance, elements);
+      vizActive = true;
+    } else if (isIntervalPlacement) {
+      vizActive = true;
+    } else if (!isIntervalPlacement && instance.lens.meta.kind === "transformer" && lensSupportsVisualizer) {
+      vizActive = renderTransformerVisualizer(elements, instance);
     }
+    updateLensVisualizerState(instance, elements, vizActive);
   });
 
   const focusedAfterTargets = getFocusedLensInstanceId(lensId);
@@ -1785,8 +1864,6 @@ function mountIntervalPlacementWorkspaceViz(instance, middleBody) {
   middleBody.innerHTML = "";
   const headerBar = document.createElement("div");
   headerBar.className = "workspace-viz-header";
-  const headerTitle = document.createElement("h3");
-  headerTitle.textContent = "Visualizer";
   const popoutBtn = document.createElement("button");
   popoutBtn.type = "button";
   popoutBtn.className = "ghost popout-btn";
@@ -1803,7 +1880,6 @@ function mountIntervalPlacementWorkspaceViz(instance, middleBody) {
       updateHoverInfo();
     }
   });
-  headerBar.appendChild(headerTitle);
   headerBar.appendChild(popoutBtn);
   middleBody.appendChild(headerBar);
   const vizStack = document.createElement("div");
@@ -1934,7 +2010,7 @@ function moveTransformer(trackId, instanceId, delta) {
     });
   }
 
-  function buildLensPanel(instance, opts = {}) {
+function buildLensPanel(instance, opts = {}) {
   const lens = instance.lens;
   const root = document.createElement("section");
   root.className = `lens-layout lens-compact track-lens ${opts.className || ""}`.trim();
@@ -1942,49 +2018,31 @@ function moveTransformer(trackId, instanceId, delta) {
 
   const rail = document.createElement("div");
   rail.className = "lens-rail";
-  const railLabel = document.createElement("span");
-  railLabel.textContent = instance.lane === "G" ? "Generator" : "Transformer";
-  rail.appendChild(railLabel);
-  root.appendChild(rail);
-
-  const left = document.createElement("div");
-  left.className = "lens-column lens-left";
-  const leftHeader = document.createElement("div");
-  leftHeader.className = "lens-column-header";
-  const headerTitle = document.createElement("div");
-  headerTitle.className = "lens-title";
-  headerTitle.textContent = getLensHeaderLabel(instance);
-  const headerActions = document.createElement("div");
-  headerActions.className = "lens-panel-actions";
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
-  removeBtn.className = "ghost";
-  removeBtn.textContent = "Remove";
+  removeBtn.className = "lens-rail-remove";
+  removeBtn.textContent = "X";
   removeBtn.addEventListener("click", () => {
     const confirmMsg = instance.lane === "G"
       ? "Remove generator lens from this track?"
       : "Remove transformer lens from this track?";
-      if (window.confirm(confirmMsg)) {
-        removeLensInstance(instance.id);
-        renderTrackWorkspace();
-      }
-    });
-  headerActions.appendChild(removeBtn);
-  if (lens.meta && lens.meta.id) {
-    const focusBtn = document.createElement("button");
-    focusBtn.type = "button";
-    focusBtn.className = "ghost";
-    focusBtn.textContent = "Focus";
-    focusBtn.addEventListener("click", () => {
-      setFocusedLensInstance(lens.meta.id, instance.id);
-      renderFocusedDashboard();
-      refreshTransformerInputs();
-    });
-    headerActions.appendChild(focusBtn);
-  }
-  leftHeader.appendChild(headerTitle);
-  leftHeader.appendChild(headerActions);
-  left.appendChild(leftHeader);
+    if (window.confirm(confirmMsg)) {
+      removeLensInstance(instance.id);
+      renderTrackWorkspace();
+    }
+  });
+  rail.appendChild(removeBtn);
+  const railLabel = document.createElement("span");
+  railLabel.textContent = getLensHeaderLabel(instance);
+  rail.appendChild(railLabel);
+  root.appendChild(rail);
+
+  const content = document.createElement("div");
+  content.className = "lens-content";
+  root.appendChild(content);
+
+  const left = document.createElement("div");
+  left.className = "lens-column lens-left";
   const leftBody = document.createElement("div");
   leftBody.className = "lens-column-body";
   const inputSection = document.createElement("div");
@@ -2010,73 +2068,74 @@ function moveTransformer(trackId, instanceId, delta) {
   leftBody.appendChild(inputSection);
   leftBody.appendChild(paramSection);
   left.appendChild(leftBody);
-  root.appendChild(left);
+  content.appendChild(left);
 
-  const middle = document.createElement("div");
-  middle.className = "lens-column lens-middle";
-  const middleHeader = document.createElement("div");
-  middleHeader.className = "lens-column-header";
-  const middleTitle = document.createElement("div");
-  middleTitle.className = "lens-title";
-  middleTitle.textContent = "Visualizer";
-  middleHeader.appendChild(middleTitle);
-  middle.appendChild(middleHeader);
-  const middleBody = document.createElement("div");
-  middleBody.className = "lens-column-body";
-  middleBody.dataset.lensViz = "true";
+  const lensSupportsVisualizer = Boolean(lens.meta && lens.meta.hasVisualizer !== false);
+  let middle = null;
+  let middleBody = null;
+  let vizToggle = null;
   let euclidPreview = null;
   let euclidCanvas = null;
-  if (lens.meta.id === "intervalPlacement") {
-    mountIntervalPlacementWorkspaceViz(instance, middleBody);
-  } else if (lens.meta.id === "euclideanPatterns") {
-    const panel = document.createElement("div");
-    panel.className = "panel subpanel";
-    const panelHeader = document.createElement("div");
-    panelHeader.className = "panel-header";
-    const panelTitle = document.createElement("div");
-    panelTitle.className = "panel-title";
-    const heading = document.createElement("h3");
-    heading.textContent = "Preview";
-    panelTitle.appendChild(heading);
-    panelHeader.appendChild(panelTitle);
-    panel.appendChild(panelHeader);
-    const panelBody = document.createElement("div");
-    panelBody.className = "panel-body";
-    euclidPreview = document.createElement("div");
-    euclidPreview.className = "pattern-preview";
-    euclidPreview.textContent = "No draft yet.";
-    panelBody.appendChild(euclidPreview);
-    panel.appendChild(panelBody);
-    middleBody.appendChild(panel);
-    const canvasPanel = document.createElement("div");
-    canvasPanel.className = "panel subpanel";
-    const canvasBody = document.createElement("div");
-    canvasBody.className = "panel-body";
-    euclidCanvas = document.createElement("canvas");
-    euclidCanvas.className = "euclid-wheel";
-    euclidCanvas.width = 300;
-    euclidCanvas.height = 300;
-    canvasBody.appendChild(euclidCanvas);
-    canvasPanel.appendChild(canvasBody);
-    middleBody.appendChild(canvasPanel);
-  } else {
-    const placeholder = document.createElement("div");
-    placeholder.className = "lens-viz-placeholder";
-    placeholder.textContent = "No visualizer for this lens.";
-    middleBody.appendChild(placeholder);
+  if (lensSupportsVisualizer) {
+    middle = document.createElement("div");
+    middle.className = "lens-column lens-middle";
+    middleBody = document.createElement("div");
+    middleBody.className = "lens-column-body";
+    middleBody.dataset.lensViz = "true";
+    middle.appendChild(middleBody);
+    vizToggle = document.createElement("button");
+    vizToggle.type = "button";
+    vizToggle.className = "lens-viz-toggle";
+    vizToggle.textContent = "▼";
+    vizToggle.setAttribute("aria-label", "Collapse visualizer panel");
+    middle.appendChild(vizToggle);
   }
-  middle.appendChild(middleBody);
-  root.appendChild(middle);
+
+  if (middleBody) {
+    if (lens.meta.id === "intervalPlacement") {
+      mountIntervalPlacementWorkspaceViz(instance, middleBody);
+    } else if (lens.meta.id === "euclideanPatterns") {
+      const panel = document.createElement("div");
+      panel.className = "panel subpanel";
+      const panelHeader = document.createElement("div");
+      panelHeader.className = "panel-header";
+      const panelTitle = document.createElement("div");
+      panelTitle.className = "panel-title";
+      const heading = document.createElement("h3");
+      heading.textContent = "Preview";
+      panelTitle.appendChild(heading);
+      panelHeader.appendChild(panelTitle);
+      panel.appendChild(panelHeader);
+      const panelBody = document.createElement("div");
+      panelBody.className = "panel-body";
+      euclidPreview = document.createElement("div");
+      euclidPreview.className = "pattern-preview";
+      euclidPreview.textContent = "No draft yet.";
+      panelBody.appendChild(euclidPreview);
+      panel.appendChild(panelBody);
+      middleBody.appendChild(panel);
+      const canvasPanel = document.createElement("div");
+      canvasPanel.className = "panel subpanel";
+      const canvasBody = document.createElement("div");
+      canvasBody.className = "panel-body";
+      euclidCanvas = document.createElement("canvas");
+      euclidCanvas.className = "euclid-wheel";
+      euclidCanvas.width = 300;
+      euclidCanvas.height = 300;
+      canvasBody.appendChild(euclidCanvas);
+      canvasPanel.appendChild(canvasBody);
+      middleBody.appendChild(canvasPanel);
+    } else {
+      const placeholder = document.createElement("div");
+      placeholder.className = "lens-viz-placeholder";
+      placeholder.textContent = "No preview available.";
+      middleBody.appendChild(placeholder);
+    }
+    if (middle) content.appendChild(middle);
+  }
 
   const right = document.createElement("div");
   right.className = "lens-column lens-right";
-  const rightHeader = document.createElement("div");
-  rightHeader.className = "lens-column-header";
-  const draftsHeader = document.createElement("div");
-  draftsHeader.className = "lens-title";
-  draftsHeader.textContent = getLensDraftsHeader(instance);
-  rightHeader.appendChild(draftsHeader);
-  right.appendChild(rightHeader);
   const rightBody = document.createElement("div");
   rightBody.className = "lens-column-body";
   const notices = document.createElement("div");
@@ -2086,7 +2145,7 @@ function moveTransformer(trackId, instanceId, delta) {
   rightBody.appendChild(notices);
   rightBody.appendChild(drafts);
   right.appendChild(rightBody);
-  root.appendChild(right);
+  content.appendChild(right);
 
   const elements = {
     root,
@@ -2095,11 +2154,19 @@ function moveTransformer(trackId, instanceId, delta) {
     notices,
     drafts,
     viz: middleBody,
-    headerTitle,
-    draftsHeader,
+    headerTitle: railLabel,
     euclidPreview,
-    euclidCanvas
+    euclidCanvas,
+    vizToggle,
+    hasVisualizer: lensSupportsVisualizer
   };
+  if (vizToggle) {
+    vizToggle.addEventListener("click", () => {
+      instance.vizCollapsed = !instance.vizCollapsed;
+      updateLensVisualizerState(instance, elements, true);
+    });
+  }
+  updateLensVisualizerState(instance, elements, lensSupportsVisualizer);
   lensElements.set(instance.id, elements);
   bindLensInputsForInstance(instance, elements, { idPrefix: instance.id });
   scheduleLens(instance);

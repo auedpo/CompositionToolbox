@@ -98,6 +98,7 @@ export function createLensInstance(lens, lensInstanceId) {
     activeDraft: null,
     selectedInputDraftIdsByRole: {},
     activeDraftId: null,
+    vizCollapsed: false,
     evaluateResult: { ok: false, drafts: [] },
     currentDrafts: []
   };

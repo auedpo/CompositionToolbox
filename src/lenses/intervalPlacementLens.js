@@ -2,6 +2,7 @@ import { computePrefixDominanceAnchors } from "../placementEngines/prefixDominan
 import { createPrefixSlackEngine } from "../placementEngines/prefixSlackEngine.js";
 import { createRepulsionCentersEngine } from "../placementEngines/repulsionCentersEngine.js";
 import { MATERIAL_TYPES } from "../core/materialTypes.js";
+import { formatValueList } from "../core/displayHelpers.js";
 import {
   inducedIntervals,
   intervalCounts,
@@ -383,8 +384,11 @@ function buildPitchListDraft(record) {
       }
     },
     summary: {
-      title: `perm ${record.perm.join(" ")}`,
-      description: `pitches: ${record.pitches.join(" ")}`,
+      title: formatValueList(record.pitches, { maxLength: 64 }) || `perm ${record.perm.join(" ")}`,
+      description: [
+        record.perm && record.perm.length ? `perm ${record.perm.join(" ")}` : null,
+        record.engine ? `engine ${placementEngineLabel(record.engine)}` : null
+      ].filter(Boolean).join(" • "),
       stats: {
         tension: record.total,
         perPair: record.perPair
@@ -575,6 +579,7 @@ export const intervalPlacementLens = {
   meta: {
     id: LENS_ID,
     name: "Interval Placement",
+    hasVisualizer: true,
     kind: "generator"
   },
   params: [

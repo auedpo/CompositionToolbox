@@ -32,6 +32,7 @@ export const passthroughLens = {
   meta: {
     id: LENS_ID,
     name: "Passthrough",
+    hasVisualizer: false,
     kind: "transformer"
   },
   inputs: [

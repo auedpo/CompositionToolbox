@@ -1,5 +1,8 @@
 import { updateSpecValue } from "../lenses/lensRuntime.js";
 
+let openDraftsMenu = null;
+let draftsMenuListenerBound = false;
+
 function buildFieldLabel(text, help) {
   const label = document.createElement("label");
   label.textContent = text;
@@ -226,11 +229,88 @@ export function renderLensDrafts(container, instance, handlers) {
   if (!container) return;
   const drafts = instance.currentDrafts || [];
   container.innerHTML = "";
+  const doc = container.ownerDocument;
+  if (doc && !draftsMenuListenerBound) {
+    doc.addEventListener("click", (event) => {
+      if (!openDraftsMenu) return;
+      if (openDraftsMenu.contains(event.target)) return;
+      openDraftsMenu.classList.remove("is-open");
+      openDraftsMenu = null;
+    });
+    draftsMenuListenerBound = true;
+  }
+  const header = document.createElement("div");
+  header.className = "drafts-header";
+  const headerTitle = document.createElement("div");
+  headerTitle.className = "drafts-title";
+  headerTitle.textContent = "Drafts";
+  const menuWrap = document.createElement("div");
+  menuWrap.className = "drafts-menu";
+  const menuButton = document.createElement("button");
+  menuButton.type = "button";
+  menuButton.className = "ghost drafts-add";
+  menuButton.textContent = "Add...";
+  const hasActiveDraft = Boolean(instance.activeDraftId);
+  menuButton.disabled = !hasActiveDraft;
+  const menuList = document.createElement("div");
+  menuList.className = "drafts-menu-list";
+  const addInventory = document.createElement("button");
+  addInventory.type = "button";
+  addInventory.className = "drafts-menu-item";
+  addInventory.textContent = "Add to Inventory";
+  const addDesk = document.createElement("button");
+  addDesk.type = "button";
+  addDesk.className = "drafts-menu-item";
+  addDesk.textContent = "Add to Desk";
+  [addInventory, addDesk].forEach((btn) => {
+    btn.disabled = !hasActiveDraft;
+  });
+  menuButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (!menuButton.disabled) {
+      if (openDraftsMenu && openDraftsMenu !== menuWrap) {
+        openDraftsMenu.classList.remove("is-open");
+      }
+      menuWrap.classList.toggle("is-open");
+      openDraftsMenu = menuWrap.classList.contains("is-open") ? menuWrap : null;
+    }
+  });
+  const getActiveDraft = () => drafts.find((draft) => draft.id === instance.activeDraftId);
+  addInventory.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const activeDraft = getActiveDraft();
+    if (activeDraft && handlers && handlers.onAddToInventory) {
+      handlers.onAddToInventory(activeDraft);
+    }
+    menuWrap.classList.remove("is-open");
+    openDraftsMenu = null;
+  });
+  addDesk.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const activeDraft = getActiveDraft();
+    if (activeDraft && handlers && handlers.onAddToDesk) {
+      handlers.onAddToDesk(activeDraft);
+    }
+    menuWrap.classList.remove("is-open");
+    openDraftsMenu = null;
+  });
+  menuList.appendChild(addInventory);
+  menuList.appendChild(addDesk);
+  menuWrap.appendChild(menuButton);
+  menuWrap.appendChild(menuList);
+  header.appendChild(headerTitle);
+  header.appendChild(menuWrap);
+  container.appendChild(header);
+
+  const list = document.createElement("div");
+  list.className = "drafts-items";
+  container.appendChild(list);
+
   if (!drafts.length) {
     const empty = document.createElement("div");
     empty.className = "drafts-empty";
     empty.textContent = "No drafts yet.";
-    container.appendChild(empty);
+    list.appendChild(empty);
     return;
   }
   drafts.forEach((draft) => {
@@ -244,12 +324,6 @@ export function renderLensDrafts(container, instance, handlers) {
     const label = document.createElement("div");
     label.className = "draft-label";
     label.textContent = draft.summary && draft.summary.title ? draft.summary.title : draft.type;
-    if (draft.id === instance.activeDraftId) {
-      const status = document.createElement("span");
-      status.className = "draft-status";
-      status.textContent = "Active";
-      label.appendChild(status);
-    }
     const desc = document.createElement("div");
     desc.className = "draft-desc";
     desc.textContent = draft.summary && draft.summary.description ? draft.summary.description : "";
@@ -263,27 +337,7 @@ export function renderLensDrafts(container, instance, handlers) {
       }
     });
 
-    const actions = document.createElement("div");
-    actions.className = "draft-actions";
-    const addDesk = document.createElement("button");
-    addDesk.type = "button";
-    addDesk.className = "ghost";
-    addDesk.textContent = "Add to Desk";
-    addDesk.addEventListener("click", (event) => {
-      event.stopPropagation();
-      if (handlers && handlers.onAddToDesk) handlers.onAddToDesk(draft);
-    });
-    const addInventory = document.createElement("button");
-    addInventory.type = "button";
-    addInventory.textContent = "Add to Inventory";
-    addInventory.addEventListener("click", (event) => {
-      event.stopPropagation();
-      if (handlers && handlers.onAddToInventory) handlers.onAddToInventory(draft);
-    });
-    actions.appendChild(addDesk);
-    actions.appendChild(addInventory);
-    row.appendChild(actions);
-    container.appendChild(row);
+    list.appendChild(row);
   });
 }
 

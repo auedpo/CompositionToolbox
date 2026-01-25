@@ -116,6 +116,7 @@ export const euclideanPatternsLens = {
   meta: {
     id: LENS_ID,
     name: "Euclidean Patterns",
+    hasVisualizer: true,
     kind: "generator"
   },
   params: [
