@@ -127,10 +127,6 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
     const field = document.createElement("div");
     field.className = "lens-field";
     const label = buildFieldLabel(spec.role, spec.required ? "Required" : "");
-    const search = document.createElement("input");
-    search.type = "text";
-    search.className = "lens-search";
-    search.placeholder = "Search track, label, or draft title";
     const select = document.createElement("select");
     const empty = document.createElement("option");
     empty.value = "";
@@ -144,18 +140,8 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
         if (meta && meta.isActive) return true;
         return selectedId && draft.id === selectedId;
       });
-      const query = search.value.trim().toLowerCase();
-      const filtered = query
-        ? candidates.filter((draft) => {
-          const meta = metaById.get(draft.id);
-          const title = draft.summary && draft.summary.title ? draft.summary.title : draft.type;
-          const labelText = meta && meta.label ? meta.label : "";
-          const trackName = meta && meta.trackName ? meta.trackName : "";
-          return [title, labelText, trackName].some((value) => String(value).toLowerCase().includes(query));
-        })
-        : candidates;
       const grouped = new Map();
-      filtered.forEach((draft) => {
+      candidates.forEach((draft) => {
         const meta = metaById.get(draft.id);
         const trackId = meta && meta.trackId ? meta.trackId : "unknown";
         if (!grouped.has(trackId)) grouped.set(trackId, []);
@@ -193,13 +179,7 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
       const value = select.value || null;
       if (onChange) onChange(spec.role, value);
     });
-    search.addEventListener("input", () => {
-      buildOptions();
-      const next = selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : "";
-      select.value = next;
-    });
     field.appendChild(label);
-    field.appendChild(search);
     field.appendChild(select);
     container.appendChild(field);
   });
@@ -249,7 +229,7 @@ export function renderLensDrafts(container, instance, handlers) {
   const menuButton = document.createElement("button");
   menuButton.type = "button";
   menuButton.className = "ghost drafts-add";
-  menuButton.textContent = "Add...";
+  menuButton.textContent = "Add";
   const hasActiveDraft = Boolean(instance.activeDraftId);
   menuButton.disabled = !hasActiveDraft;
   const menuList = document.createElement("div");
@@ -257,11 +237,11 @@ export function renderLensDrafts(container, instance, handlers) {
   const addInventory = document.createElement("button");
   addInventory.type = "button";
   addInventory.className = "drafts-menu-item";
-  addInventory.textContent = "Add to Inventory";
+  addInventory.textContent = "Inv.";
   const addDesk = document.createElement("button");
   addDesk.type = "button";
   addDesk.className = "drafts-menu-item";
-  addDesk.textContent = "Add to Desk";
+  addDesk.textContent = "Desk";
   [addInventory, addDesk].forEach((btn) => {
     btn.disabled = !hasActiveDraft;
   });

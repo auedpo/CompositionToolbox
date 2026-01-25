@@ -5,6 +5,7 @@
   --lens-unit: clamp(140px, 20vw, 200px);
   --lens-units-x: 3;
   --lens-units-y: 2;
+  --track-lens-height: calc(var(--lens-unit) * var(--lens-units-y));
 
   /* 2) Root scales and primitives */
   /* Typography scale: use these for all font sizes. */
@@ -109,6 +110,7 @@
   --icon-size-sm: 14px;
   --icon-size-md: 16px;
   --icon-size-lg: 20px;
+  --icon-size-xl: 24px;
 
   /* Controls: common heights/padding (ties to your existing tokens) */
   --control-height: 32px;                 /* keep your current value */
@@ -499,7 +501,7 @@ details.panel.subpanel > div {
 
 .field-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--space-6), 1fr));
   gap: var(--space-3);
   margin-top: var(--space-4);
 }
@@ -527,7 +529,7 @@ details.panel.subpanel > div {
 }
 
 .config-body .field-row {
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .config-body .hint {
@@ -631,6 +633,14 @@ button.ghost:hover:not(:disabled) {
   border-color: var(--color-border);
 }
 
+.icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .icon-btn {
   width: var(--control-height);
   padding: 0;
@@ -639,6 +649,25 @@ button.ghost:hover:not(:disabled) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0;
+}
+
+.icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.icon-label > .label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-label-compact > .label {
+  display: none;
 }
 
 .status {
@@ -675,7 +704,7 @@ button.ghost:hover:not(:disabled) {
 .field.compact {
   display: grid;
   gap: var(--space-1);
-  min-width: 160px;
+  min-width: var(--space-6);
 }
 
 .field.compact label {
@@ -1295,8 +1324,9 @@ details.meta-card[open] summary::after {
 
 .track-body {
   display: grid;
-  gap: var(--space-1);
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--space-4);
+  grid-template-columns: max-content max-content;
+  justify-content: start;
   align-items: start;
 }
 
@@ -1306,10 +1336,7 @@ details.meta-card[open] summary::after {
 }
 
 .track-lane-title {
-  font-size: var(--type-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--ls-wide);
-  color: var(--color-text-muted);
+  display: none;
 }
 
 .track-placeholder {
@@ -1322,6 +1349,15 @@ details.meta-card[open] summary::after {
 
 .track-lens {
   width: 100%;
+  height: var(--track-lens-height);
+  --lens-unit: calc(var(--track-lens-height) / var(--lens-units-y));
+}
+
+.track-lens .lens-layout {
+  width: calc(var(--lens-unit) * var(--lens-units-x) + var(--lens-rail));
+  height: 100%;
+  max-width: 100%;
+  justify-self: stretch;
 }
 
 .lens-panel-actions {
@@ -1553,7 +1589,7 @@ details.meta-card[open] summary::after {
 
 .lens-layout {
   display: grid;
-  --lens-rail: 26px;
+  --lens-rail: 30px;
   --lens-left-width: 0.9fr;
   --lens-middle-width: 1.2fr;
   --lens-right-width: 0.9fr;
@@ -1574,6 +1610,10 @@ details.meta-card[open] summary::after {
   outline: 1px solid var(--black);
 }
 
+.lens-layout.lens-inputs-open {
+  overflow: visible;
+}
+
 .lens-content {
   display: grid;
   gap: var(--space-1);
@@ -1583,6 +1623,7 @@ details.meta-card[open] summary::after {
   height: 100%;
   background: var(--panel-bg);
   border-radius: var(--panel-radius);
+  align-items: stretch;
 }
 
 .lens-layout.lens-no-viz .lens-content {
@@ -1603,6 +1644,7 @@ details.meta-card[open] summary::after {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
 }
 
 .lens-column.lens-middle {
@@ -1644,6 +1686,7 @@ details.meta-card[open] summary::after {
 
 button.lens-rail-remove:not(.ghost):hover:not(:disabled){
   background: var(--color-danger-surface);
+  color: var(--color-danger-text);
 }
 
 
@@ -1652,6 +1695,46 @@ button.lens-rail-remove:not(.ghost):hover:not(:disabled){
   writing-mode: sideways-lr;
   text-orientation: mixed;
   white-space: nowrap;
+}
+
+.lens-rail-menu {
+  position: absolute;
+  bottom: var(--space-1);
+  left: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+}
+
+.lens-rail-info {
+  width: var(--knob-size);
+  height: var(--knob-size);
+  padding: 0;
+  border-radius: var(--radius-none);
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-panel-bg);
+  color: var(--color-text-muted);
+  font-size: var(--type-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lens-rail-menu-list {
+  position: absolute;
+  left: calc(100% + var(--space-1));
+  top: 0;
+  min-width: 220px;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-none);
+  box-shadow: var(--elevation-panel);
+  padding: var(--space-1);
+  display: none;
+  gap: var(--space-1);
+  z-index: 20;
+}
+
+.lens-rail-menu.is-open .lens-rail-menu-list {
+  display: grid;
 }
 
 .lens-viz-toggle {
@@ -1686,6 +1769,11 @@ button.lens-rail-remove:not(.ghost):hover:not(:disabled){
   gap: var(--space-3);
   overflow: auto;
   min-height: 0;
+  flex: 1;
+}
+
+.lens-column.lens-right .lens-column-body {
+  overflow: visible;
 }
 
 .lens-subtitle {
@@ -1711,6 +1799,13 @@ button.lens-rail-remove:not(.ghost):hover:not(:disabled){
 .lens-section-body {
   display: grid;
   gap: var(--space-2);
+}
+
+.lens-section-body input,
+.lens-section-body select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .lens-compact .lens-column-body {
@@ -2001,10 +2096,9 @@ body.visualizer-popout-open {
 }
 
 .desk-controls .field.compact input {
-  max-width: 120px;
+  max-width: calc(var(--space-6)* 3);
 }
 
-.drafts-list,
 .inventory-list {
   display: grid;
   gap: var(--space-1);
@@ -2012,11 +2106,21 @@ body.visualizer-popout-open {
   padding-right: var(--space-1);
 }
 
+.drafts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 0;
+  overflow: visible;
+}
+
 .drafts-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  position: relative;
+  z-index: 2;
 }
 
 .drafts-title {
@@ -2044,7 +2148,7 @@ body.visualizer-popout-open {
   padding: var(--space-1);
   display: none;
   gap: var(--space-1);
-  z-index: 5;
+  z-index: 10;
 }
 
 .drafts-menu.is-open .drafts-menu-list {
@@ -2071,6 +2175,10 @@ body.visualizer-popout-open {
 .drafts-items {
   display: grid;
   gap: var(--space-05);
+  overflow: visible;
+  flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .draft-item {

@@ -47,7 +47,18 @@ import {
   renderFavorites,
   toggleFavorite
 } from "./ui/favoritesPanel.js";
+import { icon } from "./ui/icons.js";
 import { ensureSingleInputTransformerSelections } from "./transformerPipeline.js";
+
+let openLensInputsMenu = null;
+let lensInputsMenuListenerBound = false;
+
+function closeLensInputsMenu() {
+  if (!openLensInputsMenu) return;
+  openLensInputsMenu.menu.classList.remove("is-open");
+  openLensInputsMenu.root.classList.remove("lens-inputs-open");
+  openLensInputsMenu = null;
+}
 
 function parseIntervals(text) {
   return text
@@ -1866,8 +1877,13 @@ function mountIntervalPlacementWorkspaceViz(instance, middleBody) {
   headerBar.className = "workspace-viz-header";
   const popoutBtn = document.createElement("button");
   popoutBtn.type = "button";
-  popoutBtn.className = "ghost popout-btn";
-  popoutBtn.textContent = "Pop-out";
+  popoutBtn.className = "ghost popout-btn icon-label icon-label-compact";
+  popoutBtn.title = "Open large visualizer in pop-out window";
+  popoutBtn.appendChild(icon("square-arrow-out-up-right"));
+  const popoutLabel = document.createElement("span");
+  popoutLabel.className = "label";
+  popoutLabel.textContent = "Pop-out";
+  popoutBtn.appendChild(popoutLabel);
   const overlay = ensureVisualizerPopoutOverlay();
   popoutBtn.addEventListener("click", () => {
     if (!overlay) return;
@@ -2012,6 +2028,9 @@ function moveTransformer(trackId, instanceId, delta) {
 
 function buildLensPanel(instance, opts = {}) {
   const lens = instance.lens;
+  const hasTransformerInputs = Boolean(
+    lens.meta.kind === "transformer" && Array.isArray(lens.inputs) && lens.inputs.length
+  );
   const root = document.createElement("section");
   root.className = `lens-layout lens-compact track-lens ${opts.className || ""}`.trim();
   root.dataset.lensInstanceId = instance.id;
@@ -2021,7 +2040,8 @@ function buildLensPanel(instance, opts = {}) {
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
   removeBtn.className = "lens-rail-remove";
-  removeBtn.textContent = "X";
+  removeBtn.setAttribute("aria-label", "Remove lens");
+  removeBtn.appendChild(icon("square-x"));
   removeBtn.addEventListener("click", () => {
     const confirmMsg = instance.lane === "G"
       ? "Remove generator lens from this track?"
@@ -2035,6 +2055,46 @@ function buildLensPanel(instance, opts = {}) {
   const railLabel = document.createElement("span");
   railLabel.textContent = getLensHeaderLabel(instance);
   rail.appendChild(railLabel);
+  let railInputsMenu = null;
+  let railInputsMenuList = null;
+  if (hasTransformerInputs) {
+    railInputsMenu = document.createElement("div");
+    railInputsMenu.className = "lens-rail-menu";
+    const infoButton = document.createElement("button");
+    infoButton.type = "button";
+    infoButton.className = "lens-rail-info";
+    infoButton.appendChild(icon("workflow"));
+    infoButton.setAttribute("aria-label", "Select lens inputs");
+    railInputsMenuList = document.createElement("div");
+    railInputsMenuList.className = "lens-rail-menu-list";
+    railInputsMenuList.dataset.lensInputs = "true";
+    infoButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (openLensInputsMenu && openLensInputsMenu.menu !== railInputsMenu) {
+        closeLensInputsMenu();
+      }
+      const shouldOpen = !railInputsMenu.classList.contains("is-open");
+      if (shouldOpen) {
+        railInputsMenu.classList.add("is-open");
+        root.classList.add("lens-inputs-open");
+        openLensInputsMenu = { menu: railInputsMenu, root };
+      } else {
+        closeLensInputsMenu();
+      }
+    });
+    const doc = rail.ownerDocument;
+    if (doc && !lensInputsMenuListenerBound) {
+      doc.addEventListener("click", (event) => {
+        if (!openLensInputsMenu) return;
+        if (openLensInputsMenu.menu.contains(event.target)) return;
+        closeLensInputsMenu();
+      });
+      lensInputsMenuListenerBound = true;
+    }
+    railInputsMenu.appendChild(infoButton);
+    railInputsMenu.appendChild(railInputsMenuList);
+    rail.appendChild(railInputsMenu);
+  }
   root.appendChild(rail);
 
   const content = document.createElement("div");
@@ -2045,16 +2105,20 @@ function buildLensPanel(instance, opts = {}) {
   left.className = "lens-column lens-left";
   const leftBody = document.createElement("div");
   leftBody.className = "lens-column-body";
-  const inputSection = document.createElement("div");
-  inputSection.className = "lens-section";
-  const inputHeader = document.createElement("div");
-  inputHeader.className = "lens-section-header";
-  inputHeader.textContent = "Input";
-  const inputBody = document.createElement("div");
-  inputBody.className = "lens-section-body";
-  inputBody.dataset.lensInputs = "true";
-  inputSection.appendChild(inputHeader);
-  inputSection.appendChild(inputBody);
+  let inputBody = railInputsMenuList;
+  if (!hasTransformerInputs) {
+    const inputSection = document.createElement("div");
+    inputSection.className = "lens-section";
+    const inputHeader = document.createElement("div");
+    inputHeader.className = "lens-section-header";
+    inputHeader.textContent = "Input";
+    inputBody = document.createElement("div");
+    inputBody.className = "lens-section-body";
+    inputBody.dataset.lensInputs = "true";
+    inputSection.appendChild(inputHeader);
+    inputSection.appendChild(inputBody);
+    leftBody.appendChild(inputSection);
+  }
   const paramSection = document.createElement("div");
   paramSection.className = "lens-section";
   const paramHeader = document.createElement("div");
@@ -2065,7 +2129,6 @@ function buildLensPanel(instance, opts = {}) {
   paramBody.dataset.lensParams = "true";
   paramSection.appendChild(paramHeader);
   paramSection.appendChild(paramBody);
-  leftBody.appendChild(inputSection);
   leftBody.appendChild(paramSection);
   left.appendChild(leftBody);
   content.appendChild(left);
@@ -2389,8 +2452,12 @@ function renderTrackWorkspace() {
     });
     const removeTrackBtn = document.createElement("button");
     removeTrackBtn.type = "button";
-    removeTrackBtn.className = "ghost";
-    removeTrackBtn.textContent = "Remove Track";
+    removeTrackBtn.className = "ghost icon-label";
+    removeTrackBtn.appendChild(icon("trash-2"));
+    const removeTrackLabel = document.createElement("span");
+    removeTrackLabel.className = "label";
+    removeTrackLabel.textContent = "Remove Track";
+    removeTrackBtn.appendChild(removeTrackLabel);
     removeTrackBtn.addEventListener("click", () => {
       const hasLenses = track.generatorInstanceId || track.transformerInstanceIds.length;
       if (hasLenses && !window.confirm("Remove this track and all its lenses?")) return;
