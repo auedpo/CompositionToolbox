@@ -179,11 +179,6 @@ export function evaluateBasicMathTransformerLens(ctx = {}) {
     return next;
   });
   const finiteResults = results.filter(Number.isFinite);
-  const stats = { count: results.length };
-  if (finiteResults.length) {
-    stats.min = Math.min(...finiteResults);
-    stats.max = Math.max(...finiteResults);
-  }
   const operandSummary = hasOperands
     ? operandList.join(", ")
     : (Number.isFinite(fallback) ? `${fallback}` : null);
@@ -192,7 +187,7 @@ export function evaluateBasicMathTransformerLens(ctx = {}) {
     operandSummary ? `Operands: ${operandSummary}` : null,
     modActive ? `Mod: ${modBase}` : null
   ].filter(Boolean);
-  const sourceName = entry.summary && entry.summary.title ? entry.summary.title : entry.type;
+  const sourceName = entry.summary || entry.type;
   const vizModel = {
     inputValues: values.slice(),
     operation: operationKey,
@@ -203,33 +198,11 @@ export function evaluateBasicMathTransformerLens(ctx = {}) {
     sourceName
   };
   const formattedResultList = formatValueList(results, { maxLength: 120 }) || `Math ${operationDef.label}`;
+  const description = descriptionParts.join(" | ");
   const draft = {
     type: MATERIAL_TYPES.PitchList,
-    payload: {
-      steps: results,
-      meta: {
-        operation: operationKey,
-        operands: operandList.slice(),
-        modApplied: Boolean(modActive),
-        modValue: modActive ? modBase : null,
-        source: sourceName
-      }
-    },
-    summary: {
-      title: formattedResultList,
-      description: descriptionParts.join(" • "),
-      stats
-    },
-    provenance: {
-      inputs: [entry.id || null],
-      params: {
-        operation: operationKey,
-        operands: operandList.slice(),
-        modEnabled: Boolean(modActive),
-        modValue: modActive ? modBase : null
-      },
-      timestamp: Date.now()
-    }
+    payload: results.slice(),
+    summary: description ? `${formattedResultList} - ${description}` : formattedResultList
   };
   return {
     ok: true,

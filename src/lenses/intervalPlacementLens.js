@@ -4,6 +4,19 @@ import { createRepulsionCentersEngine } from "../placementEngines/repulsionCente
 import { MATERIAL_TYPES } from "../core/materialTypes.js";
 import { formatValueList } from "../core/displayHelpers.js";
 import {
+  clamp,
+  rhoPlace,
+  quantizedSplit,
+  centerBoundsForPerm,
+  neutralCentersFromBounds,
+  projectedPairwiseSolve,
+  repulsionDeltasForPerm,
+  accumulateRepulsionForces,
+  repulsionDiagnostics,
+  minPairwiseDistance,
+  anchorRangeFromBounds
+} from "../core/placementMath.js";
+import {
   inducedIntervals,
   intervalCounts,
   octaveReducedIntervalVector,
@@ -16,10 +29,6 @@ import { defaultParams } from "../core/defaultParams.js";
 
 const LENS_ID = "intervalPlacement";
 const LENS_VERSION = "1.0";
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
 
 function lowBiasSplit(length) {
   const down = Math.floor((length + 1) / 2);
@@ -73,148 +82,12 @@ function endpointsForPerm(anchors, perm, oddBias) {
   });
 }
 
-function rhoPlace(anchor, length, rho) {
-  const lowStar = anchor - rho * length;
-  const highStar = anchor + (1 - rho) * length;
-  return [lowStar, highStar];
-}
-
-function quantizedSplit(length, rho, oddBias) {
-  const eps = 1e-9;
-  const downIdeal = rho * length;
-  let down;
-  if (length % 2 === 0) {
-    down = Math.round(downIdeal);
-  } else {
-    down = oddBias === "up"
-      ? Math.floor(downIdeal + eps)
-      : Math.ceil(downIdeal - eps);
-  }
-  down = Math.max(0, Math.min(length, down));
-  return { down, up: length - down };
-}
-
 export function quantizeInterval(anchor, length, rho, oddBias) {
   const A = Math.floor(anchor);
   const { down, up } = quantizedSplit(length, rho, oddBias);
   const low = A - down;
   const high = A + up;
   return { A, low, high, down, up };
-}
-
-function centerBoundsForPerm(L, perm, rho, oddBias) {
-  return perm.map((d, idx) => {
-    const cmin = rho * d;
-    const cmax = L - (1 - rho) * d;
-    const bias = oddBias[idx];
-    const split = quantizedSplit(d, rho, bias);
-    const min = Math.max(cmin, split.down);
-    const max = Math.min(cmax, L - split.up);
-    if (min > max) {
-      return { min: cmin, max: cmax };
-    }
-    return { min, max };
-  });
-}
-
-function neutralCentersFromBounds(bounds) {
-  const n = bounds.length;
-  if (n === 0) return [];
-  return bounds.map((b, idx) => {
-    const t = n === 1 ? 0.5 : idx / (n - 1);
-    return b.min + t * (b.max - b.min);
-  });
-}
-
-function projectedPairwiseSolve(initialCenters, bounds, iterations, step, accumulateForces) {
-  const n = initialCenters.length;
-  const centers = initialCenters.slice();
-  const forces = new Array(n).fill(0);
-  for (let iter = 0; iter < iterations; iter++) {
-    forces.fill(0);
-    accumulateForces(centers, forces);
-    for (let i = 0; i < n; i++) {
-      const next = centers[i] + step * forces[i];
-      centers[i] = clamp(next, bounds[i].min, bounds[i].max);
-    }
-  }
-  return centers;
-}
-
-function repulsionDeltasForPerm(perm, gamma, kappa, L) {
-  const n = perm.length;
-  const denom = Math.max(1e-9, L);
-  const radii = perm.map((d) => Math.pow(d / denom, gamma));
-  const deltas = Array.from({ length: n }, () => Array(n).fill(0));
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const delta = kappa * (radii[i] + radii[j]);
-      deltas[i][j] = delta;
-      deltas[j][i] = delta;
-    }
-  }
-  return { radii, deltas };
-}
-
-function accumulateRepulsionForces(centers, forces, deltas, lambda) {
-  const n = centers.length;
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const dist = centers[i] - centers[j];
-      const dabs = Math.abs(dist);
-      const v = deltas[i][j] - dabs;
-      if (v > 0) {
-        const sign = dist >= 0 ? 1 : -1;
-        const F = 2 * lambda * v * sign;
-        forces[i] += F;
-        forces[j] -= F;
-      }
-    }
-  }
-}
-
-function repulsionDiagnostics(centers, deltas, lambda) {
-  const n = centers.length;
-  let minDistance = Number.POSITIVE_INFINITY;
-  let energy = 0;
-  const violations = [];
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const dist = Math.abs(centers[i] - centers[j]);
-      minDistance = Math.min(minDistance, dist);
-      const v = deltas[i][j] - dist;
-      if (v > 0) {
-        energy += lambda * v * v;
-        violations.push({ i, j, violation: v });
-      }
-    }
-  }
-  if (!Number.isFinite(minDistance)) minDistance = 0;
-  return { minDistance, energy, violations };
-}
-
-function minPairwiseDistance(centers) {
-  const n = centers.length;
-  if (n < 2) return 0;
-  let minDistance = Number.POSITIVE_INFINITY;
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      minDistance = Math.min(minDistance, Math.abs(centers[i] - centers[j]));
-    }
-  }
-  return Number.isFinite(minDistance) ? minDistance : 0;
-}
-
-function anchorRangeFromBounds(bounds) {
-  if (!bounds || !bounds.length) return null;
-  let amin = Number.POSITIVE_INFINITY;
-  let amax = Number.NEGATIVE_INFINITY;
-  bounds.forEach((b) => {
-    amin = Math.min(amin, b.min);
-    amax = Math.max(amax, b.max);
-  });
-  if (!Number.isFinite(amin) || !Number.isFinite(amax)) return null;
-  return { amin, amax };
 }
 
 export function anchorsForPerm(L, perm, params, oddBias) {
@@ -372,28 +245,15 @@ function normalizeOddBias(intervals, oddBias) {
 }
 
 function buildPitchListDraft(record) {
+  const title = formatValueList(record.pitches, { maxLength: 64 }) || `perm ${record.perm.join(" ")}`;
+  const description = [
+    record.perm && record.perm.length ? `perm ${record.perm.join(" ")}` : null,
+    record.engine ? `engine ${placementEngineLabel(record.engine)}` : null
+  ].filter(Boolean).join(" | ");
   return {
     type: MATERIAL_TYPES.PitchList,
-    payload: {
-      steps: record.pitches.slice(),
-      meta: {
-        perm: record.perm.slice(),
-        engine: record.engine,
-        tension: record.total,
-        perPair: record.perPair
-      }
-    },
-    summary: {
-      title: formatValueList(record.pitches, { maxLength: 64 }) || `perm ${record.perm.join(" ")}`,
-      description: [
-        record.perm && record.perm.length ? `perm ${record.perm.join(" ")}` : null,
-        record.engine ? `engine ${placementEngineLabel(record.engine)}` : null
-      ].filter(Boolean).join(" • "),
-      stats: {
-        tension: record.total,
-        perPair: record.perPair
-      }
-    }
+    payload: record.pitches.slice(),
+    summary: description ? `${title} - ${description}` : title
   };
 }
 

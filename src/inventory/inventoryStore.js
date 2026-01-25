@@ -1,30 +1,20 @@
-import { newId } from "../core/ids.js";
-import { warnIfDraftHasId, warnIfMaterialMissingId } from "../core/guards.js";
+import { makeMaterialFromDraft, normalizePayload } from "../core/model.js";
+import { assertDraft, assertMaterial } from "../core/invariants.js";
 
 export function createInventoryStore() {
   const items = new Map();
+  let needsMigration = false;
 
   function add(draft, options = {}) {
     if (!draft || !draft.type) return null;
-    warnIfDraftHasId(draft, "inventoryStore.add");
-    const id = newId("mat");
-    const name = options.name || (draft.summary && draft.summary.title)
-      || `${draft.type} ${items.size + 1}`;
-    const tags = Array.isArray(options.tags) ? options.tags.slice() : [];
-    const meta = { ...(draft.meta || {}) };
-    if (tags.length) meta.tags = tags;
-    if (!meta.createdAt) meta.createdAt = new Date().toISOString();
-    const material = {
-      id,
-      type: draft.type,
-      name,
-      data: draft.payload,
-      summary: draft.summary || null,
-      meta,
-      provenance: draft.provenance || null
-    };
-    warnIfMaterialMissingId(material, "inventoryStore.add");
-    items.set(id, material);
+    assertDraft(draft);
+    const material = makeMaterialFromDraft(draft, {
+      name: options.name,
+      tags: Array.isArray(options.tags) ? options.tags.slice() : [],
+      meta: options.meta || {}
+    });
+    assertMaterial(material);
+    items.set(material.materialId, material);
     return material;
   }
 
@@ -37,7 +27,7 @@ export function createInventoryStore() {
     const out = Array.from(items.values());
     if (!text) return out;
     return out.filter((item) => {
-      const haystack = `${item.name} ${item.type} ${(item.meta && item.meta.tags || []).join(" ")}`.toLowerCase();
+      const haystack = `${item.name} ${item.type} ${(item.tags || []).join(" ")}`.toLowerCase();
       return haystack.includes(text);
     });
   }
@@ -51,6 +41,7 @@ export function createInventoryStore() {
   }
 
   function serialize() {
+    needsMigration = false;
     return Array.from(items.values());
   }
 
@@ -58,8 +49,38 @@ export function createInventoryStore() {
     items.clear();
     if (!Array.isArray(payload)) return;
     payload.forEach((item) => {
-      if (!item || !item.id) return;
-      items.set(item.id, item);
+      if (!item || typeof item !== "object") return;
+      const materialId = item.materialId || item.id;
+      if (!materialId) return;
+      const payloadList = normalizePayload(item.payload || item.data || []);
+      if (item.id && !item.materialId) needsMigration = true;
+      if (item.data && !item.payload) needsMigration = true;
+      const summaryText = typeof item.summary === "string"
+        ? item.summary
+        : (item.summary && typeof item.summary === "object" && item.summary.title ? String(item.summary.title) : "");
+      const legacyTags = Array.isArray(item.tags)
+        ? item.tags
+        : (item.meta && Array.isArray(item.meta.tags) ? item.meta.tags : []);
+      if (!item.tags && item.meta && Array.isArray(item.meta.tags)) needsMigration = true;
+      const normalized = {
+        materialId,
+        type: item.type || "Unknown",
+        subtype: item.subtype || undefined,
+        name: item.name || "Untitled material",
+        payload: payloadList,
+        summary: summaryText,
+        tags: Array.isArray(legacyTags) ? legacyTags.slice() : [],
+        meta: item.meta && typeof item.meta === "object" ? { ...item.meta } : {},
+        provenance: item.provenance && typeof item.provenance === "object" ? { ...item.provenance } : {},
+        createdAt: Number.isFinite(item.createdAt) ? item.createdAt : Date.now()
+      };
+      try {
+        assertMaterial(normalized);
+      } catch (error) {
+        console.warn("Skipping invalid material during deserialize.", error, normalized);
+        return;
+      }
+      items.set(materialId, normalized);
     });
   }
 
@@ -70,6 +91,7 @@ export function createInventoryStore() {
     remove,
     clear,
     serialize,
-    deserialize
+    deserialize,
+    needsMigration: () => needsMigration
   };
 }

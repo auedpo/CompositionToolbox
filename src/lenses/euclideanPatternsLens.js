@@ -85,28 +85,26 @@ export function evaluateEuclideanPatternsLens(ctx = {}) {
   const values = normalized.outputKind === "indexMask" ? toIndexMask(rotated) : rotated;
   const draft = {
     type: "Pattern",
-    payload: {
-      kind: normalized.outputKind,
-      values,
-      domain: {
-        steps: normalized.steps,
-        pulses: normalized.pulses,
-        rotation: normalized.rotationNorm,
-        rotationDir: "right"
-      }
-    },
-    summary: {
-      title: `E(${normalized.steps},${normalized.pulses})`,
-      description: normalized.outputKind === "indexMask"
-        ? `values: [${values.join(", ")}]`
-        : `values: ${values.join("")}`
-    }
+    subtype: normalized.outputKind,
+    payload: values.slice(),
+    summary: normalized.outputKind === "indexMask"
+      ? `E(${normalized.steps},${normalized.pulses}) - values: [${values.join(", ")}]`
+      : `E(${normalized.steps},${normalized.pulses}) - values: ${values.join("")}`
   };
   return {
     ok: true,
     drafts: [draft],
     vizModel: {
-      pattern: draft.payload
+      pattern: {
+        kind: normalized.outputKind,
+        values: values.slice(),
+        domain: {
+          steps: normalized.steps,
+          pulses: normalized.pulses,
+          rotation: normalized.rotationNorm,
+          rotationDir: "right"
+        }
+      }
     },
     warnings: []
   };

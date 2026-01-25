@@ -11,6 +11,9 @@ export function loadInventory() {
   try {
     const parsed = JSON.parse(stored);
     inventoryStore.deserialize(parsed);
+    if (inventoryStore.needsMigration && inventoryStore.needsMigration()) {
+      saveInventory();
+    }
   } catch {
     inventoryStore.clear();
   }
@@ -26,6 +29,9 @@ export function loadDesk() {
   try {
     const parsed = JSON.parse(stored);
     deskStore.deserialize(parsed);
+    if (deskStore.needsMigration && deskStore.needsMigration()) {
+      saveDesk();
+    }
   } catch {
     deskStore.clear();
   }

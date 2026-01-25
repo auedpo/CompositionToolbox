@@ -1,4 +1,5 @@
-import { buildDraftKey } from "../core/draftIdentity.js";
+import { hashParams, makeDraft, normalizePayload } from "../core/model.js";
+import { assertDraft } from "../core/invariants.js";
 
 function buildDefaults(specs) {
   const values = {};
@@ -53,34 +54,99 @@ function filterDraftsBySpec(drafts, spec) {
   });
 }
 
-function resolveInputs(lens, instance, draftCatalog) {
+function normalizeInputRef(raw) {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    return { mode: "pinned", sourceDraftId: raw };
+  }
+  if (raw && typeof raw === "object") {
+    if (!raw.mode && raw.sourceLensInstanceId) {
+      return { mode: "active", sourceLensInstanceId: raw.sourceLensInstanceId };
+    }
+    if (!raw.mode && raw.sourceDraftId) {
+      return { mode: "pinned", sourceDraftId: raw.sourceDraftId };
+    }
+    if (raw.mode === "active" && raw.sourceLensInstanceId) {
+      return { mode: "active", sourceLensInstanceId: raw.sourceLensInstanceId };
+    }
+    if (raw.mode === "pinned" && raw.sourceDraftId) {
+      return { mode: "pinned", sourceDraftId: raw.sourceDraftId };
+    }
+    if (raw.draftId) {
+      return { mode: "pinned", sourceDraftId: raw.draftId };
+    }
+  }
+  return null;
+}
+
+function getDraftId(draft) {
+  if (!draft || typeof draft !== "object") return null;
+  return draft.draftId || draft.id || null;
+}
+
+function buildDraftIndex(draftCatalog) {
+  const index = new Map();
+  draftCatalog.forEach((draft) => {
+    const id = getDraftId(draft);
+    if (!id) return;
+    if (!draft.draftId) {
+      draft.draftId = id;
+    }
+    index.set(id, draft);
+  });
+  return index;
+}
+
+function resolveInputs(lens, instance, draftCatalog, draftIndex, getInstanceById) {
   const inputSpecs = Array.isArray(lens.inputs) ? lens.inputs : [];
-  const selected = instance.selectedInputDraftIdsByRole || {};
-  const liveInputs = instance._liveInputs || {};
+  const selected = instance.selectedInputRefsByRole || {};
+  const liveRefs = instance._liveInputRefs || {};
   const inputs = [];
   const errors = [];
   inputSpecs.forEach((spec) => {
-    const live = liveInputs[spec.role];
-    if (live) {
-      inputs.push({ draftId: live.id, role: spec.role, draft: live });
-      return;
-    }
+    const live = normalizeInputRef(liveRefs[spec.role]);
+    const chosenRef = live || normalizeInputRef(selected[spec.role]);
     const candidates = filterDraftsBySpec(draftCatalog, spec);
-    const chosenId = selected[spec.role] || null;
-    if (!chosenId) {
+    if (!chosenRef) {
       if (spec.required) {
         errors.push(`Select input draft for ${spec.role}.`);
       }
       return;
     }
-    const match = candidates.find((draft) => draft.id === chosenId);
-    if (!match) {
-      if (spec.required) {
-        errors.push(`Selected draft missing for ${spec.role}.`);
+    if (chosenRef.mode === "active") {
+      const source = typeof getInstanceById === "function"
+        ? getInstanceById(chosenRef.sourceLensInstanceId)
+        : null;
+      if (!source || !source.activeDraftId) {
+        if (spec.required) {
+          errors.push(`Active draft missing for ${spec.role}.`);
+        }
+        return;
       }
+      const match = candidates.find((draft) => getDraftId(draft) === source.activeDraftId);
+      if (!match) {
+        if (spec.required) {
+          errors.push(`Active draft missing for ${spec.role}.`);
+        }
+        return;
+      }
+      inputs.push({ draftId: match.draftId, role: spec.role, draft: match, ref: chosenRef });
       return;
     }
-    inputs.push({ draftId: match.id, role: spec.role, draft: match });
+    if (chosenRef.mode === "pinned") {
+      const match = draftIndex.get(chosenRef.sourceDraftId) || null;
+      if (!match || !candidates.some((draft) => getDraftId(draft) === chosenRef.sourceDraftId)) {
+        if (spec.required) {
+          errors.push(`Selected draft missing for ${spec.role}.`);
+        }
+        return;
+      }
+      inputs.push({ draftId: match.draftId, role: spec.role, draft: match, ref: chosenRef });
+      return;
+    }
+    if (spec.required) {
+      errors.push(`Select input draft for ${spec.role}.`);
+    }
   });
   return { inputs, errors };
 }
@@ -96,7 +162,7 @@ export function createLensInstance(lens, lensInstanceId) {
     _updateToken: 0,
     activeDraftIndex: null,
     activeDraft: null,
-    selectedInputDraftIdsByRole: {},
+    selectedInputRefsByRole: {},
     activeDraftId: null,
     vizCollapsed: false,
     evaluateResult: { ok: false, drafts: [] },
@@ -122,35 +188,27 @@ export function materializeDrafts({
   const drafts = (evaluateResult && Array.isArray(evaluateResult.drafts)) ? evaluateResult.drafts : [];
   const now = Date.now();
   return drafts.map((draft, idx) => {
-    const keyPayload = {
-      lensId: lens.meta.id,
-      lensInstanceId,
-      index: idx,
-      type: draft.type,
-      subtype: draft.subtype || null,
-      payload: draft.payload
-    };
-    const id = buildDraftKey(keyPayload);
-    return {
-      id,
-      lensId: lens.meta.id,
-      lensInstanceId,
+    const summary = typeof draft.summary === "string" ? draft.summary : `${draft.type} draft`;
+    const inputRefs = inputs.map((input) => ({
+      role: input.role,
+      ...(input.ref || { mode: "pinned", sourceDraftId: input.draftId })
+    }));
+    const provenance = {
+      lensType: lens.meta.id,
+      paramsHash: hashParams({ params: params || {}, generatorInput: generatorInput || {} }),
+      inputRefs,
       createdAt: now,
-      type: draft.type,
-      subtype: draft.subtype,
-      payload: draft.payload,
-      summary: {
-        title: draft.summary && draft.summary.title ? draft.summary.title : `${draft.type} draft`,
-        description: draft.summary && draft.summary.description ? draft.summary.description : "",
-        stats: draft.summary && draft.summary.stats ? draft.summary.stats : {}
-      },
-      provenance: {
-        inputs: inputs.map((input) => ({ draftId: input.draftId, role: input.role })),
-        params: { ...(params || {}) },
-        generatorInput: { ...(generatorInput || {}) },
-        context: context && typeof context === "object" ? { ...context } : {}
-      }
+      ...(draft.provenance && typeof draft.provenance === "object" ? draft.provenance : {})
     };
+    const materialized = makeDraft({
+      lensType: draft.type,
+      lensInstanceId,
+      payload: normalizePayload(draft.payload),
+      summary,
+      provenance,
+      subtype: draft.subtype
+    });
+    return materialized;
   });
 }
 
@@ -158,6 +216,7 @@ export function scheduleLensEvaluation(instance, options) {
   const {
     getContext,
     getDraftCatalog,
+    getLensInstanceById,
     onUpdate,
     debounceMs = 80
   } = options;
@@ -169,8 +228,9 @@ export function scheduleLensEvaluation(instance, options) {
   instance._token = token;
   instance._timer = setTimeout(() => {
     const draftCatalog = typeof getDraftCatalog === "function" ? getDraftCatalog() : [];
+    const draftIndex = buildDraftIndex(draftCatalog);
     const context = typeof getContext === "function" ? getContext() : {};
-    const { inputs, errors } = resolveInputs(instance.lens, instance, draftCatalog);
+    const { inputs, errors } = resolveInputs(instance.lens, instance, draftCatalog, draftIndex, getLensInstanceById);
     if (errors.length) {
       instance.evaluateResult = { ok: false, drafts: [], errors };
       instance.currentDrafts = [];
@@ -209,6 +269,7 @@ export function scheduleLensEvaluation(instance, options) {
         generatorInput: instance.generatorInputValues,
         context
       });
+      drafts.forEach((draft) => assertDraft(draft));
       instance.currentDrafts = drafts;
       const prevIndex = Number.isFinite(instance.activeDraftIndex)
         ? instance.activeDraftIndex
@@ -220,7 +281,7 @@ export function scheduleLensEvaluation(instance, options) {
         nextIndex = 0;
       }
       instance.activeDraftIndex = nextIndex;
-      instance.activeDraftId = nextIndex !== null ? drafts[nextIndex].id : null;
+      instance.activeDraftId = nextIndex !== null ? drafts[nextIndex].draftId : null;
       instance.activeDraft = nextIndex !== null ? drafts[nextIndex] : null;
     } else {
       instance.currentDrafts = [];

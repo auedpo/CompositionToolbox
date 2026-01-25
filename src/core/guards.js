@@ -14,16 +14,21 @@ function report(message) {
 }
 
 export function warnIfDraftHasId(draft, context) {
-  void draft;
-  void context;
+  if (!isDev()) return;
+  if (!draft || typeof draft !== "object") return;
+  if (!draft.id) return;
+  const label = context ? ` (${context})` : "";
+  const message = `Draft should use draftId instead of id${label}.`;
+  console.warn(message, draft);
+  report(message);
 }
 
 export function warnIfMaterialMissingId(material, context) {
   if (!isDev()) return;
   if (!material || typeof material !== "object") return;
-  if (material.id) return;
+  if (material.materialId) return;
   const label = context ? ` (${context})` : "";
-  const message = `Material should have an id${label}.`;
+  const message = `Material should have a materialId${label}.`;
   console.warn(message, material);
   report(message);
 }
@@ -31,9 +36,9 @@ export function warnIfMaterialMissingId(material, context) {
 export function warnIfDraftMissingId(draft, context) {
   if (!isDev()) return;
   if (!draft || typeof draft !== "object") return;
-  if (draft.id) return;
+  if (draft.draftId) return;
   const label = context ? ` (${context})` : "";
-  const message = `Draft should have an id${label}.`;
+  const message = `Draft should have a draftId${label}.`;
   console.warn(message, draft);
   report(message);
 }

@@ -3,73 +3,40 @@
  */
 
 /**
- * @typedef {Object} PitchListData
- * @property {number[]} steps
- */
-
-/**
- * @typedef {"binaryMask" | "indexMask" | "weights" | "order" | "curve"} PatternKind
- */
-
-/**
- * @typedef {Object} PatternData
- * @property {PatternKind} kind
- * @property {number[]} values
- * @property {Object} [domain]
- */
-
-/**
- * @typedef {Object} MaterialReference
- * @property {number} edo
- * @property {number} refStep
- * @property {number} refHz
- * @property {string} [refLabel]
- */
-
-/**
- * @typedef {Object} MaterialProvenance
- * @property {string} lensId
- * @property {string} [lensVersion]
- * @property {Object} params
- * @property {Object} [inputs]
- * @property {string | number} timestamp
+ * @typedef {Object} Draft
+ * @property {string} draftId
+ * @property {string} lensInstanceId
+ * @property {string} type
+ * @property {string} [subtype]
+ * @property {any[]} payload
+ * @property {string} summary
+ * @property {Object} provenance
+ * @property {number} createdAt
  */
 
 /**
  * @typedef {Object} Material
- * @property {string} id
+ * @property {string} materialId
  * @property {MaterialType} type
+ * @property {string} [subtype]
  * @property {string} name
- * @property {PitchListData|Object} data
+ * @property {any[]} payload
+ * @property {string} summary
+ * @property {string[]} tags
  * @property {Object} meta
- * @property {MaterialReference} ref
- * @property {MaterialProvenance} provenance
- */
-
-/**
- * @typedef {Object} MaterialDraft
- * @property {string} type
- * @property {*} data
- * @property {Object} [meta]
- * @property {Object} [ref]
  * @property {Object} provenance
+ * @property {number} createdAt
  */
 
 /**
- * @typedef {Object} PatternProvenance
- * @property {string} lensId
- * @property {Object} params
- * @property {string[]} [inputs]
- * @property {number} timestamp
- */
-
-/**
- * @typedef {Object} PatternDraft
- * @property {"Pattern"} type
- * @property {PatternData} data
- * @property {{ tags?: string[], units?: string, resolution?: number }} [meta]
- * @property {{ type: "pattern" }} [ref]
- * @property {PatternProvenance} provenance
+ * @typedef {Object} Clip
+ * @property {string} clipId
+ * @property {string} materialId
+ * @property {number} laneId
+ * @property {number} start
+ * @property {number} duration
+ * @property {Object|null} clipLocalTransforms
+ * @property {number} createdAt
  */
 
 export const MATERIAL_TYPES = {

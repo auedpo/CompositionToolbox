@@ -102,19 +102,9 @@ function filterDraftsBySpec(drafts, spec) {
   });
 }
 
-function formatDraftStats(stats) {
-  if (!stats || typeof stats !== "object") return "";
-  const entries = Object.entries(stats)
-    .filter(([, value]) => typeof value === "number")
-    .map(([key, value]) => `${key} ${value.toFixed(3)}`);
-  return entries.join(", ");
-}
-
 function buildOptionText(draft, meta) {
-  const title = draft.summary && draft.summary.title ? draft.summary.title : draft.type;
-  const stats = formatDraftStats(draft.summary && draft.summary.stats ? draft.summary.stats : null);
+  const title = draft.summary || draft.type;
   const prefix = meta && meta.label ? `${meta.label} - ${meta.lensName || "Lens"}` : "Lens";
-  if (stats) return `${prefix}: ${title} (${stats})`;
   return `${prefix}: ${title}`;
 }
 
@@ -123,6 +113,19 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
   container.innerHTML = "";
   const metaById = options.metaById || new Map();
   const trackOrder = Array.isArray(options.trackOrder) ? options.trackOrder : [];
+  const activeByLens = options.activeDraftIdByLensInstanceId || new Map();
+
+  function resolveSelectedDraftId(ref) {
+    if (!ref) return null;
+    if (typeof ref === "string") return ref;
+    if (ref.mode === "pinned") return ref.sourceDraftId || null;
+    if ((ref.mode === "active" || !ref.mode) && ref.sourceLensInstanceId) {
+      return activeByLens.get(ref.sourceLensInstanceId) || null;
+    }
+    if (ref.sourceDraftId) return ref.sourceDraftId;
+    return null;
+  }
+
   (inputSpecs || []).forEach((spec) => {
     const field = document.createElement("div");
     field.className = "lens-field";
@@ -134,15 +137,16 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
     function buildOptions() {
       select.innerHTML = "";
       select.appendChild(empty);
-      const selectedId = selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : null;
+      const selectedRef = selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : null;
+      const selectedId = resolveSelectedDraftId(selectedRef);
       const candidates = filterDraftsBySpec(draftCatalog, spec).filter((draft) => {
-        const meta = metaById.get(draft.id);
+        const meta = metaById.get(draft.draftId);
         if (meta && meta.isActive) return true;
-        return selectedId && draft.id === selectedId;
+        return selectedId && draft.draftId === selectedId;
       });
       const grouped = new Map();
       candidates.forEach((draft) => {
-        const meta = metaById.get(draft.id);
+        const meta = metaById.get(draft.draftId);
         const trackId = meta && meta.trackId ? meta.trackId : "unknown";
         if (!grouped.has(trackId)) grouped.set(trackId, []);
         grouped.get(trackId).push({ draft, meta });
@@ -165,7 +169,7 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
           })
           .forEach(({ draft, meta }) => {
             const option = document.createElement("option");
-            option.value = draft.id;
+            option.value = draft.draftId;
             option.textContent = buildOptionText(draft, meta);
             group.appendChild(option);
           });
@@ -173,7 +177,8 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
       });
     }
     buildOptions();
-    const current = selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : "";
+    const currentRef = selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : null;
+    const current = resolveSelectedDraftId(currentRef) || "";
     select.value = current;
     select.addEventListener("change", () => {
       const value = select.value || null;
@@ -255,7 +260,7 @@ export function renderLensDrafts(container, instance, handlers) {
       openDraftsMenu = menuWrap.classList.contains("is-open") ? menuWrap : null;
     }
   });
-  const getActiveDraft = () => drafts.find((draft) => draft.id === instance.activeDraftId);
+  const getActiveDraft = () => drafts.find((draft) => draft.draftId === instance.activeDraftId);
   addInventory.addEventListener("click", (event) => {
     event.stopPropagation();
     const activeDraft = getActiveDraft();
@@ -296,17 +301,17 @@ export function renderLensDrafts(container, instance, handlers) {
   drafts.forEach((draft) => {
     const row = document.createElement("div");
     row.className = "draft-item";
-    if (draft.id === instance.activeDraftId) {
+    if (draft.draftId === instance.activeDraftId) {
       row.classList.add("active");
     }
     const left = document.createElement("div");
     left.className = "draft-left";
     const label = document.createElement("div");
     label.className = "draft-label";
-    label.textContent = draft.summary && draft.summary.title ? draft.summary.title : draft.type;
+    label.textContent = draft.summary || draft.type;
     const desc = document.createElement("div");
     desc.className = "draft-desc";
-    desc.textContent = draft.summary && draft.summary.description ? draft.summary.description : "";
+    desc.textContent = "";
     left.appendChild(label);
     if (desc.textContent) left.appendChild(desc);
     row.appendChild(left);

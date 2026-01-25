@@ -10,19 +10,13 @@ export function evaluatePassthroughLens(ctx = {}) {
       errors: ["Select an input draft to pass through."]
     };
   }
-  const title = entry.summary && entry.summary.title ? entry.summary.title : entry.type;
-  const description = entry.summary && entry.summary.description ? entry.summary.description : "";
   return {
     ok: true,
     drafts: [{
       type: entry.type,
       subtype: entry.subtype,
       payload: entry.payload,
-      summary: {
-        title: `Passthrough: ${title}`,
-        description,
-        stats: entry.summary && entry.summary.stats ? entry.summary.stats : {}
-      }
+      summary: `Passthrough: ${entry.summary || entry.type}`
     }],
     warnings: []
   };

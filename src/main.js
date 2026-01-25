@@ -67,157 +67,6 @@ function parseIntervals(text) {
     .filter((v) => Number.isFinite(v));
 }
 
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-
-
-
-
-function rhoPlace(anchor, length, rho) {
-  // Continuous placement intent (not directly used for lattice endpoints).
-  const lowStar = anchor - rho * length;
-  const highStar = anchor + (1 - rho) * length;
-  return [lowStar, highStar];
-}
-
-function quantizedSplit(length, rho, oddBias) {
-  // Lattice projection policy: choose integer down/up to preserve length.
-  // Odd-bias only affects the rounding choice for odd lengths.
-  const eps = 1e-9;
-  const downIdeal = rho * length;
-  let down;
-  if (length % 2 === 0) {
-    down = Math.round(downIdeal);
-  } else {
-    down = oddBias === "up"
-      ? Math.floor(downIdeal + eps)
-      : Math.ceil(downIdeal - eps);
-  }
-  down = Math.max(0, Math.min(length, down));
-  return { down, up: length - down };
-}
-
-
-
-// Placement engine utilities.
-function centerBoundsForPerm(L, perm, rho) {
-  return perm.map((d, idx) => {
-    const cmin = rho * d;
-    const cmax = L - (1 - rho) * d;
-    const bias = state.oddBias[idx];
-    const split = quantizedSplit(d, rho, bias);
-    const min = Math.max(cmin, split.down);
-    const max = Math.min(cmax, L - split.up);
-    if (min > max) {
-      return { min: cmin, max: cmax };
-    }
-    return { min, max };
-  });
-}
-
-function neutralCentersFromBounds(bounds) {
-  const n = bounds.length;
-  if (n === 0) return [];
-  return bounds.map((b, idx) => {
-    const t = n === 1 ? 0.5 : idx / (n - 1);
-    return b.min + t * (b.max - b.min);
-  });
-}
-
-function projectedPairwiseSolve(initialCenters, bounds, iterations, step, accumulateForces) {
-  const n = initialCenters.length;
-  const centers = initialCenters.slice();
-  const forces = new Array(n).fill(0);
-  for (let iter = 0; iter < iterations; iter++) {
-    forces.fill(0);
-    accumulateForces(centers, forces);
-    for (let i = 0; i < n; i++) {
-      const next = centers[i] + step * forces[i];
-      centers[i] = clamp(next, bounds[i].min, bounds[i].max);
-    }
-  }
-  return centers;
-}
-
-function repulsionDeltasForPerm(perm, gamma, kappa, L) {
-  const n = perm.length;
-  const denom = Math.max(1e-9, L);
-  const radii = perm.map((d) => Math.pow(d / denom, gamma));
-  const deltas = Array.from({ length: n }, () => Array(n).fill(0));
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const delta = kappa * (radii[i] + radii[j]);
-      deltas[i][j] = delta;
-      deltas[j][i] = delta;
-    }
-  }
-  return { radii, deltas };
-}
-
-function accumulateRepulsionForces(centers, forces, deltas, lambda) {
-  const n = centers.length;
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const dist = centers[i] - centers[j];
-      const dabs = Math.abs(dist);
-      const v = deltas[i][j] - dabs;
-      if (v > 0) {
-        const sign = dist >= 0 ? 1 : -1;
-        const F = 2 * lambda * v * sign;
-        forces[i] += F;
-        forces[j] -= F;
-      }
-    }
-  }
-}
-
-function repulsionDiagnostics(centers, deltas, lambda) {
-  const n = centers.length;
-  let minDistance = Number.POSITIVE_INFINITY;
-  let energy = 0;
-  const violations = [];
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const dist = Math.abs(centers[i] - centers[j]);
-      minDistance = Math.min(minDistance, dist);
-      const v = deltas[i][j] - dist;
-      if (v > 0) {
-        energy += lambda * v * v;
-        violations.push({ i, j, violation: v });
-      }
-    }
-  }
-  if (!Number.isFinite(minDistance)) minDistance = 0;
-  return { minDistance, energy, violations };
-}
-
-function minPairwiseDistance(centers) {
-  const n = centers.length;
-  if (n < 2) return 0;
-  let minDistance = Number.POSITIVE_INFINITY;
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      minDistance = Math.min(minDistance, Math.abs(centers[i] - centers[j]));
-    }
-  }
-  return Number.isFinite(minDistance) ? minDistance : 0;
-}
-
-function anchorRangeFromBounds(bounds) {
-  if (!bounds || !bounds.length) return null;
-  let amin = Number.POSITIVE_INFINITY;
-  let amax = Number.NEGATIVE_INFINITY;
-  bounds.forEach((b) => {
-    amin = Math.min(amin, b.min);
-    amax = Math.max(amax, b.max);
-  });
-  if (!Number.isFinite(amin) || !Number.isFinite(amax)) return null;
-  return { amin, amax };
-}
-
-
 
 
 const placementParamRegistry = {
@@ -1179,11 +1028,11 @@ function getTransformerLabel(trackId, transformerInstanceId) {
   return `${number}G${k}T`;
 }
 
-function getLensInstanceLabel(instance) {
-  if (!instance) return "";
-  if (instance.lane === "G") return getGeneratorLabel(instance.trackId);
-  return getTransformerLabel(instance.trackId, instance.id);
-}
+  function getLensInstanceLabel(instance) {
+    if (!instance) return "";
+    if (instance.lane === "G") return getGeneratorLabel(instance.trackId);
+    return getTransformerLabel(instance.trackId, instance.lensInstanceId);
+  }
 
 function getLensHeaderLabel(instance) {
   const label = getLensInstanceLabel(instance);
@@ -1220,7 +1069,7 @@ function syncFocusedLensInstances() {
     const currentId = getFocusedLensInstanceId(lensId);
     if (currentId && lensInstances.has(currentId)) return;
     const next = instances[0];
-    if (next) setFocusedLensInstance(lensId, next.id);
+      if (next) setFocusedLensInstance(lensId, next.lensInstanceId);
   });
 }
 
@@ -1233,9 +1082,9 @@ function getRecordForInstance(instance) {
   return records[index] || null;
 }
 
-function renderWorkspaceIntervalPlacementViz(instance) {
-  if (!instance) return;
-  const visual = intervalPlacementVisualizers.get(instance.id);
+  function renderWorkspaceIntervalPlacementViz(instance) {
+    if (!instance) return;
+    const visual = intervalPlacementVisualizers.get(instance.lensInstanceId);
   if (!visual) return;
   const rec = getRecordForInstance(instance);
   if (!rec) {
@@ -1273,14 +1122,13 @@ function listTransformerLenses() {
   return listLenses().filter((lens) => lens.meta && lens.meta.kind === "transformer");
 }
 
-function createInstanceForTrack(lens, trackId, lane) {
-  const instanceId = createStableId("lens");
-  const instance = createLensInstance(lens, instanceId);
-  instance.id = instanceId;
-  instance.lensId = lens.meta.id;
-  instance.kind = lens.meta.kind;
-  instance.trackId = trackId;
-  instance.lane = lane;
+  function createInstanceForTrack(lens, trackId, lane) {
+    const instanceId = createStableId("lens");
+    const instance = createLensInstance(lens, instanceId);
+    instance.lensId = lens.meta.id;
+    instance.kind = lens.meta.kind;
+    instance.trackId = trackId;
+    instance.lane = lane;
   lensInstances.set(instanceId, instance);
   state.lensInstancesById.set(instanceId, instance);
   applyGlobalMidiParamsToInstance(instance);
@@ -1297,20 +1145,20 @@ function serializeWorkspace() {
       transformerInstanceIds: Array.isArray(track.transformerInstanceIds)
         ? track.transformerInstanceIds.slice()
         : []
-    })),
-    lensInstances: Array.from(lensInstances.values()).map((instance) => ({
-      id: instance.id,
-      lensId: instance.lens && instance.lens.meta ? instance.lens.meta.id : instance.lensId,
-      trackId: instance.trackId || null,
-      lane: instance.lane || null,
-      paramsValues: { ...(instance.paramsValues || {}) },
-      generatorInputValues: { ...(instance.generatorInputValues || {}) },
-      selectedInputDraftIdsByRole: { ...(instance.selectedInputDraftIdsByRole || {}) },
-      activeDraftId: instance.activeDraftId || null,
-      activeDraftIndex: Number.isFinite(instance.activeDraftIndex)
-        ? instance.activeDraftIndex
-        : null
-    })),
+      })),
+      lensInstances: Array.from(lensInstances.values()).map((instance) => ({
+        lensInstanceId: instance.lensInstanceId,
+        lensId: instance.lens && instance.lens.meta ? instance.lens.meta.id : instance.lensId,
+        trackId: instance.trackId || null,
+        lane: instance.lane || null,
+        paramsValues: { ...(instance.paramsValues || {}) },
+        generatorInputValues: { ...(instance.generatorInputValues || {}) },
+        selectedInputRefsByRole: { ...(instance.selectedInputRefsByRole || {}) },
+        activeDraftId: instance.activeDraftId || null,
+        activeDraftIndex: Number.isFinite(instance.activeDraftIndex)
+          ? instance.activeDraftIndex
+          : null
+      })),
     focus: {
       focusedIntervalPlacementId: state.focusedIntervalPlacementId || null,
       focusedLensInstances: Array.from(focusedLensInstances.entries())
@@ -1318,36 +1166,43 @@ function serializeWorkspace() {
   };
 }
 
-function saveWorkspace() {
-  const payload = serializeWorkspace();
-  localStorage.setItem(storageKeys.tracks, JSON.stringify(payload));
-  if (els.status) {
-    els.status.textContent = "Workspace saved.";
+  function saveWorkspace() {
+    const payload = serializeWorkspace();
+    localStorage.setItem(storageKeys.tracks, JSON.stringify(payload));
+    if (els.status) {
+      els.status.textContent = "Workspace saved.";
+    }
   }
-}
 
-function restoreLensInstance(snapshot) {
-  if (!snapshot || !snapshot.id || !snapshot.lensId) return null;
-  const lens = getLens(snapshot.lensId);
-  if (!lens) return null;
-  const instance = createLensInstance(lens, snapshot.id);
-  instance.id = snapshot.id;
-  instance.lensId = lens.meta.id;
-  instance.kind = lens.meta.kind;
-  instance.trackId = snapshot.trackId || null;
-  instance.lane = snapshot.lane || null;
-  instance.paramsValues = { ...instance.paramsValues, ...(snapshot.paramsValues || {}) };
-  instance.generatorInputValues = { ...instance.generatorInputValues, ...(snapshot.generatorInputValues || {}) };
-  instance.selectedInputDraftIdsByRole = { ...(snapshot.selectedInputDraftIdsByRole || {}) };
-  instance.activeDraftId = snapshot.activeDraftId || null;
-  instance.activeDraftIndex = Number.isFinite(snapshot.activeDraftIndex)
-    ? snapshot.activeDraftIndex
-    : null;
-  lensInstances.set(instance.id, instance);
-  state.lensInstancesById.set(instance.id, instance);
-  applyGlobalMidiParamsToInstance(instance);
-  return instance;
-}
+  function restoreLensInstance(snapshot) {
+    if (!snapshot || (!snapshot.lensInstanceId && !snapshot.id) || !snapshot.lensId) return null;
+    const lens = getLens(snapshot.lensId);
+    if (!lens) return null;
+    const lensInstanceId = snapshot.lensInstanceId || snapshot.id;
+    const instance = createLensInstance(lens, lensInstanceId);
+    instance.lensId = lens.meta.id;
+    instance.kind = lens.meta.kind;
+    instance.trackId = snapshot.trackId || null;
+    instance.lane = snapshot.lane || null;
+    instance.paramsValues = { ...instance.paramsValues, ...(snapshot.paramsValues || {}) };
+    instance.generatorInputValues = { ...instance.generatorInputValues, ...(snapshot.generatorInputValues || {}) };
+    const legacySelected = snapshot.selectedInputDraftIdsByRole || {};
+    const nextSelected = { ...(snapshot.selectedInputRefsByRole || {}) };
+    Object.entries(legacySelected).forEach(([role, draftId]) => {
+      if (!nextSelected[role] && draftId) {
+        nextSelected[role] = { mode: "pinned", sourceDraftId: draftId };
+      }
+    });
+    instance.selectedInputRefsByRole = nextSelected;
+    instance.activeDraftId = snapshot.activeDraftId || null;
+    instance.activeDraftIndex = Number.isFinite(snapshot.activeDraftIndex)
+      ? snapshot.activeDraftIndex
+      : null;
+    lensInstances.set(instance.lensInstanceId, instance);
+    state.lensInstancesById.set(instance.lensInstanceId, instance);
+    applyGlobalMidiParamsToInstance(instance);
+    return instance;
+  }
 
 function loadWorkspace() {
   const raw = localStorage.getItem(storageKeys.tracks);
@@ -1373,11 +1228,11 @@ function loadWorkspace() {
   state.lensInstancesById.clear();
   focusedLensInstances.clear();
   state.focusedIntervalPlacementId = null;
-  const createdIds = new Set();
-  parsed.lensInstances.forEach((snapshot) => {
+    const createdIds = new Set();
+    parsed.lensInstances.forEach((snapshot) => {
       const instance = restoreLensInstance(snapshot);
-    if (instance) createdIds.add(instance.id);
-  });
+      if (instance) createdIds.add(instance.lensInstanceId);
+    });
   state.tracks.forEach((track) => {
     if (track.generatorInstanceId && !createdIds.has(track.generatorInstanceId)) {
       track.generatorInstanceId = null;
@@ -1477,11 +1332,11 @@ function getLensContext(instance) {
 }
 
 function addDraftToInventory(draft) {
-  const name = (draft.summary && draft.summary.title) ? draft.summary.title : `${draft.type} draft`;
+  const name = draft.summary || `${draft.type} draft`;
   const material = inventoryStore.add(draft, { name });
   if (!material) return null;
-  state.lastCapturedMaterialId = material.id;
-  state.selectedInventoryId = material.id;
+  state.lastCapturedMaterialId = material.materialId;
+  state.selectedInventoryId = material.materialId;
   saveInventory();
   renderInventory();
   return material;
@@ -1492,7 +1347,7 @@ function addDraftToDesk(draft) {
   if (!material) return null;
   const { lane, duration } = getDeskPlacementSettings();
   const start = nextDeskStart(lane);
-  deskStore.add({ materialId: material.id, start, duration, lane });
+  deskStore.add({ materialId: material.materialId, start, duration, laneId: lane });
   saveDesk();
   renderDesk();
   return material;
@@ -1514,7 +1369,7 @@ function syncIntervalPlacementState(instance) {
   state.gRef = computeReferenceG(state.params);
     const activeIdx = Number.isFinite(instance.activeDraftIndex)
       ? instance.activeDraftIndex
-      : instance.currentDrafts.findIndex((draft) => draft.id === instance.activeDraftId);
+      : instance.currentDrafts.findIndex((draft) => draft.draftId === instance.activeDraftId);
     if (activeIdx >= 0) {
       state.selected = viz.records[activeIdx] || null;
     }
@@ -1578,11 +1433,13 @@ function renderTransformerVisualizer(elements, instance) {
   return true;
 }
 
-function handleLensUpdate(instance) {
-  const lensId = instance.lens.meta.id;
-  const trackElements = lensElements.get(instance.id);
-  const focusedId = getFocusedLensInstanceId(lensId);
-  const dashboardElements = focusedId === instance.id ? dashboardLensElements.get(lensId) : null;
+  function handleLensUpdate(instance) {
+    const lensId = instance.lens.meta.id;
+    const trackElements = lensElements.get(instance.lensInstanceId);
+    const focusedId = getFocusedLensInstanceId(lensId);
+    const dashboardElements = focusedId === instance.lensInstanceId
+      ? dashboardLensElements.get(lensId)
+      : null;
   const targets = [trackElements, dashboardElements].filter(Boolean);
   let syncedIntervalPlacement = false;
   const isIntervalPlacement = lensId === "intervalPlacement";
@@ -1591,16 +1448,16 @@ function handleLensUpdate(instance) {
     renderLensNotices(elements.notices, instance);
     setLensElementLabels(instance, elements);
     const draftHandlers = {
-        onSelect: (draft) => {
-          const idx = instance.currentDrafts.findIndex((item) => item.id === draft.id);
-          instance.activeDraftIndex = idx >= 0 ? idx : null;
-          instance.activeDraftId = draft.id;
+          onSelect: (draft) => {
+            const idx = instance.currentDrafts.findIndex((item) => item.draftId === draft.draftId);
+            instance.activeDraftIndex = idx >= 0 ? idx : null;
+            instance.activeDraftId = draft.draftId;
           instance.activeDraft = idx >= 0 ? instance.currentDrafts[idx] : null;
           renderLensDrafts(elements.drafts, instance, draftHandlers);
           if (isIntervalPlacement) {
-            setFocusedLensInstance(lensId, instance.id);
+            setFocusedLensInstance(lensId, instance.lensInstanceId);
             const currentFocused = getFocusedLensInstanceId(lensId);
-          if (currentFocused === instance.id) {
+          if (currentFocused === instance.lensInstanceId) {
             syncIntervalPlacementState(instance);
             const rec = state.selected;
             if (rec) {
@@ -1636,7 +1493,7 @@ function handleLensUpdate(instance) {
   });
 
   const focusedAfterTargets = getFocusedLensInstanceId(lensId);
-  if (!syncedIntervalPlacement && isIntervalPlacement && focusedAfterTargets === instance.id) {
+  if (!syncedIntervalPlacement && isIntervalPlacement && focusedAfterTargets === instance.lensInstanceId) {
     syncIntervalPlacementState(instance);
     render();
     renderWorkspaceIntervalPlacementViz(instance);
@@ -1649,52 +1506,58 @@ function handleLensUpdate(instance) {
     refreshTransformerInputs();
   }
 
-function scheduleLens(instance) {
-  scheduleLensEvaluation(instance, {
-    getContext: () => getLensContext(instance),
-    getDraftCatalog: () => collectDraftCatalog(Array.from(lensInstances.values())),
-    onUpdate: handleLensUpdate,
-    debounceMs: 80
-  });
-}
+  function scheduleLens(instance) {
+    scheduleLensEvaluation(instance, {
+      getContext: () => getLensContext(instance),
+      getDraftCatalog: () => collectDraftCatalog(Array.from(lensInstances.values())),
+      getLensInstanceById: (id) => lensInstances.get(id) || null,
+      onUpdate: handleLensUpdate,
+      debounceMs: 80
+    });
+  }
 
-function refreshTransformerInputs() {
-  const draftCatalog = collectDraftCatalog(Array.from(lensInstances.values()));
-  const metaById = buildDraftMetaById();
-  const trackOrder = getOrderedTracks().map((track) => track.id);
-  lensInstances.forEach((instance) => {
-    if (instance.lens.meta.kind !== "transformer") return;
-    const elements = lensElements.get(instance.id);
-    if (elements) {
-      renderTransformerInputs(
-        elements.inputs,
-        instance.lens.inputs,
-        draftCatalog,
-        instance.selectedInputDraftIdsByRole,
-        (role, value) => {
-          instance.selectedInputDraftIdsByRole[role] = value;
-          scheduleLens(instance);
-        },
-        { metaById, trackOrder }
-      );
-    }
-    const focusedId = getFocusedLensInstanceId(instance.lens.meta.id);
-    if (focusedId === instance.id) {
-      const dash = dashboardLensElements.get(instance.lens.meta.id);
-      if (dash) {
+  function refreshTransformerInputs() {
+    const draftCatalog = collectDraftCatalog(Array.from(lensInstances.values()));
+    const metaById = buildDraftMetaById();
+    const activeDraftIdByLensInstanceId = buildActiveDraftIdByLensInstanceId();
+    const trackOrder = getOrderedTracks().map((track) => track.id);
+    lensInstances.forEach((instance) => {
+      if (instance.lens.meta.kind !== "transformer") return;
+      const elements = lensElements.get(instance.lensInstanceId);
+      if (elements) {
         renderTransformerInputs(
-          dash.inputs,
+          elements.inputs,
           instance.lens.inputs,
           draftCatalog,
-          instance.selectedInputDraftIdsByRole,
+          instance.selectedInputRefsByRole,
           (role, value) => {
-            instance.selectedInputDraftIdsByRole[role] = value;
+            instance.selectedInputRefsByRole[role] = value
+              ? { mode: "pinned", sourceDraftId: value }
+              : null;
             scheduleLens(instance);
           },
-          { metaById, trackOrder }
+          { metaById, trackOrder, activeDraftIdByLensInstanceId }
         );
       }
-    }
+      const focusedId = getFocusedLensInstanceId(instance.lens.meta.id);
+      if (focusedId === instance.lensInstanceId) {
+        const dash = dashboardLensElements.get(instance.lens.meta.id);
+        if (dash) {
+          renderTransformerInputs(
+            dash.inputs,
+            instance.lens.inputs,
+            draftCatalog,
+            instance.selectedInputRefsByRole,
+            (role, value) => {
+              instance.selectedInputRefsByRole[role] = value
+                ? { mode: "pinned", sourceDraftId: value }
+                : null;
+              scheduleLens(instance);
+            },
+            { metaById, trackOrder, activeDraftIdByLensInstanceId }
+          );
+        }
+      }
   });
 }
 
@@ -1714,18 +1577,25 @@ function bindLensInputsForInstance(instance, elements, options = {}) {
   if (lens.meta.id === "euclideanPatterns") {
     renderEuclidInputs(elements.inputs, instance, lens);
     renderEuclidParams(elements.params, instance, lens);
-  } else if (lens.meta.kind === "transformer" && Array.isArray(lens.inputs) && lens.inputs.length) {
-    renderTransformerInputs(
-      elements.inputs,
-      lens.inputs,
-      collectDraftCatalog(Array.from(lensInstances.values())),
-      instance.selectedInputDraftIdsByRole,
-      (role, value) => {
-        instance.selectedInputDraftIdsByRole[role] = value;
-        scheduleLens(instance);
-      }
-    );
-  } else {
+    } else if (lens.meta.kind === "transformer" && Array.isArray(lens.inputs) && lens.inputs.length) {
+      renderTransformerInputs(
+        elements.inputs,
+        lens.inputs,
+        collectDraftCatalog(Array.from(lensInstances.values())),
+        instance.selectedInputRefsByRole,
+        (role, value) => {
+          instance.selectedInputRefsByRole[role] = value
+            ? { mode: "pinned", sourceDraftId: value }
+            : null;
+          scheduleLens(instance);
+        },
+        {
+          metaById: buildDraftMetaById(),
+          trackOrder: getOrderedTracks().map((track) => track.id),
+          activeDraftIdByLensInstanceId: buildActiveDraftIdByLensInstanceId()
+        }
+      );
+    } else {
     initLensControls(elements.inputs, lens.generatorInputs, instance.generatorInputValues, (spec, value) => {
       bindLensInputHandlers(instance, lens.generatorInputs, spec.key, value);
       storeLensSpecValue(lens.meta.id, "inputs", spec.key, instance.generatorInputValues[spec.key]);
@@ -1753,8 +1623,8 @@ function initDefaultTracks() {
   const intervalLens = getLens("intervalPlacement");
   if (intervalLens) {
     const instance = createInstanceForTrack(intervalLens, first.id, "G");
-    first.generatorInstanceId = instance.id;
-    setFocusedLensInstance(intervalLens.meta.id, instance.id);
+    first.generatorInstanceId = instance.lensInstanceId;
+    setFocusedLensInstance(intervalLens.meta.id, instance.lensInstanceId);
     (intervalLens.generatorInputs || []).forEach((spec) => {
       instance.generatorInputValues[spec.key] = loadLensSpecValue(intervalLens.meta.id, "inputs", spec);
     });
@@ -1776,14 +1646,14 @@ function buildDraftMetaById() {
       if (instance) {
         const label = getGeneratorLabel(track.id);
         (instance.currentDrafts || []).forEach((draft) => {
-          metaById.set(draft.id, {
+          metaById.set(draft.draftId, {
             trackId: track.id,
             trackNumber,
             trackName,
             label,
             lensName: instance.lens.meta.name,
-            lensInstanceId: instance.id,
-            isActive: instance.activeDraftId === draft.id
+            lensInstanceId: instance.lensInstanceId,
+            isActive: instance.activeDraftId === draft.draftId
           });
         });
       }
@@ -1793,14 +1663,14 @@ function buildDraftMetaById() {
         if (!instance) return;
         const label = getTransformerLabel(track.id, instanceId);
         (instance.currentDrafts || []).forEach((draft) => {
-          metaById.set(draft.id, {
+          metaById.set(draft.draftId, {
             trackId: track.id,
             trackNumber,
             trackName,
             label,
             lensName: instance.lens.meta.name,
-            lensInstanceId: instance.id,
-            isActive: instance.activeDraftId === draft.id
+            lensInstanceId: instance.lensInstanceId,
+            isActive: instance.activeDraftId === draft.draftId
           });
         });
       });
@@ -1808,14 +1678,28 @@ function buildDraftMetaById() {
   return metaById;
 }
 
+function buildActiveDraftIdByLensInstanceId() {
+  const map = new Map();
+  lensInstances.forEach((instance) => {
+    if (instance.activeDraftId) {
+      map.set(instance.lensInstanceId, instance.activeDraftId);
+    }
+  });
+  return map;
+}
+
 function clearSelectionsForDraftIds(draftIds) {
   const toClear = new Set(draftIds);
   if (!toClear.size) return;
   lensInstances.forEach((instance) => {
     if (instance.lens.meta.kind !== "transformer") return;
-    const selected = instance.selectedInputDraftIdsByRole || {};
+    const selected = instance.selectedInputRefsByRole || {};
     Object.keys(selected).forEach((role) => {
-      if (toClear.has(selected[role])) {
+      const ref = selected[role];
+      const draftId = typeof ref === "string"
+        ? ref
+        : (ref && ref.mode === "pinned" ? ref.sourceDraftId : null);
+      if (draftId && toClear.has(draftId)) {
         selected[role] = null;
       }
     });
@@ -1824,13 +1708,27 @@ function clearSelectionsForDraftIds(draftIds) {
 }
 
 function pruneMissingSelections() {
-  const draftIds = new Set(collectDraftCatalog(Array.from(lensInstances.values())).map((draft) => draft.id));
+  const draftIds = new Set(collectDraftCatalog(Array.from(lensInstances.values())).map((draft) => draft.draftId));
   lensInstances.forEach((instance) => {
     if (instance.lens.meta.kind !== "transformer") return;
-    const selected = instance.selectedInputDraftIdsByRole || {};
+    const selected = instance.selectedInputRefsByRole || {};
     let changed = false;
     Object.keys(selected).forEach((role) => {
-      if (selected[role] && !draftIds.has(selected[role])) {
+      const ref = selected[role];
+      if (!ref) return;
+      if (typeof ref === "string") {
+        if (!draftIds.has(ref)) {
+          selected[role] = null;
+          changed = true;
+        }
+        return;
+      }
+      if (ref.mode === "pinned" && ref.sourceDraftId && !draftIds.has(ref.sourceDraftId)) {
+        selected[role] = null;
+        changed = true;
+        return;
+      }
+      if (ref.mode === "active" && ref.sourceLensInstanceId && !lensInstances.has(ref.sourceLensInstanceId)) {
         selected[role] = null;
         changed = true;
       }
@@ -1848,7 +1746,7 @@ function removeLensInstance(instanceId) {
   const instance = lensInstances.get(instanceId);
   if (!instance) return;
   const track = getTrackById(instance.trackId);
-  const removedDrafts = (instance.currentDrafts || []).map((draft) => draft.id);
+  const removedDrafts = (instance.currentDrafts || []).map((draft) => draft.draftId);
   if (track) {
     if (instance.lane === "G") {
       track.generatorInstanceId = null;
@@ -1967,7 +1865,7 @@ function mountIntervalPlacementWorkspaceViz(instance, middleBody) {
   metaRow.appendChild(hoverPanel);
   middleBody.appendChild(vizStack);
   middleBody.appendChild(metaRow);
-  intervalPlacementVisualizers.set(instance.id, {
+  intervalPlacementVisualizers.set(instance.lensInstanceId, {
     canvas,
     summary,
     selectedInfo,
@@ -2007,21 +1905,30 @@ function moveTransformer(trackId, instanceId, delta) {
     const track = getTrackById(trackId);
     if (!track || !track.generatorInstanceId) return;
     const generator = lensInstances.get(track.generatorInstanceId);
-  if (!generator) return;
-  const drafts = generator.currentDrafts || [];
-  if (!drafts.length) return;
-  (instance.lens.inputs || []).forEach((spec) => {
-    if (instance.selectedInputDraftIdsByRole[spec.role]) return;
-    const match = drafts.find((draft) => {
-      if (!draft || !draft.type) return false;
-      if (Array.isArray(spec.accepts) && spec.accepts.length && !spec.accepts.includes(draft.type)) return false;
-      if (Array.isArray(spec.acceptsSubtypes) && spec.acceptsSubtypes.length && !spec.acceptsSubtypes.includes(draft.subtype)) return false;
-      return true;
-    });
-      if (match && generator.activeDraftId === match.id) {
-        instance.selectedInputDraftIdsByRole[spec.role] = match.id;
+    if (!generator) return;
+    const drafts = generator.currentDrafts || [];
+    if (!drafts.length) return;
+    (instance.lens.inputs || []).forEach((spec) => {
+      if (instance.selectedInputRefsByRole[spec.role]) return;
+      const match = drafts.find((draft) => {
+        if (!draft || !draft.type) return false;
+        if (Array.isArray(spec.accepts) && spec.accepts.length && !spec.accepts.includes(draft.type)) return false;
+        if (Array.isArray(spec.acceptsSubtypes) && spec.acceptsSubtypes.length && !spec.acceptsSubtypes.includes(draft.subtype)) return false;
+        return true;
+      });
+      const activeMatch = drafts.find((draft) => draft.draftId === generator.activeDraftId
+        && (!Array.isArray(spec.accepts) || !spec.accepts.length || spec.accepts.includes(draft.type))
+        && (!Array.isArray(spec.acceptsSubtypes) || !spec.acceptsSubtypes.length || spec.acceptsSubtypes.includes(draft.subtype)));
+      if (activeMatch) {
+        instance.selectedInputRefsByRole[spec.role] = {
+          mode: "active",
+          sourceLensInstanceId: generator.lensInstanceId
+        };
       } else if (match) {
-        instance.selectedInputDraftIdsByRole[spec.role] = match.id;
+        instance.selectedInputRefsByRole[spec.role] = {
+          mode: "pinned",
+          sourceDraftId: match.draftId
+        };
       }
     });
   }
@@ -2033,7 +1940,7 @@ function buildLensPanel(instance, opts = {}) {
   );
   const root = document.createElement("section");
   root.className = `lens-layout lens-compact track-lens ${opts.className || ""}`.trim();
-  root.dataset.lensInstanceId = instance.id;
+  root.dataset.lensInstanceId = instance.lensInstanceId;
 
   const rail = document.createElement("div");
   rail.className = "lens-rail";
@@ -2047,7 +1954,7 @@ function buildLensPanel(instance, opts = {}) {
       ? "Remove generator lens from this track?"
       : "Remove transformer lens from this track?";
     if (window.confirm(confirmMsg)) {
-      removeLensInstance(instance.id);
+      removeLensInstance(instance.lensInstanceId);
       renderTrackWorkspace();
     }
   });
@@ -2230,8 +2137,8 @@ function buildLensPanel(instance, opts = {}) {
     });
   }
   updateLensVisualizerState(instance, elements, lensSupportsVisualizer);
-  lensElements.set(instance.id, elements);
-  bindLensInputsForInstance(instance, elements, { idPrefix: instance.id });
+  lensElements.set(instance.lensInstanceId, elements);
+  bindLensInputsForInstance(instance, elements, { idPrefix: instance.lensInstanceId });
   scheduleLens(instance);
   return root;
 }
@@ -2393,8 +2300,8 @@ function renderTrackWorkspace() {
           event.stopPropagation();
           if (track.generatorInstanceId) return;
           const instance = createInstanceForTrack(lens, track.id, "G");
-          track.generatorInstanceId = instance.id;
-          setFocusedLensInstance(lens.meta.id, instance.id);
+          track.generatorInstanceId = instance.lensInstanceId;
+          setFocusedLensInstance(lens.meta.id, instance.lensInstanceId);
           (lens.generatorInputs || []).forEach((spec) => {
             instance.generatorInputValues[spec.key] = loadLensSpecValue(lens.meta.id, "inputs", spec);
           });
@@ -2437,7 +2344,7 @@ function renderTrackWorkspace() {
         item.addEventListener("click", (event) => {
           event.stopPropagation();
           const instance = createInstanceForTrack(lens, track.id, "T");
-          track.transformerInstanceIds.push(instance.id);
+          track.transformerInstanceIds.push(instance.lensInstanceId);
           seedTransformerDefaults(instance, track.id);
           renderTrackWorkspace();
         });
@@ -2549,10 +2456,10 @@ function renderFocusedDashboard() {
     bindLensInputsForInstance(instance, elements);
     renderLensNotices(elements.notices, instance);
     const draftHandlers = {
-      onSelect: (draft) => {
-        const idx = instance.currentDrafts.findIndex((item) => item.id === draft.id);
-        instance.activeDraftIndex = idx >= 0 ? idx : null;
-        instance.activeDraftId = draft.id;
+        onSelect: (draft) => {
+          const idx = instance.currentDrafts.findIndex((item) => item.draftId === draft.draftId);
+          instance.activeDraftIndex = idx >= 0 ? idx : null;
+          instance.activeDraftId = draft.draftId;
         instance.activeDraft = idx >= 0 ? instance.currentDrafts[idx] : null;
         renderLensDrafts(elements.drafts, instance, draftHandlers);
     if (lensId === "intervalPlacement") {
@@ -3308,3 +3215,7 @@ if (panels) {
 renderInventory();
 renderDesk();
 render();
+
+if (import.meta.env && import.meta.env.DEV) {
+  import("./dev/selfTest.js");
+}

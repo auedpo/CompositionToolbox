@@ -3,19 +3,19 @@ import { ensureSingleInputTransformerSelections } from "../src/transformerPipeli
 
 function buildDraft(id) {
   return {
-    id,
+    draftId: id,
     type: "pitchList",
-    payload: { label: id }
+    payload: [id.length]
   };
 }
 
 function buildGenerator(id, draft, token = 1) {
   return {
-    id,
+    lensInstanceId: id,
     lens: { meta: { id: "intervalPlacement", kind: "generator" } },
     currentDrafts: [draft],
     activeDraft: draft,
-    activeDraftId: draft.id,
+    activeDraftId: draft.draftId,
     activeDraftIndex: 0,
     _updateToken: token
   };
@@ -23,13 +23,13 @@ function buildGenerator(id, draft, token = 1) {
 
 function buildTransformer(id) {
   return {
-    id,
+    lensInstanceId: id,
     lens: {
       meta: { id: "passthrough", kind: "transformer" },
       inputs: [{ role: "input", required: true }]
     },
-    selectedInputDraftIdsByRole: {},
-    _liveInputs: {},
+    selectedInputRefsByRole: {},
+    _liveInputRefs: {},
     _liveInputSource: {},
     _lastLiveDraftIdByRole: {},
     _liveSourceTokens: {}
@@ -48,42 +48,54 @@ function buildTrack(generatorId, transformerId) {
   const firstDraft = buildDraft("draftA");
   const generator = buildGenerator("gen", firstDraft, 1);
   const transformer = buildTransformer("trans");
-  const tracks = [buildTrack(generator.id, transformer.id)];
+  const tracks = [buildTrack(generator.lensInstanceId, transformer.lensInstanceId)];
   const lensInstances = new Map([
-    [generator.id, generator],
-    [transformer.id, transformer]
+    [generator.lensInstanceId, generator],
+    [transformer.lensInstanceId, transformer]
   ]);
   const scheduleCalls = [];
-  const scheduleLens = (instance) => scheduleCalls.push(instance.id);
+  const scheduleLens = (instance) => scheduleCalls.push(instance.lensInstanceId);
 
   ensureSingleInputTransformerSelections(tracks, lensInstances, scheduleLens);
-  assert.strictEqual(transformer._liveInputs.input, firstDraft);
-  assert.strictEqual(transformer.selectedInputDraftIdsByRole.input, firstDraft.id);
-  assert.deepStrictEqual(scheduleCalls, [transformer.id]);
+  assert.deepStrictEqual(transformer._liveInputRefs.input, {
+    mode: "active",
+    sourceLensInstanceId: generator.lensInstanceId
+  });
+  assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, {
+    mode: "active",
+    sourceLensInstanceId: generator.lensInstanceId
+  });
+  assert.deepStrictEqual(scheduleCalls, [transformer.lensInstanceId]);
 
   const secondDraft = buildDraft("draftB");
   generator.currentDrafts = [secondDraft];
   generator.activeDraft = secondDraft;
-  generator.activeDraftId = secondDraft.id;
+  generator.activeDraftId = secondDraft.draftId;
   generator._updateToken = 2;
 
   ensureSingleInputTransformerSelections(tracks, lensInstances, scheduleLens);
-  assert.strictEqual(transformer._liveInputs.input, secondDraft);
-  assert.strictEqual(transformer.selectedInputDraftIdsByRole.input, secondDraft.id);
-  assert.deepStrictEqual(scheduleCalls, [transformer.id, transformer.id]);
+  assert.deepStrictEqual(transformer._liveInputRefs.input, {
+    mode: "active",
+    sourceLensInstanceId: generator.lensInstanceId
+  });
+  assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, {
+    mode: "active",
+    sourceLensInstanceId: generator.lensInstanceId
+  });
+  assert.deepStrictEqual(scheduleCalls, [transformer.lensInstanceId, transformer.lensInstanceId]);
 }
 
 {
   const draft = buildDraft("draftSame");
   const generator = buildGenerator("gen2", draft, 5);
   const transformer = buildTransformer("trans2");
-  const tracks = [buildTrack(generator.id, transformer.id)];
+  const tracks = [buildTrack(generator.lensInstanceId, transformer.lensInstanceId)];
   const lensInstances = new Map([
-    [generator.id, generator],
-    [transformer.id, transformer]
+    [generator.lensInstanceId, generator],
+    [transformer.lensInstanceId, transformer]
   ]);
   const scheduleCalls = [];
-  const scheduleLens = (instance) => scheduleCalls.push(instance.id);
+  const scheduleLens = (instance) => scheduleCalls.push(instance.lensInstanceId);
 
   ensureSingleInputTransformerSelections(tracks, lensInstances, scheduleLens);
   assert.strictEqual(scheduleCalls.length, 1);
@@ -91,7 +103,10 @@ function buildTrack(generatorId, transformerId) {
   generator._updateToken = 6;
   ensureSingleInputTransformerSelections(tracks, lensInstances, scheduleLens);
   assert.strictEqual(scheduleCalls.length, 2);
-  assert.strictEqual(transformer.selectedInputDraftIdsByRole.input, draft.id);
+  assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, {
+    mode: "active",
+    sourceLensInstanceId: generator.lensInstanceId
+  });
 }
 
 console.log("transformerPipeline tests ok");

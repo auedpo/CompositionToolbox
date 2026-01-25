@@ -33,7 +33,7 @@ function getBinaryMask(steps, pulses, rotation) {
     generatorInput: { steps, pulses, rotation },
     params: { outputKind: "binaryMask" }
   });
-  return drafts[0].payload.values;
+  return drafts[0].payload;
 }
 
 const maskA = getBinaryMask(8, 3, 0);

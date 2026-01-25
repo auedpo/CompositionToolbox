@@ -12,28 +12,26 @@ export function renderInventoryDetails() {
   }
   let detailLine = "";
   if (selected.type === "Pattern") {
-    const values = selected.data && Array.isArray(selected.data.values) ? selected.data.values : [];
-    const kind = selected.data && selected.data.kind ? selected.data.kind : "pattern";
+    const values = Array.isArray(selected.payload) ? selected.payload : [];
+    const kind = selected.subtype || "pattern";
     if (kind === "indexMask") {
       detailLine = `values: [${values.join(", ")}]`;
     } else {
       detailLine = `values: ${values.join("")}`;
     }
   } else {
-    const steps = selected.data && Array.isArray(selected.data.steps)
-      ? selected.data.steps.join(" ")
-      : "";
+    const steps = Array.isArray(selected.payload) ? selected.payload.join(" ") : "";
     detailLine = `steps: ${steps}`;
   }
   const provenance = selected.provenance || {};
-  const metaTags = selected.meta && Array.isArray(selected.meta.tags) ? selected.meta.tags.join(", ") : "";
+  const metaTags = Array.isArray(selected.tags) ? selected.tags.join(", ") : "";
   els.inventoryDetails.innerHTML = `
     <div class="meta-line"><strong>${selected.name}</strong> (${selected.type})</div>
-    <div class="meta-line">id: ${selected.id}</div>
+    <div class="meta-line">id: ${selected.materialId}</div>
     <div class="meta-line">${detailLine}</div>
     <div class="meta-line">tags: ${metaTags || "none"}</div>
-    <div class="meta-line">lens: ${provenance.lensId || "n/a"}</div>
-    <div class="meta-line">time: ${provenance.timestamp || "n/a"}</div>
+    <div class="meta-line">lens: ${provenance.lensType || "n/a"}</div>
+    <div class="meta-line">time: ${provenance.createdAt || "n/a"}</div>
   `;
 }
 
@@ -52,7 +50,7 @@ export function renderInventory() {
   items.forEach((item) => {
     const row = document.createElement("div");
     row.className = "inventory-item";
-    if (item.id === state.selectedInventoryId) row.classList.add("selected");
+    if (item.materialId === state.selectedInventoryId) row.classList.add("selected");
     const title = document.createElement("div");
     title.className = "inventory-title";
     title.textContent = item.name;
@@ -62,7 +60,7 @@ export function renderInventory() {
     row.appendChild(title);
     row.appendChild(meta);
     row.addEventListener("click", () => {
-      state.selectedInventoryId = item.id;
+      state.selectedInventoryId = item.materialId;
       renderInventory();
     });
     els.inventoryList.appendChild(row);
@@ -84,7 +82,7 @@ export function sendSelectedInventoryToDesk() {
   }
   const { lane, duration } = getDeskPlacementSettings();
   const start = nextDeskStart(lane);
-  deskStore.add({ materialId: material.id, start, duration, lane });
+  deskStore.add({ materialId: material.materialId, start, duration, laneId: lane });
   saveDesk();
   renderDesk();
   els.status.textContent = `Placed clip for ${material.name} on desk.`;
@@ -98,7 +96,7 @@ export function removeSelectedInventory() {
   state.selectedInventoryId = null;
   deskStore.list().forEach((item) => {
     if (item.materialId === id) {
-      deskStore.remove(item.id);
+      deskStore.remove(item.clipId);
     }
   });
   saveDesk();

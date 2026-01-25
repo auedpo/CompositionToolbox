@@ -121,7 +121,7 @@ export function placeSelectedDraftsOnDesk() {
   const { lane, duration } = getDeskPlacementSettings();
   let cursor = nextDeskStart(lane);
   captured.forEach((material) => {
-    deskStore.add({ materialId: material.id, start: cursor, duration, lane });
+    deskStore.add({ materialId: material.materialId, start: cursor, duration, laneId: lane });
     cursor += duration;
   });
   saveDesk();

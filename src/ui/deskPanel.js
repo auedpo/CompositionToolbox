@@ -72,13 +72,13 @@ function laneFromClientY(clientY) {
 }
 
 function resolveOverlapLane(targetLane, itemId, start, duration) {
-  const items = deskStore.list().filter((item) => item.id !== itemId);
+  const items = deskStore.list().filter((item) => item.clipId !== itemId);
   let lane = Math.max(0, targetLane);
   while (true) {
-    const overlap = items.find((item) => item.lane === lane
+    const overlap = items.find((item) => item.laneId === lane
       && rangesOverlap(start, duration, item.start, item.duration || 1));
     if (!overlap) return lane;
-    lane = overlap.lane + 1;
+    lane = overlap.laneId + 1;
   }
 }
 
@@ -126,14 +126,14 @@ export function getDeskPlacementSettings() {
 }
 
 export function nextDeskStart(lane) {
-  const items = deskStore.list().filter((item) => item.lane === lane);
+  const items = deskStore.list().filter((item) => item.laneId === lane);
   const ends = items.map((item) => item.start + (item.duration || 1));
   return ends.length ? Math.max(...ends) : 0;
 }
 
 export function renderDeskDetails() {
   if (!els.deskDetails) return;
-  const selected = state.selectedDeskId ? deskStore.list().find((item) => item.id === state.selectedDeskId) : null;
+  const selected = state.selectedDeskId ? deskStore.list().find((item) => item.clipId === state.selectedDeskId) : null;
   if (!selected) {
     els.deskDetails.textContent = "Select a clip to see details.";
     return;
@@ -141,22 +141,22 @@ export function renderDeskDetails() {
   const material = inventoryStore.get(selected.materialId);
   let detailLine = "";
   if (material && material.type === "Pattern") {
-    const values = material.data && Array.isArray(material.data.values) ? material.data.values : [];
-    const kind = material.data && material.data.kind ? material.data.kind : "pattern";
+    const values = Array.isArray(material.payload) ? material.payload : [];
+    const kind = material.subtype || "pattern";
     if (kind === "indexMask") {
       detailLine = `values: [${values.join(", ")}]`;
     } else {
       detailLine = `values: ${values.join("")}`;
     }
   } else {
-    const steps = material && material.data && Array.isArray(material.data.steps)
-      ? material.data.steps.join(" ")
+    const steps = material && Array.isArray(material.payload)
+      ? material.payload.join(" ")
       : "";
     detailLine = `steps: ${steps}`;
   }
   els.deskDetails.innerHTML = `
     <div class="meta-line"><strong>${material ? material.name : "Unknown material"}</strong></div>
-    <div class="meta-line">lane: ${selected.lane}</div>
+    <div class="meta-line">lane: ${selected.laneId}</div>
     <div class="meta-line">start: ${selected.start}</div>
     <div class="meta-line">duration: ${selected.duration ?? "n/a"}</div>
     <div class="meta-line">${detailLine}</div>
@@ -184,12 +184,12 @@ export function renderDesk() {
     return;
   }
   const gridStep = readDeskGridStep();
-  const laneIndices = items.map((item) => item.lane);
+  const laneIndices = items.map((item) => item.laneId);
   const maxLane = Math.max(0, ...laneIndices);
   const range = Math.max(1, ...items.map((item) => item.start + (item.duration || 1)));
   const gridPct = range > 0 ? (gridStep / range) * 100 : 0;
   for (let lane = 0; lane <= maxLane; lane++) {
-    const laneItems = items.filter((item) => item.lane === lane);
+    const laneItems = items.filter((item) => item.laneId === lane);
     const row = document.createElement("div");
     row.className = "desk-lane";
     row.dataset.lane = `${lane}`;
@@ -243,8 +243,8 @@ export function renderDesk() {
       const material = inventoryStore.get(item.materialId);
       const clip = document.createElement("div");
       clip.className = "desk-item";
-      clip.dataset.id = item.id;
-      if (item.id === state.selectedDeskId) clip.classList.add("selected");
+      clip.dataset.id = item.clipId;
+      if (item.clipId === state.selectedDeskId) clip.classList.add("selected");
       const duration = item.duration || 1;
       const left = (item.start / range) * 100;
       const width = Math.max((duration / range) * 100, 4);
@@ -272,9 +272,9 @@ export function renderDesk() {
             : "move";
         suppressClick = false;
         activeDrag = {
-          id: item.id,
+          id: item.clipId,
           action,
-          originLane: item.lane,
+          originLane: item.laneId,
           originStart: item.start,
           originDuration: duration,
           startX: event.clientX,
@@ -316,7 +316,7 @@ export function renderDesk() {
             update.start,
             update.duration
           );
-          deskStore.move(drag.id, { start: update.start, duration: update.duration, lane: resolvedLane });
+          deskStore.move(drag.id, { start: update.start, duration: update.duration, laneId: resolvedLane });
           state.selectedDeskId = drag.id;
           saveDesk();
           renderDesk();
@@ -330,7 +330,7 @@ export function renderDesk() {
           suppressClick = false;
           return;
         }
-        state.selectedDeskId = item.id;
+        state.selectedDeskId = item.clipId;
         renderDesk();
       });
       track.appendChild(clip);

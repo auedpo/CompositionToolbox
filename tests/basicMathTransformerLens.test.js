@@ -3,17 +3,15 @@ import { evaluateBasicMathTransformerLens } from "../src/lenses/basicMathTransfo
 
 function buildDraft(payload) {
   return {
-    id: "draft-math",
+    draftId: "draft-math",
     type: "numeric",
     payload,
-    summary: {
-      title: "Numeric list"
-    }
+    summary: "Numeric list"
   };
 }
 
 {
-  const draft = buildDraft({ steps: [0, 2, 4, 10, 12] });
+  const draft = buildDraft([0, 2, 4, 10, 12]);
   const result = evaluateBasicMathTransformerLens({
     inputs: [{ draft }],
     params: {
@@ -24,16 +22,14 @@ function buildDraft(payload) {
     }
   });
   assert.ok(result.ok, result.errors);
-  assert.deepStrictEqual(result.drafts[0].payload.steps, [1, 5, 9, 11, 3]);
-  assert.strictEqual(result.drafts[0].payload.meta.modApplied, true);
-  assert.strictEqual(result.drafts[0].payload.meta.modValue, 12);
+  assert.deepStrictEqual(result.drafts[0].payload, [1, 5, 9, 11, 3]);
   assert.deepStrictEqual(result.vizModel.inputValues, [0, 2, 4, 10, 12]);
   assert.strictEqual(result.vizModel.operation, "add");
   assert.strictEqual(result.vizModel.modActive, true);
 }
 
 {
-  const draft = buildDraft({ values: [9, 16, 25] });
+  const draft = buildDraft([9, 16, 25]);
   const result = evaluateBasicMathTransformerLens({
     inputs: [{ draft }],
     params: {
@@ -41,8 +37,7 @@ function buildDraft(payload) {
     }
   });
   assert.ok(result.ok, result.errors);
-  assert.deepStrictEqual(result.drafts[0].payload.steps, [3, 4, 5]);
-  assert.strictEqual(result.drafts[0].payload.meta.modApplied, false);
+  assert.deepStrictEqual(result.drafts[0].payload, [3, 4, 5]);
   assert.strictEqual(result.vizModel.operation, "sqrt");
 }
 
@@ -56,7 +51,7 @@ function buildDraft(payload) {
     }
   });
   assert.ok(result.ok, result.errors);
-  assert.deepStrictEqual(result.drafts[0].payload.steps, [4, 12, 8]);
+  assert.deepStrictEqual(result.drafts[0].payload, [4, 12, 8]);
   assert.deepStrictEqual(result.vizModel.operands, [2, 4]);
 }
 

@@ -1,11 +1,11 @@
 /**
  * @typedef {Object} DeskObject
- * @property {string} id
+ * @property {string} clipId
  * @property {string} materialId
  * @property {number} start
  * @property {number} [duration]
- * @property {number} lane
- * @property {Object} [localTransforms]
+ * @property {number} laneId
+ * @property {Object} [clipLocalTransforms]
  */
 
 export const DESK_DEFAULT_DURATION = 1;
