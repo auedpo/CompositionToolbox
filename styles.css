@@ -2866,6 +2866,84 @@ body.workspace2 .ws2-panel-body {
   overflow: auto;
   min-height: 0;
 }
+
+body.workspace2 .ws2-lensui {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: var(--space-3);
+  min-height: 0;
+}
+
+body.workspace2 .ws2-lensui-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+}
+
+body.workspace2 .ws2-lensui-right {
+  min-height: 0;
+  overflow: auto;
+}
+
+body.workspace2 .ws2-draftsui {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+body.workspace2 .ws2-lensui-section {
+  padding: var(--space-2);
+  background: var(--panel-bg);
+  border-radius: var(--radius-button);
+}
+
+body.workspace2 .ws2-lensui-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+body.workspace2 .ws2-lens-notices,
+body.workspace2 .ws2-lens-drafts {
+  display: flex;
+  flex-direction: column;
+}
+
+body.workspace2 .ws2-lens-viz-placeholder {
+  padding: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+body.workspace2 .ws2-interval-viz {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+body.workspace2 .ws2-interval-canvas {
+  width: 100%;
+  height: 320px;
+  border-radius: var(--radius-button);
+  background: var(--panel-bg);
+}
+
+body.workspace2 .ws2-interval-meta > div {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+body.workspace2 .ws2-euclid-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+body.workspace2 .ws2-euclid-canvas {
+  width: 100%;
+  border-radius: var(--radius-button);
+  background: var(--panel-bg);
+}
 /* phase 8 */
 body.workspace2 .ws2-placeholder {
   color: var(--app-debug-1);

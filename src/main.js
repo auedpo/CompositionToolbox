@@ -1016,6 +1016,7 @@ const lensElements = new Map();
 const dashboardLensElements = new Map();
 const focusedLensInstances = new Map();
 const intervalPlacementVisualizers = new Map();
+const workspace2IntervalPlacementVisualizers = new Map();
 let visualizerPopoutOverlay = null;
 let trackMenuOutsideHandler = null;
 
@@ -1269,25 +1270,34 @@ function getRecordForInstance(instance) {
   return records[index] || null;
 }
 
-  function renderWorkspaceIntervalPlacementViz(instance) {
-    if (!instance) return;
-    const visual = intervalPlacementVisualizers.get(instance.lensInstanceId);
-  if (!visual) return;
+function updateIntervalPlacementVisual(instance, visual) {
+  if (!instance || !visual) return;
   const rec = getRecordForInstance(instance);
   if (!rec) {
-    drawPlotOnCanvas(visual.canvas, null, { updateHoverPoints: false });
-    visual.summary.textContent = "No draft yet.";
-    visual.selectedInfo.textContent = "";
-    visual.hoverInfo.textContent = "";
+    if (visual.canvas) {
+      drawPlotOnCanvas(visual.canvas, null, { updateHoverPoints: false });
+    }
+    if (visual.summary) visual.summary.textContent = "No draft yet.";
+    if (visual.selectedInfo) visual.selectedInfo.textContent = "";
+    if (visual.hoverInfo) visual.hoverInfo.textContent = "";
     return;
   }
-  drawPlotOnCanvas(visual.canvas, rec, { updateHoverPoints: false, targetHeight: 320 });
+  if (visual.canvas) {
+    drawPlotOnCanvas(visual.canvas, rec, { updateHoverPoints: false, targetHeight: 320 });
+  }
   const anchors = Array.isArray(rec.anchors) ? rec.anchors : [];
   const perm = Array.isArray(rec.perm) ? rec.perm : [];
   const pitches = Array.isArray(rec.pitches) ? rec.pitches : [];
-  visual.summary.textContent = `anchors: ${anchors.join(" ")}`;
-  visual.selectedInfo.textContent = perm.join(" ");
-  visual.hoverInfo.textContent = pitches.join(" ");
+  if (visual.summary) visual.summary.textContent = `anchors: ${anchors.join(" ")}`;
+  if (visual.selectedInfo) visual.selectedInfo.textContent = perm.join(" ");
+  if (visual.hoverInfo) visual.hoverInfo.textContent = pitches.join(" ");
+}
+
+function renderWorkspaceIntervalPlacementViz(instance) {
+  if (!instance) return;
+  const visual = intervalPlacementVisualizers.get(instance.lensInstanceId);
+  if (!visual) return;
+  updateIntervalPlacementVisual(instance, visual);
 }
 
 function createTrack(name) {
@@ -1934,6 +1944,7 @@ function removeLensInstance(instanceId) {
   lensInstances.delete(instanceId);
   state.lensInstancesById.delete(instanceId);
   intervalPlacementVisualizers.delete(instanceId);
+  workspace2IntervalPlacementVisualizers.delete(instanceId);
   lensElements.delete(instanceId);
   focusedLensInstances.forEach((focusedId, lensId) => {
     if (focusedId === instanceId) {
@@ -2460,13 +2471,16 @@ function renderWorkspace2TrackInspector() {
   }
   const trackNumber = getTrackNumber(track.id);
   const lensPath = getTrackLensPath(track);
-  const generator = lensPath.length ? lensInstances.get(lensPath[0]) : null;
-  const transformerCount = Math.max(lensPath.length - 1, 0);
+  const firstLens = lensPath.length ? lensInstances.get(lensPath[0]) : null;
+  const lastLens = lensPath.length ? lensInstances.get(lensPath[lensPath.length - 1]) : null;
+  const firstLensName = firstLens && firstLens.lens && firstLens.lens.meta ? firstLens.lens.meta.name : "—";
+  const lastLensName = lastLens && lastLens.lens && lastLens.lens.meta ? lastLens.lens.meta.name : "—";
   body.innerHTML = `
     <div class="meta-lines">
       <div class="meta-line"><strong>Track</strong>: ${trackNumber ? `T${trackNumber}` : "—"} — ${track.name || "Untitled track"}</div>
-      <div class="meta-line">Generator: ${generator ? generator.lens.meta.name : "—"}</div>
-      <div class="meta-line">Transformers: ${transformerCount}</div>
+      <div class="meta-line">Lenses: ${lensPath.length}</div>
+      <div class="meta-line">First lens: ${firstLensName}</div>
+      <div class="meta-line">Last lens: ${lastLensName}</div>
     </div>
   `;
 }
@@ -2494,41 +2508,143 @@ function renderWorkspace2LensInspector() {
   `;
 }
 
-function renderWorkspace2Viz() {
-  const ws2 = getWorkspace2Els();
-  if (!ws2.viz) return;
-  const panel = ws2.viz;
-  const body = panel.querySelector(".ws2-panel-body") || panel;
-  const inst = getFocusedWorkspace2Instance();
-  if (!inst) {
-    body.innerHTML = `<div class="ws2-placeholder">No focused lens.</div>`;
-    return;
-  }
-  const draft = inst.activeDraft || null;
-  const summary = draft ? (draft.summary || "") : "";
-  body.innerHTML = `
-    <div class="meta-lines">
-      <div class="meta-line"><strong>Focused</strong>: ${getLensHeaderLabel(inst)}</div>
-      <div class="meta-line">Output: ${summary ? summary : "—"}</div>
-    </div>
-  `;
+function createWorkspace2LensElements(vizRoot, draftsRoot) {
+  if (!vizRoot || !draftsRoot) return null;
+  const left = document.createElement("div");
+  left.className = "ws2-lensui-left";
+  const right = document.createElement("div");
+  right.className = "ws2-lensui-right";
+  const title = document.createElement("div");
+  title.className = "ws2-lensui-title";
+  const inputs = document.createElement("div");
+  inputs.className = "ws2-lensui-section";
+  const params = document.createElement("div");
+  params.className = "ws2-lensui-section";
+  left.appendChild(title);
+  left.appendChild(inputs);
+  left.appendChild(params);
+  const viz = document.createElement("div");
+  viz.className = "ws2-lensui-viz";
+  right.appendChild(viz);
+  vizRoot.appendChild(left);
+  vizRoot.appendChild(right);
+  const notices = document.createElement("div");
+  notices.className = "ws2-lens-notices";
+  const drafts = document.createElement("div");
+  drafts.className = "ws2-lens-drafts";
+  draftsRoot.appendChild(notices);
+  draftsRoot.appendChild(drafts);
+  return {
+    root: vizRoot,
+    headerTitle: title,
+    inputs,
+    params,
+    notices,
+    drafts,
+    viz
+  };
 }
 
-function renderWorkspace2Drafts() {
+function bindWorkspace2LensControls(instance, elements) {
+  if (!instance || !elements) return;
+  bindLensInputsForInstance(instance, elements, { idPrefix: `ws2-${instance.lensInstanceId}` });
+}
+
+function renderWorkspace2IntervalPlacementViz(instance, container) {
+  if (!instance || !container) return false;
+  const wrapper = document.createElement("div");
+  wrapper.className = "ws2-interval-viz";
+  const canvas = document.createElement("canvas");
+  canvas.width = 640;
+  canvas.height = 320;
+  canvas.className = "ws2-interval-canvas";
+  wrapper.appendChild(canvas);
+  const meta = document.createElement("div");
+  meta.className = "ws2-interval-meta";
+  const summary = document.createElement("div");
+  summary.className = "ws2-interval-summary";
+  const selectedInfo = document.createElement("div");
+  selectedInfo.className = "ws2-interval-selected";
+  const hoverInfo = document.createElement("div");
+  hoverInfo.className = "ws2-interval-hover";
+  meta.appendChild(summary);
+  meta.appendChild(selectedInfo);
+  meta.appendChild(hoverInfo);
+  wrapper.appendChild(meta);
+  container.appendChild(wrapper);
+  const visual = {
+    canvas,
+    summary,
+    selectedInfo,
+    hoverInfo
+  };
+  workspace2IntervalPlacementVisualizers.set(instance.lensInstanceId, visual);
+  updateIntervalPlacementVisual(instance, visual);
+  return true;
+}
+
+function renderWorkspace2EuclidViz(instance, container) {
+  if (!instance || !container) return false;
+  const panel = document.createElement("div");
+  panel.className = "ws2-euclid-panel";
+  const preview = document.createElement("div");
+  preview.className = "ws2-euclid-preview";
+  panel.appendChild(preview);
+  const canvas = document.createElement("canvas");
+  canvas.width = 240;
+  canvas.height = 240;
+  canvas.className = "ws2-euclid-canvas";
+  panel.appendChild(canvas);
+  container.appendChild(panel);
+  renderEuclidPanel(instance, { euclidPreview: preview, euclidCanvas: canvas });
+  return true;
+}
+
+function renderWorkspace2LensVisualizer(instance, container) {
+  if (!instance || !container) return false;
+  const lens = instance.lens;
+  if (!lens || !lens.meta) return false;
+  container.innerHTML = "";
+  const lensSupportsVisualizer = lens.meta.hasVisualizer !== false;
+  if (!lensSupportsVisualizer) {
+    const placeholder = document.createElement("div");
+    placeholder.className = "ws2-lens-viz-placeholder";
+    placeholder.textContent = "No visualizer for this lens.";
+    container.appendChild(placeholder);
+    return false;
+  }
+  if (lens.meta.id === "intervalPlacement") {
+    return renderWorkspace2IntervalPlacementViz(instance, container);
+  }
+  if (lens.meta.id === "euclideanPatterns") {
+    return renderWorkspace2EuclidViz(instance, container);
+  }
+  return renderTransformerVisualizer({ viz: container }, instance);
+}
+
+function renderWorkspace2FocusedLensFullUI() {
   const ws2 = getWorkspace2Els();
-  if (!ws2.drafts) return;
-  const panel = ws2.drafts;
-  const body = panel.querySelector(".ws2-panel-body") || panel;
+  if (!ws2.viz || !ws2.drafts) return;
+  const vizBody = ws2.viz.querySelector(".ws2-panel-body") || ws2.viz;
+  const draftsBody = ws2.drafts.querySelector(".ws2-panel-body") || ws2.drafts;
   const inst = getFocusedWorkspace2Instance();
   if (!inst) {
-    body.innerHTML = `<div class="ws2-placeholder">No focused lens.</div>`;
+    vizBody.innerHTML = `<div class="ws2-placeholder">Select a lens.</div>`;
+    draftsBody.innerHTML = `<div class="ws2-placeholder">Select a lens.</div>`;
     return;
   }
-  body.innerHTML = "";
-  const mount = document.createElement("div");
-  mount.className = "ws2-drafts-mount";
-  body.appendChild(mount);
-
+  vizBody.innerHTML = "";
+  draftsBody.innerHTML = "";
+  const vizMount = document.createElement("div");
+  vizMount.className = "ws2-lensui";
+  vizBody.appendChild(vizMount);
+  const draftsMount = document.createElement("div");
+  draftsMount.className = "ws2-draftsui";
+  draftsBody.appendChild(draftsMount);
+  const elements = createWorkspace2LensElements(vizMount, draftsMount);
+  if (!elements) return;
+  bindWorkspace2LensControls(inst, elements);
+  renderLensNotices(elements.notices, inst);
   const handlers = {
     onSelect: (draft) => {
       const currentDrafts = Array.isArray(inst.currentDrafts) ? inst.currentDrafts : [];
@@ -2541,15 +2657,11 @@ function renderWorkspace2Drafts() {
       refreshLensInputs();
       renderWorkspace2();
     },
-    onAddToInventory: (draft) => {
-      addDraftToInventory(draft);
-    },
-    onAddToDesk: (draft) => {
-      addDraftToDesk(draft);
-    }
+    onAddToInventory: (draft) => addDraftToInventory(draft),
+    onAddToDesk: (draft) => addDraftToDesk(draft)
   };
-
-  renderLensDrafts(mount, inst, handlers);
+  renderLensDrafts(elements.drafts, inst, handlers);
+  renderWorkspace2LensVisualizer(inst, elements.viz);
 }
 
 function renderWorkspace2() {
@@ -2580,8 +2692,7 @@ function renderWorkspace2() {
   renderWorkspace2TracksLanes();
   renderWorkspace2TrackInspector();
   renderWorkspace2LensInspector();
-  renderWorkspace2Viz();
-  renderWorkspace2Drafts();
+  renderWorkspace2FocusedLensFullUI();
 }
 
 function renderTrackWorkspace() {
