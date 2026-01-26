@@ -78,7 +78,7 @@
 
   --color-accent: rgb(15, 76, 92);
   --color-accent-muted: rgba(15, 76, 92, 0.2);
-  --color-accent-warm: rgba(184, 124, 61, 0.35);
+  --color-accent-warm: rgba(184, 125, 61, 0.918);
 
   --color-danger-surface: rgba(190, 31, 31, 0.295);
   --color-danger-border: rgba(178, 34, 34, 0.25);
@@ -2793,6 +2793,15 @@ tr.selected:hover {
     transform: translateY(0);
   }
 }
+#classicRoot {
+  display: contents;
+}
+
+#classicRoot[hidden],
+#workspace2Root[hidden] {
+  display: none !important;
+}
+
 body.workspace2 {
   /* Placeholder hook so classic styles remain untouched when the flag is off. */
 }
@@ -2892,6 +2901,14 @@ body.workspace2 .ws2-browser-item:active {
   cursor: grabbing;
 }
 
+body.workspace2 .ws2-browser-item:hover {
+  cursor: grabbing;
+  border-color: var(--color-accent);
+  background: var(--overlay-hover);
+}
+
+
+
 body.workspace2 .ws2-browser-name {
   font-weight: 600;
 }
@@ -2985,7 +3002,7 @@ body.workspace2 .ws2-placeholder {
   font-size: var(--type-sm);
 }
 body.workspace2 .ws2-tracks {
-  background: var(--app-debug-1);
+  background: var(--color-panel-bg);
   border-top: 1px solid var(--color-border-soft);
   padding: var(--space-2) var(--space-3);
 }
@@ -3002,6 +3019,7 @@ body.workspace2 .ws2-footer {
 }
 body.workspace2 .ws2-view-switch,
 body.workspace2 .ws2-help {
+  background: var(--panel-bg);
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -3079,15 +3097,18 @@ body.workspace2 .ws2-drop-slot {
   display: flex;
   align-items: stretch;
   justify-content: center;
+  background: var(--color-panel-bg);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
 }
 
+/* the slot shown when dragging a lens from browser */
 body.workspace2 .ws2-drop-caret {
   width: 100%;
-  background: var(--color-panel-bg);
+  background: var();
   border-radius: 6px;
+  background: color-mix(in srgb, var(--color-panel-bg) 20%, var(--color-accent) 40%);
   height: 100%;
   position: relative;
 }
@@ -3262,11 +3283,16 @@ body.workspace2 .ws2-track-lens-row {
 
 body.workspace2 .ws2-track-lens-row:hover {
     border-color: var(--color-border);
+    background: var(--overlay-hover);
 }
 
 body.workspace2 .ws2-track-lens-row.is-focused {
     border-color: var(--button-accent);
     background: var(--overlay-selected);
+}
+
+body.workspace2 .ws2-track-lens-row.is-focused:hover {
+    background: var(--overlay-selected-hover);
 }
 
 body.workspace2 .ws2-track-lens-label {

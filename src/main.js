@@ -79,14 +79,27 @@ function parseIntervals(text) {
 
 function getLayoutMode() {
   const raw = localStorage.getItem(storageKeys.layoutMode);
-  return raw === "workspace2" ? "workspace2" : "classic";
+  if (raw === "classic") return "classic";
+  if (raw === "workspace2") return "workspace2";
+  return "workspace2";
 }
 
 function applyLayoutMode(mode) {
-  const next = mode === "workspace2" ? "workspace2" : "classic";
+  const next = mode === "classic" ? "classic" : "workspace2";
   document.body.classList.toggle("workspace2", next === "workspace2");
   const ws2 = document.getElementById("workspace2Root");
   if (ws2) ws2.hidden = next !== "workspace2";
+  const classicRoot = document.getElementById("classicRoot");
+  if (classicRoot) {
+    classicRoot.hidden = next !== "classic";
+  } else {
+    const workspaceView = document.getElementById("workspaceView");
+    if (workspaceView) workspaceView.hidden = next !== "classic";
+    const workspaceToolbar = document.querySelector(".workspace-toolbar");
+    if (workspaceToolbar) workspaceToolbar.hidden = next !== "classic";
+    const appDock = document.querySelector(".app-dock");
+    if (appDock) appDock.hidden = next !== "classic";
+  }
   if (next === "workspace2") {
     renderWorkspace2();
   }
@@ -139,12 +152,14 @@ function renderWorkspace2ViewSwitch() {
   el.innerHTML = "";
   const workspaceBtn = document.createElement("button");
   workspaceBtn.type = "button";
-  workspaceBtn.className = mode === "workspace" ? "" : "ghost";
+  workspaceBtn.classList.add("ws2-view-switch-btn");
+  workspaceBtn.classList.toggle("ghost", mode !== "workspace");
   workspaceBtn.textContent = "Workspace";
   workspaceBtn.addEventListener("click", () => setWs2ViewMode("workspace"));
   const libraryBtn = document.createElement("button");
   libraryBtn.type = "button";
-  libraryBtn.className = mode === "library" ? "" : "ghost";
+  libraryBtn.classList.add("ws2-view-switch-btn");
+  libraryBtn.classList.toggle("ghost", mode !== "library");
   libraryBtn.textContent = "Library";
   libraryBtn.addEventListener("click", () => setWs2ViewMode("library"));
   el.appendChild(workspaceBtn);
