@@ -50,6 +50,13 @@ import {
 import { icon } from "./ui/icons.js";
 import { ensureDefaultSignalFlowSelections } from "./transformerPipeline.js";
 import { assertNumericTree, DraftInvariantError } from "./core/invariants.js";
+import {
+  findTrackIdForLensInstance,
+  getLensIndexInTrack,
+  getLensLabelForTrackIndex,
+  removeLensFromOrder,
+  pickFocusAfterRemoval
+} from "./workspace2InspectorUtils.js";
 
 let openLensInputsMenu = null;
 let lensInputsMenuListenerBound = false;
@@ -2358,13 +2365,15 @@ function renderWorkspace2TracksLanes() {
   }
 
   tracks.forEach((track) => {
+    const trackNumber = getTrackNumber(track.id);
     const lane = document.createElement("div");
     lane.className = `ws2-lane${track.id === state.selectedTrackId ? " is-selected" : ""}`;
     lane.dataset.trackId = track.id;
 
     const header = document.createElement("div");
     header.className = "ws2-lane-header";
-    header.textContent = `${getTrackNumber(track.id)} — ${track.name || "Untitled track"}`;
+    const trackLabel = trackNumber ? `Track ${trackNumber}` : "Track —";
+    header.textContent = `${trackLabel} • ${track.name || "Untitled track"}`;
     header.addEventListener("click", (event) => {
       event.stopPropagation();
       setSelectedTrackId(track.id);
@@ -2381,7 +2390,7 @@ function renderWorkspace2TracksLanes() {
     const pills = document.createElement("div");
     pills.className = "ws2-lane-pills";
 
-    const appendPill = (instanceId) => {
+    const appendPill = (instanceId, idx) => {
       const inst = instanceId ? lensInstances.get(instanceId) : null;
       if (!inst) return;
       const btn = document.createElement("button");
@@ -2391,7 +2400,7 @@ function renderWorkspace2TracksLanes() {
 
       const label = document.createElement("span");
       label.className = "ws2-pill-label";
-      label.textContent = getLensPathLabel(inst);
+      label.textContent = getLensLabelForTrackIndex(trackNumber, idx);
       btn.appendChild(label);
 
       const name = document.createElement("span");
@@ -2415,7 +2424,7 @@ function renderWorkspace2TracksLanes() {
     };
 
     const path = getTrackLensPath(track);
-    path.forEach((instanceId) => appendPill(instanceId));
+    path.forEach((instanceId, idx) => appendPill(instanceId, idx));
 
     const outId = path.length ? path[path.length - 1] : null;
     const outInst = outId ? lensInstances.get(outId) : null;
@@ -2470,21 +2479,177 @@ function renderWorkspace2TrackInspector() {
     return;
   }
   const trackNumber = getTrackNumber(track.id);
+  const trackLabel = trackNumber ? `Track ${trackNumber}` : "Track —";
   const lensPath = getTrackLensPath(track);
-  const firstLens = lensPath.length ? lensInstances.get(lensPath[0]) : null;
-  const lastLens = lensPath.length ? lensInstances.get(lensPath[lensPath.length - 1]) : null;
-  const firstLensName = firstLens && firstLens.lens && firstLens.lens.meta ? firstLens.lens.meta.name : "—";
-  const lastLensName = lastLens && lastLens.lens && lastLens.lens.meta ? lastLens.lens.meta.name : "—";
-  body.innerHTML = `
-    <div class="meta-lines">
-      <div class="meta-line"><strong>Track</strong>: ${trackNumber ? `T${trackNumber}` : "—"} — ${track.name || "Untitled track"}</div>
-      <div class="meta-line">Lenses: ${lensPath.length}</div>
-      <div class="meta-line">First lens: ${firstLensName}</div>
-      <div class="meta-line">Last lens: ${lastLensName}</div>
-    </div>
-  `;
-}
+  body.innerHTML = "";
 
+  const createMetaLine = (label, value) => {
+    const row = document.createElement("div");
+    row.className = "ws2-inspector-meta-line";
+    const labelEl = document.createElement("span");
+    labelEl.className = "ws2-inspector-meta-label";
+    labelEl.textContent = `${label}:`;
+    const valueEl = document.createElement("span");
+    valueEl.className = "ws2-inspector-meta-value";
+    valueEl.textContent = value;
+    row.appendChild(labelEl);
+    row.appendChild(valueEl);
+    return row;
+  };
+
+  const orderedTracks = getOrderedTracks();
+
+  const headerSection = document.createElement("div");
+  headerSection.className = "ws2-inspector-section";
+  const headerTitleRow = document.createElement("div");
+  headerTitleRow.className = "ws2-inspector-track-header";
+  const title = document.createElement("div");
+  title.className = "ws2-inspector-track-title";
+  title.textContent = trackLabel;
+  const nameWrapper = document.createElement("div");
+  nameWrapper.className = "ws2-inspector-track-name-wrapper";
+  const nameDisplay = document.createElement("span");
+  nameDisplay.className = "ws2-track-name-display";
+  nameDisplay.textContent = track.name || "Untitled track";
+  nameWrapper.appendChild(nameDisplay);
+  headerTitleRow.appendChild(title);
+  headerTitleRow.appendChild(nameWrapper);
+  headerSection.appendChild(headerTitleRow);
+  body.appendChild(headerSection);
+
+  const startTrackRename = () => {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "ws2-track-name-input";
+    input.value = track.name || "";
+    nameWrapper.replaceChild(input, nameDisplay);
+    input.focus();
+    const commit = (apply) => {
+      if (apply) {
+        const nextName = (input.value || "").trim() || "Untitled track";
+        if (nextName !== track.name) {
+          track.name = nextName;
+          saveWorkspace();
+          renderTrackWorkspace();
+        }
+      }
+      renderWorkspace2();
+    };
+    input.addEventListener("blur", () => commit(true), { once: true });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commit(true);
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        commit(false);
+      }
+    });
+  };
+  nameDisplay.addEventListener("click", startTrackRename);
+
+  const statsSection = document.createElement("div");
+  statsSection.className = "ws2-inspector-section";
+  const statsHeader = document.createElement("div");
+  statsHeader.className = "ws2-inspector-section-header";
+  statsHeader.textContent = "Track stats";
+  statsSection.appendChild(statsHeader);
+  const statsBody = document.createElement("div");
+  statsBody.className = "ws2-inspector-meta";
+  statsBody.appendChild(createMetaLine("Lenses", `${lensPath.length}`));
+  const firstLens = lensPath.length ? lensInstances.get(lensPath[0]) : null;
+  statsBody.appendChild(createMetaLine("First lens", firstLens ? (firstLens.lens?.meta?.name || "Lens") : "—"));
+  const lastLens = lensPath.length ? lensInstances.get(lensPath[lensPath.length - 1]) : null;
+  const lastSummary = lastLens ? ws2DraftSummaryForInstance(lastLens, 64) : "—";
+  statsBody.appendChild(createMetaLine("Last output", lastSummary));
+  statsSection.appendChild(statsBody);
+  body.appendChild(statsSection);
+
+  const listSection = document.createElement("div");
+  listSection.className = "ws2-inspector-section";
+  const listHeader = document.createElement("div");
+  listHeader.className = "ws2-inspector-section-header";
+  listHeader.textContent = "Lens path";
+  listSection.appendChild(listHeader);
+  const listBody = document.createElement("div");
+  listBody.className = "ws2-track-lens-list";
+  if (!lensPath.length) {
+    const placeholder = document.createElement("div");
+    placeholder.className = "ws2-placeholder";
+    placeholder.textContent = "No lenses on this track.";
+    listBody.appendChild(placeholder);
+  } else {
+    lensPath.forEach((instanceId, idx) => {
+      const lensInstance = lensInstances.get(instanceId);
+      if (!lensInstance) return;
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = `ws2-track-lens-row${lensInstance.lensInstanceId === state.focusedLensInstanceId ? " is-focused" : ""}`;
+      const label = document.createElement("span");
+      label.className = "ws2-track-lens-label";
+      label.textContent = getLensLabelForTrackIndex(trackNumber, idx);
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "ws2-track-lens-name";
+      nameSpan.textContent = lensInstance.lens?.meta?.name || "Lens";
+      const summary = document.createElement("span");
+      summary.className = "ws2-track-lens-summary";
+      summary.textContent = ws2DraftSummaryForInstance(lensInstance, 40);
+      row.appendChild(label);
+      row.appendChild(nameSpan);
+      row.appendChild(summary);
+      row.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setSelectedTrackId(track.id);
+        setFocusedLensInstanceGlobal(lensInstance.lensInstanceId);
+        renderWorkspace2();
+      });
+      listBody.appendChild(row);
+    });
+  }
+  listSection.appendChild(listBody);
+  body.appendChild(listSection);
+
+  const actionsSection = document.createElement("div");
+  actionsSection.className = "ws2-inspector-section";
+  const actionsRow = document.createElement("div");
+  actionsRow.className = "ws2-inspector-actions";
+  const createActionButton = (label, handler) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ghost ws2-inspector-action";
+    btn.textContent = label;
+    btn.addEventListener("click", handler);
+    return btn;
+  };
+  const handleClearTrack = () => {
+    if (!lensPath.length) return;
+    if (!window.confirm("Clear all lenses from this track?")) return;
+    lensPath.slice().forEach((instanceId) => removeLensInstance(instanceId));
+    track.lensInstanceIds = [];
+    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    renderTrackWorkspace();
+    const fallback = () => {
+      for (const candidate of orderedTracks) {
+        if (candidate.id === track.id) continue;
+        const candidatePath = getTrackLensPath(candidate);
+        if (candidatePath.length) {
+          return candidatePath[0];
+        }
+      }
+      return null;
+    };
+    const fallbackId = fallback();
+    setFocusedLensInstanceGlobal(fallbackId);
+    setSelectedTrackId(track.id);
+    renderWorkspace2();
+  };
+  const clearBtn = createActionButton("Clear track", handleClearTrack);
+  clearBtn.disabled = !lensPath.length;
+  actionsRow.appendChild(clearBtn);
+  actionsSection.appendChild(actionsRow);
+  body.appendChild(actionsSection);
+}
 function renderWorkspace2LensInspector() {
   const ws2 = getWorkspace2Els();
   if (!ws2.lensInspector) return;
@@ -2495,19 +2660,214 @@ function renderWorkspace2LensInspector() {
     body.innerHTML = `<div class="ws2-placeholder">Select a lens.</div>`;
     return;
   }
+  body.innerHTML = "";
+  const track = getTrackById(inst.trackId);
+  const trackNumber = track ? getTrackNumber(track.id) : 0;
+  const lensPath = track ? getTrackLensPath(track) : [];
+  const positionIndex = track ? getLensIndexInTrack(track, inst.lensInstanceId) : -1;
+  const labelText = getLensLabelForTrackIndex(trackNumber, positionIndex);
+  const lensName = inst.lens && inst.lens.meta ? inst.lens.meta.name : "Lens";
+  const focusMeta = lensPath.length && positionIndex >= 0
+    ? `Track ${trackNumber || "—"} • Position ${positionIndex + 1} of ${lensPath.length}`
+    : `Track ${trackNumber || "—"} • Position —`;
   const draft = inst.activeDraft || null;
-  const draftSummary = draft ? (draft.summary || "") : "";
-  const draftId = draft ? (draft.draftId || draft.id || "") : "";
-  body.innerHTML = `
-    <div class="meta-lines">
-      <div class="meta-line"><strong>${getLensHeaderLabel(inst)}</strong></div>
-      <div class="meta-line">Kind: ${inst.lens.meta.kind}</div>
-      <div class="meta-line">Active draft: ${draftId ? draftId : "—"}</div>
-      <div class="meta-line">Summary: ${draftSummary ? draftSummary : "—"}</div>
-    </div>
-  `;
-}
+  const draftId = draft ? (draft.draftId || draft.id || "—") : "—";
+  const draftSummary = ws2DraftSummaryForInstance(inst, 120);
+  const draftCount = Array.isArray(inst.currentDrafts) ? inst.currentDrafts.length : 0;
+  const orderedTracks = getOrderedTracks();
+  const createMetaLine = (label, value) => {
+    const row = document.createElement("div");
+    row.className = "ws2-inspector-meta-line";
+    const labelEl = document.createElement("span");
+    labelEl.className = "ws2-inspector-meta-label";
+    labelEl.textContent = `${label}:`;
+    const valueEl = document.createElement("span");
+    valueEl.className = "ws2-inspector-meta-value";
+    valueEl.textContent = value;
+    row.appendChild(labelEl);
+    row.appendChild(valueEl);
+    return row;
+  };
 
+  const headerSection = document.createElement("div");
+  headerSection.className = "ws2-inspector-section";
+  const headerRow = document.createElement("div");
+  headerRow.className = "ws2-inspector-header";
+  const headerLabel = document.createElement("div");
+  headerLabel.className = "ws2-inspector-header-label";
+  headerLabel.textContent = labelText && labelText !== "?" ? `Lens ${labelText}` : "Lens";
+  const headerName = document.createElement("div");
+  headerName.className = "ws2-inspector-header-name";
+  headerName.textContent = lensName;
+  const focusBadge = document.createElement("span");
+  focusBadge.className = "ws2-inspector-focus-badge";
+  focusBadge.textContent = "Focused lens";
+  headerRow.appendChild(headerLabel);
+  headerRow.appendChild(headerName);
+  headerRow.appendChild(focusBadge);
+  const headerMeta = document.createElement("div");
+  headerMeta.className = "ws2-inspector-header-meta";
+  headerMeta.textContent = focusMeta;
+  headerSection.appendChild(headerRow);
+  headerSection.appendChild(headerMeta);
+  body.appendChild(headerSection);
+
+  const outputSection = document.createElement("div");
+  outputSection.className = "ws2-inspector-section";
+  const outputHeader = document.createElement("div");
+  outputHeader.className = "ws2-inspector-section-header";
+  outputHeader.textContent = "Output";
+  const summaryText = document.createElement("div");
+  summaryText.className = "ws2-inspector-output-summary";
+  summaryText.textContent = draftSummary || "—";
+  const outputMeta = document.createElement("div");
+  outputMeta.className = "ws2-inspector-meta";
+  outputMeta.appendChild(createMetaLine("Active draft", draftId));
+  outputMeta.appendChild(createMetaLine("Draft count", `${draftCount}`));
+  outputSection.appendChild(outputHeader);
+  outputSection.appendChild(summaryText);
+  outputSection.appendChild(outputMeta);
+  body.appendChild(outputSection);
+
+  const inputSpecs = Array.isArray(inst.lens.inputs) && inst.lens.inputs.length
+    ? inst.lens.inputs
+    : Array.isArray(inst.lens.meta.inputs) ? inst.lens.meta.inputs : [];
+  const wiringSection = document.createElement("div");
+  wiringSection.className = "ws2-inspector-section";
+  const wiringHeader = document.createElement("div");
+  wiringHeader.className = "ws2-inspector-section-header";
+  wiringHeader.textContent = "I/O wiring";
+  wiringSection.appendChild(wiringHeader);
+  const wiringBody = document.createElement("div");
+  wiringBody.className = "ws2-inspector-wiring-body";
+  const formatInputTarget = (ref) => {
+    if (!ref) return "—";
+    if (ref.mode === "active" && ref.sourceLensInstanceId) {
+      const sourceTrackId = findTrackIdForLensInstance(orderedTracks, ref.sourceLensInstanceId);
+      if (sourceTrackId) {
+        const sourceTrack = getTrackById(sourceTrackId);
+        const sourceIndex = getLensIndexInTrack(sourceTrack, ref.sourceLensInstanceId);
+        const sourceTrackNumber = getTrackNumber(sourceTrackId);
+        const lensLabel = getLensLabelForTrackIndex(sourceTrackNumber, sourceIndex);
+        const sourceLabel = sourceTrackNumber ? `Track ${sourceTrackNumber}` : "Track —";
+        return lensLabel ? `${sourceLabel} • ${lensLabel}` : sourceLabel;
+      }
+      return ref.sourceLensInstanceId;
+    }
+    if (ref.sourceDraftId) return ref.sourceDraftId;
+    return "—";
+  };
+  if (!inputSpecs.length) {
+    const placeholder = document.createElement("div");
+    placeholder.className = "ws2-placeholder";
+    placeholder.textContent = "No inputs.";
+    wiringBody.appendChild(placeholder);
+  } else {
+    inputSpecs.forEach((spec) => {
+      const ref = (inst.selectedInputRefsByRole || {})[spec.role];
+      const modeLabel = ref?.mode === "freeze" ? "Frozen" : ref?.mode === "active" ? "Live" : "—";
+      const targetLabel = formatInputTarget(ref);
+      const row = document.createElement("div");
+      row.className = "ws2-inspector-wiring-row";
+      const role = document.createElement("div");
+      role.className = "ws2-inspector-wiring-role";
+      role.textContent = spec.label || spec.role || "Input";
+      const status = document.createElement("div");
+      status.className = "ws2-inspector-wiring-status";
+      status.textContent = modeLabel;
+      const target = document.createElement("div");
+      target.className = "ws2-inspector-wiring-target";
+      target.textContent = targetLabel;
+      row.appendChild(role);
+      row.appendChild(status);
+      row.appendChild(target);
+      wiringBody.appendChild(row);
+    });
+  }
+  wiringSection.appendChild(wiringBody);
+  body.appendChild(wiringSection);
+
+  const actionsSection = document.createElement("div");
+  actionsSection.className = "ws2-inspector-section";
+  const actionsHeader = document.createElement("div");
+  actionsHeader.className = "ws2-inspector-section-header";
+  actionsHeader.textContent = "Actions";
+  actionsSection.appendChild(actionsHeader);
+  const actionsRow = document.createElement("div");
+  actionsRow.className = "ws2-inspector-actions";
+  const createActionButton = (label, handler) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ghost ws2-inspector-action";
+    btn.textContent = label;
+    btn.addEventListener("click", handler);
+    return btn;
+  };
+  const currentPath = lensPath.slice();
+  const currentIndex = currentPath.indexOf(inst.lensInstanceId);
+  const handleRemoveLens = () => {
+    if (!inst.lensInstanceId || !track) return;
+    if (!window.confirm("Remove this lens from the track?")) return;
+    if (currentIndex < 0) return;
+    const nextPath = removeLensFromOrder(currentPath, currentIndex);
+    const nextIndex = pickFocusAfterRemoval(nextPath, currentIndex);
+    const nextFocus = nextIndex >= 0 ? nextPath[nextIndex] : null;
+    removeLensInstance(inst.lensInstanceId);
+    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    renderTrackWorkspace();
+    if (nextFocus && lensInstances.has(nextFocus)) {
+      setFocusedLensInstanceGlobal(nextFocus);
+    } else {
+      const fallbackTracks = getOrderedTracks();
+      const fallback = fallbackTracks.find((candidate) => candidate.id !== track.id && getTrackLensPath(candidate).length);
+      const fallbackId = fallback ? getTrackLensPath(fallback)[0] : null;
+      setFocusedLensInstanceGlobal(fallbackId);
+    }
+    setSelectedTrackId(track.id);
+    renderWorkspace2();
+  };
+  const handleDuplicateLens = () => {
+    if (!track) return;
+    const path = lensPath.slice();
+    const insertIndex = path.indexOf(inst.lensInstanceId);
+    if (insertIndex < 0) return;
+    const clone = createInstanceForTrack(inst.lens, track.id);
+    clone.paramsValues = { ...(inst.paramsValues || {}) };
+    clone.generatorInputValues = { ...(inst.generatorInputValues || {}) };
+    const copyRefs = {};
+    Object.entries(inst.selectedInputRefsByRole || {}).forEach(([role, ref]) => {
+      copyRefs[role] = ref ? { ...ref } : ref;
+    });
+    clone.selectedInputRefsByRole = copyRefs;
+    const lensIds = ensureTrackLensOrder(track);
+    lensIds.splice(insertIndex + 1, 0, clone.lensInstanceId);
+    updateTrackLensPaths(track);
+    scheduleLens(clone);
+    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    setSelectedTrackId(track.id);
+    setFocusedLensInstanceGlobal(clone.lensInstanceId);
+    renderTrackWorkspace();
+    renderWorkspace2();
+  };
+  const handleMoveLens = (delta) => {
+    if (!track) return;
+    moveLensInTrack(track.id, inst.lensInstanceId, delta);
+    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    scheduleLens(inst);
+    setSelectedTrackId(track.id);
+    setFocusedLensInstanceGlobal(inst.lensInstanceId);
+    renderWorkspace2();
+  };
+  const removeBtn = createActionButton("Remove lens", handleRemoveLens);
+  const duplicateBtn = createActionButton("Duplicate lens", handleDuplicateLens);
+  const moveLeftBtn = createActionButton("Move left", () => handleMoveLens(-1));
+  const moveRightBtn = createActionButton("Move right", () => handleMoveLens(1));
+  moveLeftBtn.disabled = currentIndex <= 0;
+  moveRightBtn.disabled = currentIndex < 0 || currentIndex >= lensPath.length - 1;
+  actionsRow.append(removeBtn, duplicateBtn, moveLeftBtn, moveRightBtn);
+  actionsSection.appendChild(actionsRow);
+  body.appendChild(actionsSection);
+}
 function createWorkspace2LensElements(vizRoot, draftsRoot) {
   if (!vizRoot || !draftsRoot) return null;
   const left = document.createElement("div");

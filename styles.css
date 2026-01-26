@@ -3035,5 +3035,188 @@ body.workspace2 .ws2-pill.is-focused {
   box-shadow: 0 0 0 1px var(--button-accent);
 }
 body.workspace2 .ws2-pill.ws2-pill-out {
-  border-style: dashed;
+    border-style: dashed;
+  }
+
+body.workspace2 .ws2-inspector-section {
+    background: var(--panel-bg);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-button);
+    padding: var(--space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+body.workspace2 .ws2-inspector-section-header {
+    font-size: var(--type-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-tight);
+    color: var(--color-text-muted);
+}
+
+body.workspace2 .ws2-inspector-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+body.workspace2 .ws2-inspector-meta-line {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    font-size: var(--type-xs);
+    color: var(--color-text);
+}
+
+body.workspace2 .ws2-inspector-meta-label {
+    opacity: 0.7;
+}
+
+body.workspace2 .ws2-inspector-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+body.workspace2 .ws2-inspector-header-label {
+    font-size: var(--type-sm);
+    font-weight: 600;
+}
+
+body.workspace2 .ws2-inspector-header-name {
+    font-size: var(--type-md);
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+body.workspace2 .ws2-inspector-header-meta {
+    font-size: var(--type-xs);
+    color: var(--color-text-muted);
+}
+
+body.workspace2 .ws2-inspector-focus-badge {
+    border-radius: var(--radius-pill);
+    padding: 0 var(--space-2);
+    border: 1px solid var(--button-accent);
+    background: var(--overlay-selected);
+    font-size: var(--type-xxs);
+}
+
+body.workspace2 .ws2-inspector-output-summary {
+    min-height: 36px;
+    font-size: var(--type-sm);
+    color: var(--color-text);
+    word-break: break-word;
+}
+
+body.workspace2 .ws2-track-lens-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+body.workspace2 .ws2-track-lens-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-button);
+    border: 1px solid var(--color-border-soft);
+    background: var(--panel-bg);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+body.workspace2 .ws2-track-lens-row:hover {
+    border-color: var(--color-border);
+}
+
+body.workspace2 .ws2-track-lens-row.is-focused {
+    border-color: var(--button-accent);
+    background: var(--overlay-selected);
+}
+
+body.workspace2 .ws2-track-lens-label {
+    font-size: var(--type-xs);
+    opacity: 0.75;
+}
+
+body.workspace2 .ws2-track-lens-name {
+    font-size: var(--type-sm);
+    font-weight: 500;
+    flex: 1;
+}
+
+body.workspace2 .ws2-track-lens-summary {
+    font-size: var(--type-xs);
+    opacity: 0.7;
+    min-width: 120px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+body.workspace2 .ws2-inspector-wiring-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+body.workspace2 .ws2-inspector-wiring-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-button);
+    border: 1px solid transparent;
+    background: var(--panel-bg);
+}
+
+body.workspace2 .ws2-inspector-wiring-row:hover {
+    border-color: var(--color-border-soft);
+}
+
+body.workspace2 .ws2-inspector-wiring-role {
+    font-size: var(--type-xs);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+body.workspace2 .ws2-inspector-wiring-status {
+    font-size: var(--type-xxs);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+body.workspace2 .ws2-inspector-wiring-target {
+    font-size: var(--type-xs);
+    color: var(--color-text);
+}
+
+body.workspace2 .ws2-inspector-actions {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+body.workspace2 .ws2-inspector-action {
+    min-height: var(--control-height);
+    padding: 0 var(--space-2);
+}
+
+body.workspace2 .ws2-track-name-display {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+body.workspace2 .ws2-track-name-input {
+    width: 100%;
+    border-radius: var(--radius-button);
+    border: 1px solid var(--color-border);
+    background: var(--panel-bg);
+    color: var(--color-text);
+    padding: var(--space-1);
 }
