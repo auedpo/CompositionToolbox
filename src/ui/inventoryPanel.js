@@ -2,6 +2,7 @@ import { els, state, storageKeys } from "../state.js";
 import { inventoryStore, deskStore } from "../core/stores.js";
 import { saveInventory, saveDesk } from "../core/persistence.js";
 import { getDeskPlacementSettings, nextDeskStart, renderDesk } from "./deskPanel.js";
+import { formatNumericTree } from "../core/displayHelpers.js";
 
 export function renderInventoryDetails() {
   if (!els.inventoryDetails) return;
@@ -10,19 +11,12 @@ export function renderInventoryDetails() {
     els.inventoryDetails.textContent = "Select a material to see details.";
     return;
   }
-  let detailLine = "";
-  if (selected.type === "Pattern") {
-    const values = Array.isArray(selected.payload) ? selected.payload : [];
-    const kind = selected.subtype || "pattern";
-    if (kind === "indexMask") {
-      detailLine = `values: [${values.join(", ")}]`;
-    } else {
-      detailLine = `values: ${values.join("")}`;
-    }
-  } else {
-    const steps = Array.isArray(selected.payload) ? selected.payload.join(" ") : "";
-    detailLine = `steps: ${steps}`;
+  if (selected.meta && selected.meta.legacyInvalid) {
+    els.inventoryDetails.textContent = "Legacy item invalid.";
+    return;
   }
+  const formattedValues = formatNumericTree(selected.payload, { maxLength: 160 });
+  const detailLine = formattedValues ? `values: ${formattedValues}` : "values: n/a";
   const provenance = selected.provenance || {};
   const metaTags = Array.isArray(selected.tags) ? selected.tags.join(", ") : "";
   els.inventoryDetails.innerHTML = `

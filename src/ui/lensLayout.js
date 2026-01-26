@@ -115,6 +115,16 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
   const trackOrder = Array.isArray(options.trackOrder) ? options.trackOrder : [];
   const activeByLens = options.activeDraftIdByLensInstanceId || new Map();
 
+  function normalizeRef(ref) {
+    if (!ref) return null;
+    if (typeof ref === "string") return { mode: "pinned", sourceDraftId: ref };
+    if (ref.mode === "active" && ref.sourceLensInstanceId) return ref;
+    if (ref.mode === "pinned" && ref.sourceDraftId) return ref;
+    if (!ref.mode && ref.sourceLensInstanceId) return { mode: "active", sourceLensInstanceId: ref.sourceLensInstanceId };
+    if (!ref.mode && ref.sourceDraftId) return { mode: "pinned", sourceDraftId: ref.sourceDraftId };
+    return null;
+  }
+
   function resolveSelectedDraftId(ref) {
     if (!ref) return null;
     if (typeof ref === "string") return ref;
@@ -130,6 +140,8 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
     const field = document.createElement("div");
     field.className = "lens-field";
     const label = buildFieldLabel(spec.role, spec.required ? "Required" : "");
+    const row = document.createElement("div");
+    row.className = "lens-input-row";
     const select = document.createElement("select");
     const empty = document.createElement("option");
     empty.value = "";
@@ -137,7 +149,7 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
     function buildOptions() {
       select.innerHTML = "";
       select.appendChild(empty);
-      const selectedRef = selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : null;
+      const selectedRef = normalizeRef(selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : null);
       const selectedId = resolveSelectedDraftId(selectedRef);
       const candidates = filterDraftsBySpec(draftCatalog, spec).filter((draft) => {
         const meta = metaById.get(draft.draftId);
@@ -177,15 +189,73 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
       });
     }
     buildOptions();
-    const currentRef = selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : null;
+    const currentRef = normalizeRef(selectedByRole && selectedByRole[spec.role] ? selectedByRole[spec.role] : null);
     const current = resolveSelectedDraftId(currentRef) || "";
     select.value = current;
     select.addEventListener("change", () => {
       const value = select.value || null;
-      if (onChange) onChange(spec.role, value);
+      if (!onChange) return;
+      if (!value) {
+        onChange(spec.role, null);
+        return;
+      }
+      const meta = metaById.get(value) || null;
+      if (currentRef && currentRef.mode === "active") {
+        if (meta && meta.lensInstanceId) {
+          onChange(spec.role, { mode: "active", sourceLensInstanceId: meta.lensInstanceId });
+        } else {
+          onChange(spec.role, { mode: "pinned", sourceDraftId: value });
+        }
+        return;
+      }
+      onChange(spec.role, { mode: "pinned", sourceDraftId: value });
     });
+    const toggleWrap = document.createElement("div");
+    toggleWrap.className = "lens-input-toggle";
+    const activeBtn = document.createElement("button");
+    activeBtn.type = "button";
+    activeBtn.className = "toggle-btn ghost";
+    activeBtn.textContent = "Active";
+    const pinnedBtn = document.createElement("button");
+    pinnedBtn.type = "button";
+    pinnedBtn.className = "toggle-btn ghost";
+    pinnedBtn.textContent = "Pinned";
+    const setToggleState = (mode) => {
+      activeBtn.classList.toggle("active", mode === "active");
+      pinnedBtn.classList.toggle("active", mode === "pinned");
+    };
+    const mode = currentRef && currentRef.mode ? currentRef.mode : "pinned";
+    setToggleState(mode);
+    activeBtn.addEventListener("click", () => {
+      const selectedId = select.value || null;
+      if (!onChange) return;
+      if (selectedId) {
+        const meta = metaById.get(selectedId) || null;
+        if (meta && meta.lensInstanceId) {
+          onChange(spec.role, { mode: "active", sourceLensInstanceId: meta.lensInstanceId });
+          setToggleState("active");
+          return;
+        }
+      }
+      onChange(spec.role, { mode: "active", sourceLensInstanceId: currentRef && currentRef.sourceLensInstanceId });
+      setToggleState("active");
+    });
+    pinnedBtn.addEventListener("click", () => {
+      const selectedId = select.value || null;
+      if (!onChange) return;
+      if (selectedId) {
+        onChange(spec.role, { mode: "pinned", sourceDraftId: selectedId });
+      } else {
+        onChange(spec.role, null);
+      }
+      setToggleState("pinned");
+    });
+    toggleWrap.appendChild(activeBtn);
+    toggleWrap.appendChild(pinnedBtn);
+    row.appendChild(select);
+    row.appendChild(toggleWrap);
     field.appendChild(label);
-    field.appendChild(select);
+    field.appendChild(row);
     container.appendChild(field);
   });
 }

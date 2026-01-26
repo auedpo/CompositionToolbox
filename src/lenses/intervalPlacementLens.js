@@ -2,7 +2,8 @@ import { computePrefixDominanceAnchors } from "../placementEngines/prefixDominan
 import { createPrefixSlackEngine } from "../placementEngines/prefixSlackEngine.js";
 import { createRepulsionCentersEngine } from "../placementEngines/repulsionCentersEngine.js";
 import { MATERIAL_TYPES } from "../core/materialTypes.js";
-import { formatValueList } from "../core/displayHelpers.js";
+import { formatNumericTree } from "../core/displayHelpers.js";
+import { makeDraft } from "../core/invariants.js";
 import {
   clamp,
   rhoPlace,
@@ -244,17 +245,19 @@ function normalizeOddBias(intervals, oddBias) {
   return oddBias.map((bias, idx) => (intervals[idx] % 2 === 1 ? bias : "down"));
 }
 
-function buildPitchListDraft(record) {
-  const title = formatValueList(record.pitches, { maxLength: 64 }) || `perm ${record.perm.join(" ")}`;
+function buildPitchListDraft(record, { lensId, lensInstanceId }) {
+  const title = formatNumericTree(record.pitches, { maxLength: 64 }) || `perm ${record.perm.join(" ")}`;
   const description = [
     record.perm && record.perm.length ? `perm ${record.perm.join(" ")}` : null,
     record.engine ? `engine ${placementEngineLabel(record.engine)}` : null
   ].filter(Boolean).join(" | ");
-  return {
+  return makeDraft({
+    lensId,
+    lensInstanceId,
     type: MATERIAL_TYPES.PitchList,
-    payload: record.pitches.slice(),
-    summary: description ? `${title} - ${description}` : title
-  };
+    summary: description ? `${title} - ${description}` : title,
+    values: record.pitches.slice()
+  });
 }
 
 function computeForWindow(intervals, params, oddBias, windowOctaves) {
@@ -394,6 +397,9 @@ function computeForWindow(intervals, params, oddBias, windowOctaves) {
 }
 
 export function evaluateIntervalPlacementLens(input = {}) {
+  if (!input.context || typeof input.context.lensId !== "string" || typeof input.context.lensInstanceId !== "string") {
+    throw new Error("Lens context missing lensId/lensInstanceId.");
+  }
   const generatorInput = input.generatorInput || {};
   const intervals = Array.isArray(generatorInput.intervals) ? generatorInput.intervals.slice() : [];
   if (!intervals.length) {
@@ -414,7 +420,9 @@ export function evaluateIntervalPlacementLens(input = {}) {
   const oddBias = normalizeOddBias(intervals, biasFlags);
   const start = typeof performance !== "undefined" ? performance.now() : Date.now();
   const { L, records } = computeForWindow(intervals, params, oddBias, windowOctaves);
-  const outputs = records.map((record) => buildPitchListDraft(record));
+  const lensId = input.context.lensId;
+  const lensInstanceId = input.context.lensInstanceId;
+  const outputs = records.map((record) => buildPitchListDraft(record, { lensId, lensInstanceId }));
   const end = typeof performance !== "undefined" ? performance.now() : Date.now();
   return {
     ok: true,

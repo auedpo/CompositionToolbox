@@ -2,6 +2,7 @@ import { basicMathTransformerLens } from "./basicMathTransformerLens.js";
 import { intervalPlacementLens } from "./intervalPlacementLens.js";
 import { euclideanPatternsLens } from "./euclideanPatternsLens.js";
 import { passthroughLens } from "./passthroughLens.js";
+import { shiftSweepLens } from "./transformers/shiftSweep.js";
 
 const registry = new Map();
 
@@ -22,3 +23,4 @@ registerLens(intervalPlacementLens);
 registerLens(euclideanPatternsLens);
 registerLens(passthroughLens);
 registerLens(basicMathTransformerLens);
+registerLens(shiftSweepLens);

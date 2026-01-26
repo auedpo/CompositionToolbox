@@ -1,5 +1,6 @@
-﻿import { MATERIAL_TYPES } from "../core/materialTypes.js";
-import { formatValueList } from "../core/displayHelpers.js";
+import { MATERIAL_TYPES } from "../core/materialTypes.js";
+import { formatNumericTree, flattenNumericTree } from "../core/displayHelpers.js";
+import { makeDraft } from "../core/invariants.js";
 
 const LENS_ID = "basicMath";
 
@@ -38,24 +39,8 @@ function toNumericArray(source) {
 }
 
 function extractInputValues(draft) {
-  if (!draft) return [];
-  const payload = draft.payload;
-  if (payload === null || payload === undefined) return [];
-  if (Array.isArray(payload)) return toNumericArray(payload);
-  if (typeof payload !== "object") {
-    const numeric = toFiniteNumber(payload);
-    if (Number.isFinite(numeric)) return [numeric];
-    return [];
-  }
-  const candidateFields = ["steps", "values", "pitches", "data", "points", "list"];
-  for (const field of candidateFields) {
-    if (!Object.prototype.hasOwnProperty.call(payload, field)) continue;
-    const parsed = toNumericArray(payload[field]);
-    if (parsed.length) {
-      return parsed;
-    }
-  }
-  return [];
+  if (!draft || !draft.payload || draft.payload.kind !== "numericTree") return [];
+  return flattenNumericTree(draft.payload.values);
 }
 
 function fallbackOperandFor(operation) {
@@ -124,6 +109,9 @@ function applyModulus(value, modulus) {
 }
 
 export function evaluateBasicMathTransformerLens(ctx = {}) {
+  if (!ctx.context || typeof ctx.context.lensId !== "string" || typeof ctx.context.lensInstanceId !== "string") {
+    throw new Error("Lens context missing lensId/lensInstanceId.");
+  }
   const inputs = Array.isArray(ctx.inputs) ? ctx.inputs : [];
   const entry = inputs[0] ? inputs[0].draft : null;
   if (!entry) {
@@ -138,7 +126,7 @@ export function evaluateBasicMathTransformerLens(ctx = {}) {
     return {
       ok: false,
       drafts: [],
-      errors: ["Selected draft does not expose a numeric list (steps/values/etc)."]
+      errors: ["Selected draft does not expose a numeric list."]
     };
   }
   const params = ctx.params || {};
@@ -178,7 +166,6 @@ export function evaluateBasicMathTransformerLens(ctx = {}) {
     }
     return next;
   });
-  const finiteResults = results.filter(Number.isFinite);
   const operandSummary = hasOperands
     ? operandList.join(", ")
     : (Number.isFinite(fallback) ? `${fallback}` : null);
@@ -197,13 +184,17 @@ export function evaluateBasicMathTransformerLens(ctx = {}) {
     modValue: modActive ? modBase : null,
     sourceName
   };
-  const formattedResultList = formatValueList(results, { maxLength: 120 }) || `Math ${operationDef.label}`;
+  const formattedResultList = formatNumericTree(results, { maxLength: 120 }) || `Math ${operationDef.label}`;
   const description = descriptionParts.join(" | ");
-  const draft = {
+  const lensId = ctx.context.lensId;
+  const lensInstanceId = ctx.context.lensInstanceId;
+  const draft = makeDraft({
+    lensId,
+    lensInstanceId,
     type: MATERIAL_TYPES.PitchList,
-    payload: results.slice(),
-    summary: description ? `${formattedResultList} - ${description}` : formattedResultList
-  };
+    summary: description ? `${formattedResultList} - ${description}` : formattedResultList,
+    values: results.slice()
+  });
   return {
     ok: true,
     drafts: [draft],
@@ -223,7 +214,7 @@ export const basicMathTransformerLens = {
     {
       role: "input",
       required: true,
-      help: "Select a draft that exposes a numeric list (steps, values, pitches, etc)."
+      help: "Select a draft that exposes a numeric list."
     }
   ],
   params: [
@@ -261,5 +252,3 @@ export const basicMathTransformerLens = {
   ],
   evaluate: evaluateBasicMathTransformerLens
 };
-
-

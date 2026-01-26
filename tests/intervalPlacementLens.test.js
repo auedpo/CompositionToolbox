@@ -35,13 +35,20 @@ const input = {
     oddBias: [0, 0, 0],
     windowOctaves: 3
   },
-  params
+  params,
+  context: { lensId: "intervalPlacement", lensInstanceId: "intervalPlacement-test" }
 };
 
 const resultA = evaluateIntervalPlacementLens(input);
 const resultB = evaluateIntervalPlacementLens(input);
 
 assert.deepStrictEqual(resultA.vizModel.records, resultB.vizModel.records);
-assert.deepStrictEqual(resultA.drafts, resultB.drafts);
+const stripDraft = (draft) => ({
+  type: draft.type,
+  subtype: draft.subtype,
+  summary: draft.summary,
+  values: draft.payload.values
+});
+assert.deepStrictEqual(resultA.drafts.map(stripDraft), resultB.drafts.map(stripDraft));
 
 console.log("intervalPlacementLens determinism ok");

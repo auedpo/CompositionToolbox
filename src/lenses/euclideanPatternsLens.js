@@ -1,3 +1,6 @@
+import { formatNumericTree } from "../core/displayHelpers.js";
+import { makeDraft } from "../core/invariants.js";
+
 const LENS_ID = "euclideanPatterns";
 
 function toInt(value, fallback) {
@@ -34,7 +37,7 @@ function bjorklund(steps, pulses) {
     if (levelIndex === -1) return [0];
     if (levelIndex === -2) return [1];
     let result = [];
-    for (let i = 0; i < counts[levelIndex]; i++) {
+    for (let i = 0; i < counts[levelIndex]; i += 1) {
       result = result.concat(build(levelIndex - 1));
     }
     if (remainders[levelIndex] !== 0) {
@@ -77,20 +80,26 @@ function toIndexMask(binary) {
 }
 
 export function evaluateEuclideanPatternsLens(ctx = {}) {
+  if (!ctx.context || typeof ctx.context.lensId !== "string" || typeof ctx.context.lensInstanceId !== "string") {
+    throw new Error("Lens context missing lensId/lensInstanceId.");
+  }
   const { params = {}, generatorInput = {} } = ctx;
   const merged = { ...params, ...generatorInput };
   const normalized = normalizeParams(merged);
   const base = bjorklund(normalized.steps, normalized.pulses);
   const rotated = rotateRight(base, normalized.rotationNorm);
   const values = normalized.outputKind === "indexMask" ? toIndexMask(rotated) : rotated;
-  const draft = {
+  const lensId = ctx.context.lensId;
+  const lensInstanceId = ctx.context.lensInstanceId;
+  const formattedValues = formatNumericTree(values, { maxLength: 120 });
+  const draft = makeDraft({
+    lensId,
+    lensInstanceId,
     type: "Pattern",
     subtype: normalized.outputKind,
-    payload: values.slice(),
-    summary: normalized.outputKind === "indexMask"
-      ? `E(${normalized.steps},${normalized.pulses}) - values: [${values.join(", ")}]`
-      : `E(${normalized.steps},${normalized.pulses}) - values: ${values.join("")}`
-  };
+    summary: `E(${normalized.steps},${normalized.pulses}) - values: ${formattedValues}`,
+    values: values.slice()
+  });
   return {
     ok: true,
     drafts: [draft],

@@ -1,5 +1,5 @@
-import { hashParams, makeDraft, normalizePayload } from "../core/model.js";
-import { assertDraft } from "../core/invariants.js";
+import { hashParams } from "../core/model.js";
+import { assertDraft, assertDraftKeys, DraftInvariantError, normalizeDraft } from "../core/invariants.js";
 
 function buildDefaults(specs) {
   const values = {};
@@ -89,9 +89,6 @@ function buildDraftIndex(draftCatalog) {
   draftCatalog.forEach((draft) => {
     const id = getDraftId(draft);
     if (!id) return;
-    if (!draft.draftId) {
-      draft.draftId = id;
-    }
     index.set(id, draft);
   });
   return index;
@@ -166,7 +163,8 @@ export function createLensInstance(lens, lensInstanceId) {
     activeDraftId: null,
     vizCollapsed: false,
     evaluateResult: { ok: false, drafts: [] },
-    currentDrafts: []
+    currentDrafts: [],
+    lastError: null
   };
 }
 
@@ -188,7 +186,13 @@ export function materializeDrafts({
   const drafts = (evaluateResult && Array.isArray(evaluateResult.drafts)) ? evaluateResult.drafts : [];
   const now = Date.now();
   return drafts.map((draft, idx) => {
-    const summary = typeof draft.summary === "string" ? draft.summary : `${draft.type} draft`;
+    const rawSummary = draft && typeof draft === "object" && typeof draft.summary === "string"
+      ? draft.summary
+      : null;
+    const rawType = draft && typeof draft === "object" && typeof draft.type === "string"
+      ? draft.type
+      : lens.meta.id;
+    const summary = rawSummary || `${rawType} draft`;
     const inputRefs = inputs.map((input) => ({
       role: input.role,
       ...(input.ref || { mode: "pinned", sourceDraftId: input.draftId })
@@ -198,17 +202,24 @@ export function materializeDrafts({
       paramsHash: hashParams({ params: params || {}, generatorInput: generatorInput || {} }),
       inputRefs,
       createdAt: now,
-      ...(draft.provenance && typeof draft.provenance === "object" ? draft.provenance : {})
+      ...(draft && draft.meta && typeof draft.meta === "object"
+        && draft.meta.provenance && typeof draft.meta.provenance === "object"
+        ? draft.meta.provenance
+        : {})
     };
-    const materialized = makeDraft({
-      lensType: draft.type,
-      lensInstanceId,
-      payload: normalizePayload(draft.payload),
-      summary,
-      provenance,
-      subtype: draft.subtype
+    const normalized = normalizeDraft(draft, {
+      lensId: lens.meta.id,
+      lensInstanceId
     });
-    return materialized;
+    const nextMeta = normalized.meta && typeof normalized.meta === "object"
+      ? { ...normalized.meta }
+      : {};
+    nextMeta.provenance = provenance;
+    return {
+      ...normalized,
+      summary: typeof normalized.summary === "string" ? normalized.summary : summary,
+      meta: nextMeta
+    };
   });
 }
 
@@ -233,8 +244,7 @@ export function scheduleLensEvaluation(instance, options) {
     const { inputs, errors } = resolveInputs(instance.lens, instance, draftCatalog, draftIndex, getLensInstanceById);
     if (errors.length) {
       instance.evaluateResult = { ok: false, drafts: [], errors };
-      instance.currentDrafts = [];
-      instance.activeDraftId = null;
+      instance.lastError = errors.join(" ");
       if (typeof onUpdate === "function") onUpdate(instance);
       return;
     }
@@ -252,24 +262,42 @@ export function scheduleLensEvaluation(instance, options) {
         drafts: [],
         errors: [error && error.message ? error.message : "Evaluation failed."]
       };
-      instance.currentDrafts = [];
-      instance.activeDraftId = null;
+      instance.lastError = instance.evaluateResult.errors.join(" ");
       if (typeof onUpdate === "function") onUpdate(instance);
       return;
     }
     if (instance._token !== token) return;
     instance.evaluateResult = result || { ok: false, drafts: [] };
+    // INVARIANT: All drafts must be canonical Draft with payload.kind="numericTree" and numeric-tree values.
+    // Do not assign instance.currentDrafts anywhere else.
     if (instance.evaluateResult.ok) {
-      const drafts = materializeDrafts({
-        lens: instance.lens,
-        lensInstanceId: instance.lensInstanceId,
-        evaluateResult: instance.evaluateResult,
-        inputs,
-        params: instance.paramsValues,
-        generatorInput: instance.generatorInputValues,
-        context
-      });
-      drafts.forEach((draft) => assertDraft(draft));
+      let drafts = [];
+      try {
+        drafts = materializeDrafts({
+          lens: instance.lens,
+          lensInstanceId: instance.lensInstanceId,
+          evaluateResult: instance.evaluateResult,
+          inputs,
+          params: instance.paramsValues,
+          generatorInput: instance.generatorInputValues,
+          context
+        });
+        drafts.forEach((draft) => {
+          assertDraft(draft);
+          if (import.meta.env && import.meta.env.DEV) {
+            assertDraftKeys(draft);
+          }
+        });
+      } catch (error) {
+        const message = error instanceof DraftInvariantError
+          ? error.message
+          : (error && error.message ? error.message : "Draft normalization failed.");
+        instance.lastError = message;
+        instance.evaluateResult = { ok: false, drafts: [], errors: [message] };
+        if (typeof onUpdate === "function") onUpdate(instance);
+        return;
+      }
+      instance.lastError = null;
       instance.currentDrafts = drafts;
       const prevIndex = Number.isFinite(instance.activeDraftIndex)
         ? instance.activeDraftIndex
@@ -284,10 +312,9 @@ export function scheduleLensEvaluation(instance, options) {
       instance.activeDraftId = nextIndex !== null ? drafts[nextIndex].draftId : null;
       instance.activeDraft = nextIndex !== null ? drafts[nextIndex] : null;
     } else {
-      instance.currentDrafts = [];
-      instance.activeDraftId = null;
-      instance.activeDraftIndex = null;
-      instance.activeDraft = null;
+      instance.lastError = Array.isArray(instance.evaluateResult.errors)
+        ? instance.evaluateResult.errors.join(" ")
+        : null;
     }
     instance._updateToken = (instance._updateToken || 0) + 1;
     if (typeof onUpdate === "function") onUpdate(instance);

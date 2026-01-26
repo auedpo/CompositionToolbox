@@ -22,6 +22,10 @@ constraints for the interval applet. Keep it short, specific, and actionable.
 - Only Inventory materials get IDs.
 - Clips reference `materialId`, not data.
 
+## Lens Authoring
+- Drafts must use the canonical Draft shape with `payload.kind="numericTree"` and numeric-tree values only.
+- Use `makeDraft(...)` from `src/core/invariants.js` to construct drafts (no ad-hoc draft objects).
+
 ## UI/UX Rules
 - Use the vocabulary above in labels, tooltips, and status messages.
 - Prefer small, focused panels over mega-forms.

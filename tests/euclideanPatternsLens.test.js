@@ -31,9 +31,10 @@ function rotateRight(values, shift) {
 function getBinaryMask(steps, pulses, rotation) {
   const { drafts } = evaluateEuclideanPatternsLens({
     generatorInput: { steps, pulses, rotation },
-    params: { outputKind: "binaryMask" }
+    params: { outputKind: "binaryMask" },
+    context: { lensId: "euclideanPatterns", lensInstanceId: "euclid-test" }
   });
-  return drafts[0].payload;
+  return drafts[0].payload.values;
 }
 
 const maskA = getBinaryMask(8, 3, 0);

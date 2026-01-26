@@ -1,6 +1,7 @@
 import { els, state, storageKeys } from "../state.js";
 import { deskStore, inventoryStore } from "../core/stores.js";
 import { saveDesk } from "../core/persistence.js";
+import { formatNumericTree } from "../core/displayHelpers.js";
 
 const RESIZE_GRAB_PX = 10;
 let activeDrag = null;
@@ -139,20 +140,12 @@ export function renderDeskDetails() {
     return;
   }
   const material = inventoryStore.get(selected.materialId);
-  let detailLine = "";
-  if (material && material.type === "Pattern") {
-    const values = Array.isArray(material.payload) ? material.payload : [];
-    const kind = material.subtype || "pattern";
-    if (kind === "indexMask") {
-      detailLine = `values: [${values.join(", ")}]`;
-    } else {
-      detailLine = `values: ${values.join("")}`;
-    }
-  } else {
-    const steps = material && Array.isArray(material.payload)
-      ? material.payload.join(" ")
-      : "";
-    detailLine = `steps: ${steps}`;
+  let detailLine = "values: n/a";
+  if (material && material.meta && material.meta.legacyInvalid) {
+    detailLine = "Legacy item invalid.";
+  } else if (material) {
+    const formattedValues = formatNumericTree(material.payload, { maxLength: 160 });
+    detailLine = formattedValues ? `values: ${formattedValues}` : "values: n/a";
   }
   els.deskDetails.innerHTML = `
     <div class="meta-line"><strong>${material ? material.name : "Unknown material"}</strong></div>

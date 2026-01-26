@@ -1955,6 +1955,21 @@ button.lens-rail-remove:not(.ghost):hover:not(:disabled){
   gap: var(--space-1);
 }
 
+.lens-input-row {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.lens-input-row select {
+  flex: 1;
+}
+
+.lens-input-toggle {
+  display: flex;
+  gap: var(--space-1);
+}
+
 .lens-notice {
   padding: var(--space-2) var(--space-2);
   border-radius: var(--radius-none);
@@ -2111,7 +2126,8 @@ body.visualizer-popout-open {
   flex-direction: column;
   gap: var(--space-1);
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
+  flex: 1;
 }
 
 .drafts-header {
@@ -2175,8 +2191,9 @@ body.visualizer-popout-open {
 .drafts-items {
   display: grid;
   gap: var(--space-05);
-  overflow: visible;
+  overflow: auto;
   flex: 1;
+  min-height: 0;
   position: relative;
   z-index: 1;
 }

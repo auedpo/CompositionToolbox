@@ -49,6 +49,7 @@ import {
 } from "./ui/favoritesPanel.js";
 import { icon } from "./ui/icons.js";
 import { ensureSingleInputTransformerSelections } from "./transformerPipeline.js";
+import { assertNumericTree, DraftInvariantError } from "./core/invariants.js";
 
 let openLensInputsMenu = null;
 let lensInputsMenuListenerBound = false;
@@ -1327,11 +1328,23 @@ function updateLensVisualizerState(instance, elements, hasVisualizer) {
 function getLensContext(instance) {
   return {
     lensId: instance.lens.meta.id,
+    lensInstanceId: instance.lensInstanceId,
     timestamp: Date.now()
   };
 }
 
 function addDraftToInventory(draft) {
+  try {
+    assertNumericTree(draft && draft.payload ? draft.payload.values : null, "inventory capture");
+  } catch (error) {
+    const message = error instanceof DraftInvariantError
+      ? error.message
+      : (error && error.message ? error.message : "Draft capture failed.");
+    if (els.status) {
+      els.status.textContent = message;
+    }
+    return null;
+  }
   const name = draft.summary || `${draft.type} draft`;
   const material = inventoryStore.add(draft, { name });
   if (!material) return null;
@@ -1516,6 +1529,12 @@ function renderTransformerVisualizer(elements, instance) {
     });
   }
 
+  function normalizeInputRefChange(value) {
+    if (!value) return null;
+    if (typeof value === "object") return value;
+    return { mode: "pinned", sourceDraftId: value };
+  }
+
   function refreshTransformerInputs() {
     const draftCatalog = collectDraftCatalog(Array.from(lensInstances.values()));
     const metaById = buildDraftMetaById();
@@ -1531,9 +1550,7 @@ function renderTransformerVisualizer(elements, instance) {
           draftCatalog,
           instance.selectedInputRefsByRole,
           (role, value) => {
-            instance.selectedInputRefsByRole[role] = value
-              ? { mode: "pinned", sourceDraftId: value }
-              : null;
+            instance.selectedInputRefsByRole[role] = normalizeInputRefChange(value);
             scheduleLens(instance);
           },
           { metaById, trackOrder, activeDraftIdByLensInstanceId }
@@ -1549,9 +1566,7 @@ function renderTransformerVisualizer(elements, instance) {
             draftCatalog,
             instance.selectedInputRefsByRole,
             (role, value) => {
-              instance.selectedInputRefsByRole[role] = value
-                ? { mode: "pinned", sourceDraftId: value }
-                : null;
+              instance.selectedInputRefsByRole[role] = normalizeInputRefChange(value);
               scheduleLens(instance);
             },
             { metaById, trackOrder, activeDraftIdByLensInstanceId }
@@ -1584,9 +1599,7 @@ function bindLensInputsForInstance(instance, elements, options = {}) {
         collectDraftCatalog(Array.from(lensInstances.values())),
         instance.selectedInputRefsByRole,
         (role, value) => {
-          instance.selectedInputRefsByRole[role] = value
-            ? { mode: "pinned", sourceDraftId: value }
-            : null;
+          instance.selectedInputRefsByRole[role] = normalizeInputRefChange(value);
           scheduleLens(instance);
         },
         {

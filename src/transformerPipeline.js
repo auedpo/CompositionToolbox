@@ -43,7 +43,18 @@ export function ensureSingleInputTransformerSelections(tracks, lensInstances, sc
       }
       const inputs = Array.isArray(transformer.lens.inputs) ? transformer.lens.inputs : [];
       if (inputs.length === 1 && prevInstance) {
-        updateLiveInput(transformer, prevInstance, inputs[0].role, scheduleLens);
+        const role = inputs[0].role;
+        const selected = transformer.selectedInputRefsByRole ? transformer.selectedInputRefsByRole[role] : null;
+        const isPinned = typeof selected === "string"
+          || (selected && selected.mode === "pinned")
+          || (selected && !selected.mode && selected.sourceDraftId);
+        const activeSourceId = selected
+          ? (selected.sourceLensInstanceId || (selected.mode === "active" ? selected.sourceLensInstanceId : null))
+          : null;
+        const isActiveOther = activeSourceId && activeSourceId !== prevInstance.lensInstanceId;
+        if (!isPinned && !isActiveOther) {
+          updateLiveInput(transformer, prevInstance, role, scheduleLens);
+        }
       }
       prevInstance = transformer;
     });

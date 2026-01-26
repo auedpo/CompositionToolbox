@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { ensureSingleInputTransformerSelections } from "../src/transformerPipeline.js";
+import { makeDraft } from "../src/core/invariants.js";
 
 function buildDraft(id) {
-  return {
+  return makeDraft({
     draftId: id,
+    lensId: "test",
+    lensInstanceId: "lens-test",
     type: "pitchList",
-    payload: [id.length]
-  };
+    values: [id.length]
+  });
 }
 
 function buildGenerator(id, draft, token = 1) {

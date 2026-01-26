@@ -1,5 +1,5 @@
-import { makeMaterialFromDraft, normalizePayload } from "../core/model.js";
-import { assertDraft, assertMaterial } from "../core/invariants.js";
+import { makeMaterialFromDraft } from "../core/model.js";
+import { assertDraft, assertMaterial, assertNumericTree } from "../core/invariants.js";
 
 export function createInventoryStore() {
   const items = new Map();
@@ -8,6 +8,7 @@ export function createInventoryStore() {
   function add(draft, options = {}) {
     if (!draft || !draft.type) return null;
     assertDraft(draft);
+    assertNumericTree(draft.payload.values, "inventory.add");
     const material = makeMaterialFromDraft(draft, {
       name: options.name,
       tags: Array.isArray(options.tags) ? options.tags.slice() : [],
@@ -45,6 +46,17 @@ export function createInventoryStore() {
     return Array.from(items.values());
   }
 
+  function normalizeLegacyPayload(raw) {
+    if (!raw) return raw;
+    if (raw && typeof raw === "object" && raw.kind === "numericTree") {
+      return raw.values;
+    }
+    if (raw && typeof raw === "object" && Object.prototype.hasOwnProperty.call(raw, "values")) {
+      return raw.values;
+    }
+    return raw;
+  }
+
   function deserialize(payload) {
     items.clear();
     if (!Array.isArray(payload)) return;
@@ -52,9 +64,10 @@ export function createInventoryStore() {
       if (!item || typeof item !== "object") return;
       const materialId = item.materialId || item.id;
       if (!materialId) return;
-      const payloadList = normalizePayload(item.payload || item.data || []);
+      const legacyPayload = normalizeLegacyPayload(item.payload || item.data || item.values || []);
       if (item.id && !item.materialId) needsMigration = true;
       if (item.data && !item.payload) needsMigration = true;
+      if (item.values && !item.payload) needsMigration = true;
       const summaryText = typeof item.summary === "string"
         ? item.summary
         : (item.summary && typeof item.summary === "object" && item.summary.title ? String(item.summary.title) : "");
@@ -62,20 +75,32 @@ export function createInventoryStore() {
         ? item.tags
         : (item.meta && Array.isArray(item.meta.tags) ? item.meta.tags : []);
       if (!item.tags && item.meta && Array.isArray(item.meta.tags)) needsMigration = true;
+      let legacyInvalid = false;
+      let legacyError = "";
+      try {
+        assertNumericTree(legacyPayload, `material:${item.name || item.materialId}`);
+      } catch (error) {
+        legacyInvalid = true;
+        legacyError = error && error.message ? error.message : "Legacy payload invalid.";
+      }
       const normalized = {
         materialId,
         type: item.type || "Unknown",
         subtype: item.subtype || undefined,
-        name: item.name || "Untitled material",
-        payload: payloadList,
-        summary: summaryText,
+        name: legacyInvalid ? "Legacy item invalid" : (item.name || "Untitled material"),
+        payload: legacyInvalid ? null : legacyPayload,
+        summary: legacyInvalid ? "Legacy item invalid" : summaryText,
         tags: Array.isArray(legacyTags) ? legacyTags.slice() : [],
-        meta: item.meta && typeof item.meta === "object" ? { ...item.meta } : {},
+        meta: item.meta && typeof item.meta === "object"
+          ? { ...item.meta, legacyInvalid, legacyError }
+          : { legacyInvalid, legacyError },
         provenance: item.provenance && typeof item.provenance === "object" ? { ...item.provenance } : {},
         createdAt: Number.isFinite(item.createdAt) ? item.createdAt : Date.now()
       };
       try {
-        assertMaterial(normalized);
+        if (!legacyInvalid) {
+          assertMaterial(normalized);
+        }
       } catch (error) {
         console.warn("Skipping invalid material during deserialize.", error, normalized);
         return;

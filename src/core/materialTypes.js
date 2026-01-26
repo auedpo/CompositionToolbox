@@ -3,15 +3,19 @@
  */
 
 /**
+ * @typedef {number | NumericTree[]} NumericTree
+ */
+
+/**
  * @typedef {Object} Draft
  * @property {string} draftId
+ * @property {string} lensId
  * @property {string} lensInstanceId
  * @property {string} type
  * @property {string} [subtype]
- * @property {any[]} payload
- * @property {string} summary
- * @property {Object} provenance
- * @property {number} createdAt
+ * @property {string} [summary]
+ * @property {{ kind: "numericTree", values: NumericTree }} payload
+ * @property {Object} [meta]
  */
 
 /**
@@ -20,7 +24,7 @@
  * @property {MaterialType} type
  * @property {string} [subtype]
  * @property {string} name
- * @property {any[]} payload
+ * @property {NumericTree} payload
  * @property {string} summary
  * @property {string[]} tags
  * @property {Object} meta
