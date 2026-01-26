@@ -54,6 +54,7 @@ import {
   findTrackIdForLensInstance,
   getLensIndexInTrack,
   getLensLabelForTrackIndex,
+  insertLensAt,
   removeLensFromOrder,
   pickFocusAfterRemoval
 } from "./workspace2InspectorUtils.js";
@@ -1071,6 +1072,87 @@ function getUpstreamLensInstance(instance) {
   return null;
 }
 
+function ws2SetDraggingUI(active) {
+  if (typeof document !== "undefined" && document.body) {
+    document.body.classList.toggle("ws2-dragging", !!active);
+  }
+}
+
+function beginWs2BrowserDrag(lensId) {
+  state.ws2Drag = { active: true, lensId };
+  ws2SetDraggingUI(true);
+}
+
+function ws2ClearSlotHover() {
+  document.querySelectorAll(".ws2-drop-slot.is-over").forEach((el) => el.classList.remove("is-over"));
+  document.querySelectorAll(".ws2-lane.is-drop-target").forEach((el) => el.classList.remove("is-drop-target"));
+}
+
+function endWs2BrowserDrag({ render = true } = {}) {
+  state.ws2Drag = { active: false, lensId: null };
+  ws2SetDraggingUI(false);
+  ws2ClearSlotHover();
+  if (render) {
+    renderWorkspace2();
+  }
+}
+
+function ws2GetDraggedLensId(event) {
+  if (!event || !event.dataTransfer) return state.ws2Drag?.lensId || null;
+  return (
+    event.dataTransfer.getData("application/x-lens-type") ||
+    event.dataTransfer.getData("text/plain") ||
+    state.ws2Drag?.lensId ||
+    null
+  );
+}
+
+function ws2SetSlotHover(slotEl, isOver) {
+  if (!slotEl) return;
+  slotEl.classList.toggle("is-over", !!isOver);
+  const lane = slotEl.closest(".ws2-lane");
+  if (lane) {
+    lane.classList.toggle("is-drop-target", !!isOver);
+  }
+}
+
+function onSlotDragEnter(event) {
+  const lensId = ws2GetDraggedLensId(event);
+  if (!lensId) return;
+  event.preventDefault();
+  ws2SetSlotHover(event.currentTarget, true);
+}
+
+function onSlotDragOver(event) {
+  const lensId = ws2GetDraggedLensId(event);
+  if (!lensId) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+  const slot = event.currentTarget;
+  document.querySelectorAll(".ws2-drop-slot.is-over").forEach((el) => {
+    if (el !== slot) el.classList.remove("is-over");
+  });
+  slot.classList.add("is-over");
+}
+
+function onSlotDragLeave(event) {
+  ws2SetSlotHover(event.currentTarget, false);
+}
+
+function onSlotDrop(event) {
+  const lensId = ws2GetDraggedLensId(event);
+  if (!lensId) return;
+  event.preventDefault();
+  const slot = event.currentTarget;
+  const trackId = slot.dataset.trackId || null;
+  const insertIndex = Number(slot.dataset.insertIndex);
+  ws2ClearSlotHover();
+  if (trackId) {
+    createLensInstanceForTrack(lensId, trackId, Number.isFinite(insertIndex) ? insertIndex : undefined);
+  }
+  endWs2BrowserDrag({ render: false });
+}
+
 function createStableId(prefix) {
   const base = (typeof crypto !== "undefined" && crypto.randomUUID)
     ? crypto.randomUUID()
@@ -1317,9 +1399,46 @@ function createTrack(name) {
   return track;
 }
 
-  function createInstanceForTrack(lens, trackId) {
-    const instanceId = createStableId("lens");
-    const instance = createLensInstance(lens, instanceId);
+function createLensInstanceForTrack(lensId, trackId, insertIndex = null) {
+  const lens = getLens(lensId);
+  if (!lens) return null;
+  let track = trackId ? getTrackById(trackId) : getSelectedTrack();
+  if (!track) {
+    const ordered = getOrderedTracks();
+    track = ordered[0] || createTrack(`Track ${state.tracks.length + 1}`);
+  }
+  if (!track) return null;
+  const instance = createInstanceForTrack(lens, track.id);
+  (lens.generatorInputs || []).forEach((spec) => {
+    instance.generatorInputValues[spec.key] = loadLensSpecValue(lens.meta.id, "inputs", spec);
+  });
+  (lens.params || []).forEach((spec) => {
+    instance.paramsValues[spec.key] = loadLensSpecValue(lens.meta.id, "params", spec);
+  });
+  const currentOrder = ensureTrackLensOrder(track);
+  const targetIndex = Number.isFinite(insertIndex)
+    ? Math.min(Math.max(insertIndex, 0), currentOrder.length)
+    : currentOrder.length;
+  track.lensInstanceIds = insertLensAt(currentOrder, targetIndex, instance.lensInstanceId);
+  updateTrackLensPaths(track);
+  seedLensDefaults(instance);
+  scheduleLens(instance);
+  ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+  track.lensInstanceIds.slice(targetIndex + 1).forEach((instanceId) => {
+    const downstream = lensInstances.get(instanceId);
+    if (downstream) {
+      scheduleLens(downstream);
+    }
+  });
+  setSelectedTrackId(track.id);
+  setFocusedLensInstanceGlobal(instance.lensInstanceId);
+  renderWorkspace2();
+  return instance.lensInstanceId;
+}
+
+function createInstanceForTrack(lens, trackId) {
+  const instanceId = createStableId("lens");
+  const instance = createLensInstance(lens, instanceId);
     instance.lensId = lens.meta.id;
     instance.kind = lens.meta.kind;
     instance.trackId = trackId;
@@ -2372,8 +2491,8 @@ function renderWorkspace2TracksLanes() {
 
     const header = document.createElement("div");
     header.className = "ws2-lane-header";
-    const trackLabel = trackNumber ? `Track ${trackNumber}` : "Track —";
-    header.textContent = `${trackLabel} • ${track.name || "Untitled track"}`;
+    const trackLabel = trackNumber ? `Track ${trackNumber}` : "Track -";
+    header.textContent = `${trackLabel} - ${track.name || "Untitled track"}`;
     header.addEventListener("click", (event) => {
       event.stopPropagation();
       setSelectedTrackId(track.id);
@@ -2389,10 +2508,11 @@ function renderWorkspace2TracksLanes() {
 
     const pills = document.createElement("div");
     pills.className = "ws2-lane-pills";
+    pills.dataset.trackId = track.id;
 
-    const appendPill = (instanceId, idx) => {
+    const createPill = (instanceId, idx) => {
       const inst = instanceId ? lensInstances.get(instanceId) : null;
-      if (!inst) return;
+      if (!inst) return null;
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `ws2-pill${inst.lensInstanceId === state.focusedLensInstanceId ? " is-focused" : ""}`;
@@ -2420,11 +2540,39 @@ function renderWorkspace2TracksLanes() {
         renderWorkspace2();
       });
 
-      pills.appendChild(btn);
+      return btn;
+    };
+
+    const makeSlot = (insertIndex, includePlaceholder = false) => {
+      const slot = document.createElement("div");
+      slot.className = "ws2-drop-slot";
+      slot.dataset.trackId = track.id;
+      slot.dataset.insertIndex = `${insertIndex}`;
+      const caret = document.createElement("div");
+      caret.className = "ws2-drop-caret";
+      slot.appendChild(caret);
+      slot.addEventListener("dragenter", onSlotDragEnter);
+      slot.addEventListener("dragover", onSlotDragOver);
+      slot.addEventListener("dragleave", onSlotDragLeave);
+      slot.addEventListener("drop", onSlotDrop);
+      if (includePlaceholder) {
+        const hint = document.createElement("div");
+        hint.className = "ws2-drop-placeholder";
+        hint.textContent = "Drop a lens here.";
+        slot.appendChild(hint);
+      }
+      return slot;
     };
 
     const path = getTrackLensPath(track);
-    path.forEach((instanceId, idx) => appendPill(instanceId, idx));
+    pills.appendChild(makeSlot(0, path.length === 0));
+    path.forEach((instanceId, idx) => {
+      const pill = createPill(instanceId, idx);
+      if (pill) {
+        pills.appendChild(pill);
+      }
+      pills.appendChild(makeSlot(idx + 1));
+    });
 
     const outId = path.length ? path[path.length - 1] : null;
     const outInst = outId ? lensInstances.get(outId) : null;
@@ -2442,7 +2590,7 @@ function renderWorkspace2TracksLanes() {
 
     const outText = document.createElement("span");
     outText.className = "ws2-pill-summary";
-    outText.textContent = outInst ? ws2DraftSummaryForInstance(outInst, 72) : "—";
+    outText.textContent = outInst ? ws2DraftSummaryForInstance(outInst, 72) : "-";
     outBtn.appendChild(outText);
 
     outBtn.addEventListener("click", (event) => {
@@ -2454,8 +2602,6 @@ function renderWorkspace2TracksLanes() {
       renderWorkspace2();
     });
 
-    out.appendChild(outBtn);
-
     lane.addEventListener("click", () => {
       setSelectedTrackId(track.id);
       renderWorkspace2();
@@ -2466,6 +2612,68 @@ function renderWorkspace2TracksLanes() {
     lane.appendChild(out);
     tracksBody.appendChild(lane);
   });
+}
+function renderWorkspace2LensBrowser() {
+  const ws2 = getWorkspace2Els();
+  if (!ws2.lensBrowser) return;
+  const panel = ws2.lensBrowser;
+  const body = panel.querySelector(".ws2-panel-body") || panel;
+  const lenses = listLenses()
+    .slice()
+    .sort((a, b) => {
+      const nameA = (a && a.meta && a.meta.name) || "";
+      const nameB = (b && b.meta && b.meta.name) || "";
+      return nameA.localeCompare(nameB);
+    });
+  body.innerHTML = "";
+  if (!lenses.length) {
+    body.innerHTML = `<div class="ws2-placeholder">No lenses available.</div>`;
+    return;
+  }
+  const list = document.createElement("div");
+  list.className = "ws2-browser-list";
+  lenses.forEach((lens) => {
+    const lensId = lens && lens.meta ? lens.meta.id : null;
+    if (!lensId) return;
+    const titleText = (lens.meta && lens.meta.name) || lensId;
+    const descText =
+      (lens.meta && (lens.meta.description || lens.meta.help || lens.meta.summary)) || "";
+    const item = document.createElement("div");
+    item.className = "ws2-browser-item";
+    item.setAttribute("draggable", "true");
+    item.dataset.lensId = lensId;
+    const titleEl = document.createElement("div");
+    titleEl.className = "ws2-browser-name";
+    titleEl.textContent = titleText;
+    item.appendChild(titleEl);
+    if (descText) {
+      const descEl = document.createElement("div");
+      descEl.className = "ws2-browser-desc";
+      descEl.textContent = descText;
+      item.appendChild(descEl);
+    }
+    item.addEventListener("dblclick", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const selected = getSelectedTrack();
+      const trackId = selected ? selected.id : null;
+      createLensInstanceForTrack(lensId, trackId);
+    });
+    item.addEventListener("dragstart", (event) => {
+      const targetLensId = lensId;
+      beginWs2BrowserDrag(targetLensId);
+      if (event.dataTransfer) {
+        event.dataTransfer.setData("application/x-lens-type", targetLensId);
+        event.dataTransfer.setData("text/plain", targetLensId);
+        event.dataTransfer.effectAllowed = "copy";
+      }
+    });
+    item.addEventListener("dragend", () => {
+      endWs2BrowserDrag();
+    });
+    list.appendChild(item);
+  });
+  body.appendChild(list);
 }
 
 function renderWorkspace2TrackInspector() {
@@ -3051,6 +3259,7 @@ function renderWorkspace2() {
 
   renderWorkspace2TracksLanes();
   renderWorkspace2TrackInspector();
+  renderWorkspace2LensBrowser();
   renderWorkspace2LensInspector();
   renderWorkspace2FocusedLensFullUI();
 }

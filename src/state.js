@@ -23,7 +23,8 @@ export const state = {
   lastCapturedMaterialId: null,
   inventoryFilter: "",
   selectedTrackId: null,
-  focusedLensInstanceId: null
+  focusedLensInstanceId: null,
+  ws2Drag: { active: false, lensId: null, overTrackId: null, insertIndex: null }
 };
 
 export const els = {

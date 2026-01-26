@@ -40,11 +40,18 @@ export function pickFocusAfterRemoval(order, removedIndex) {
   return 0;
 }
 
-export function insertLensDuplicate(order, index, newLensId) {
+export function insertLensAt(order, index, lensId) {
   const next = Array.isArray(order) ? order.slice() : [];
-  const targetIndex = Math.min(Math.max(index + 1, 0), next.length);
-  next.splice(targetIndex, 0, newLensId);
+  if (!lensId) return next;
+  const targetIndex = Number.isFinite(index)
+    ? Math.min(Math.max(0, Math.trunc(index)), next.length)
+    : next.length;
+  next.splice(targetIndex, 0, lensId);
   return next;
+}
+
+export function insertLensDuplicate(order, index, newLensId) {
+  return insertLensAt(order, index + 1, newLensId);
 }
 
 export function moveLensInOrder(order, index, delta) {
