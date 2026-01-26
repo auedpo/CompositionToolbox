@@ -57,23 +57,23 @@ function filterDraftsBySpec(drafts, spec) {
 function normalizeInputRef(raw) {
   if (!raw) return null;
   if (typeof raw === "string") {
-    return { mode: "pinned", sourceDraftId: raw };
+    return { mode: "freeze", sourceDraftId: raw };
   }
   if (raw && typeof raw === "object") {
     if (!raw.mode && raw.sourceLensInstanceId) {
       return { mode: "active", sourceLensInstanceId: raw.sourceLensInstanceId };
     }
     if (!raw.mode && raw.sourceDraftId) {
-      return { mode: "pinned", sourceDraftId: raw.sourceDraftId };
+      return { mode: "freeze", sourceDraftId: raw.sourceDraftId };
     }
     if (raw.mode === "active" && raw.sourceLensInstanceId) {
       return { mode: "active", sourceLensInstanceId: raw.sourceLensInstanceId };
     }
-    if (raw.mode === "pinned" && raw.sourceDraftId) {
-      return { mode: "pinned", sourceDraftId: raw.sourceDraftId };
+    if (raw.mode === "freeze" && raw.sourceDraftId) {
+      return { mode: "freeze", sourceDraftId: raw.sourceDraftId };
     }
     if (raw.draftId) {
-      return { mode: "pinned", sourceDraftId: raw.draftId };
+      return { mode: "freeze", sourceDraftId: raw.draftId };
     }
   }
   return null;
@@ -130,7 +130,7 @@ function resolveInputs(lens, instance, draftCatalog, draftIndex, getInstanceById
       inputs.push({ draftId: match.draftId, role: spec.role, draft: match, ref: chosenRef });
       return;
     }
-    if (chosenRef.mode === "pinned") {
+    if (chosenRef.mode === "freeze") {
       const match = draftIndex.get(chosenRef.sourceDraftId) || null;
       if (!match || !candidates.some((draft) => getDraftId(draft) === chosenRef.sourceDraftId)) {
         if (spec.required) {
@@ -195,7 +195,7 @@ export function materializeDrafts({
     const summary = rawSummary || `${rawType} draft`;
     const inputRefs = inputs.map((input) => ({
       role: input.role,
-      ...(input.ref || { mode: "pinned", sourceDraftId: input.draftId })
+      ...(input.ref || { mode: "freeze", sourceDraftId: input.draftId })
     }));
     const provenance = {
       lensType: lens.meta.id,

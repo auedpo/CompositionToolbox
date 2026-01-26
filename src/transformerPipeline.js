@@ -45,14 +45,14 @@ export function ensureSingleInputTransformerSelections(tracks, lensInstances, sc
       if (inputs.length === 1 && prevInstance) {
         const role = inputs[0].role;
         const selected = transformer.selectedInputRefsByRole ? transformer.selectedInputRefsByRole[role] : null;
-        const isPinned = typeof selected === "string"
-          || (selected && selected.mode === "pinned")
+        const isFreeze = typeof selected === "string"
+          || (selected && selected.mode === "freeze")
           || (selected && !selected.mode && selected.sourceDraftId);
         const activeSourceId = selected
           ? (selected.sourceLensInstanceId || (selected.mode === "active" ? selected.sourceLensInstanceId : null))
           : null;
         const isActiveOther = activeSourceId && activeSourceId !== prevInstance.lensInstanceId;
-        if (!isPinned && !isActiveOther) {
+        if (!isFreeze && !isActiveOther) {
           updateLiveInput(transformer, prevInstance, role, scheduleLens);
         }
       }

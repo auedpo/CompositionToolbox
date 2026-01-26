@@ -117,18 +117,18 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
 
   function normalizeRef(ref) {
     if (!ref) return null;
-    if (typeof ref === "string") return { mode: "pinned", sourceDraftId: ref };
+    if (typeof ref === "string") return { mode: "freeze", sourceDraftId: ref };
     if (ref.mode === "active" && ref.sourceLensInstanceId) return ref;
-    if (ref.mode === "pinned" && ref.sourceDraftId) return ref;
+    if (ref.mode === "freeze" && ref.sourceDraftId) return ref;
     if (!ref.mode && ref.sourceLensInstanceId) return { mode: "active", sourceLensInstanceId: ref.sourceLensInstanceId };
-    if (!ref.mode && ref.sourceDraftId) return { mode: "pinned", sourceDraftId: ref.sourceDraftId };
+    if (!ref.mode && ref.sourceDraftId) return { mode: "freeze", sourceDraftId: ref.sourceDraftId };
     return null;
   }
 
   function resolveSelectedDraftId(ref) {
     if (!ref) return null;
     if (typeof ref === "string") return ref;
-    if (ref.mode === "pinned") return ref.sourceDraftId || null;
+    if (ref.mode === "freeze") return ref.sourceDraftId || null;
     if ((ref.mode === "active" || !ref.mode) && ref.sourceLensInstanceId) {
       return activeByLens.get(ref.sourceLensInstanceId) || null;
     }
@@ -204,11 +204,11 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
         if (meta && meta.lensInstanceId) {
           onChange(spec.role, { mode: "active", sourceLensInstanceId: meta.lensInstanceId });
         } else {
-          onChange(spec.role, { mode: "pinned", sourceDraftId: value });
+          onChange(spec.role, { mode: "freeze", sourceDraftId: value });
         }
         return;
       }
-      onChange(spec.role, { mode: "pinned", sourceDraftId: value });
+      onChange(spec.role, { mode: "freeze", sourceDraftId: value });
     });
     const toggleWrap = document.createElement("div");
     toggleWrap.className = "lens-input-toggle";
@@ -216,15 +216,15 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
     activeBtn.type = "button";
     activeBtn.className = "toggle-btn ghost";
     activeBtn.textContent = "Active";
-    const pinnedBtn = document.createElement("button");
-    pinnedBtn.type = "button";
-    pinnedBtn.className = "toggle-btn ghost";
-    pinnedBtn.textContent = "Pinned";
+    const freezeBtn = document.createElement("button");
+    freezeBtn.type = "button";
+    freezeBtn.className = "toggle-btn ghost";
+    freezeBtn.textContent = "Freeze";
     const setToggleState = (mode) => {
       activeBtn.classList.toggle("active", mode === "active");
-      pinnedBtn.classList.toggle("active", mode === "pinned");
+      freezeBtn.classList.toggle("active", mode === "freeze");
     };
-    const mode = currentRef && currentRef.mode ? currentRef.mode : "pinned";
+    const mode = currentRef && currentRef.mode ? currentRef.mode : "freeze";
     setToggleState(mode);
     activeBtn.addEventListener("click", () => {
       const selectedId = select.value || null;
@@ -240,18 +240,18 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
       onChange(spec.role, { mode: "active", sourceLensInstanceId: currentRef && currentRef.sourceLensInstanceId });
       setToggleState("active");
     });
-    pinnedBtn.addEventListener("click", () => {
+    freezeBtn.addEventListener("click", () => {
       const selectedId = select.value || null;
       if (!onChange) return;
       if (selectedId) {
-        onChange(spec.role, { mode: "pinned", sourceDraftId: selectedId });
+        onChange(spec.role, { mode: "freeze", sourceDraftId: selectedId });
       } else {
         onChange(spec.role, null);
       }
-      setToggleState("pinned");
+      setToggleState("freeze");
     });
     toggleWrap.appendChild(activeBtn);
-    toggleWrap.appendChild(pinnedBtn);
+    toggleWrap.appendChild(freezeBtn);
     row.appendChild(select);
     row.appendChild(toggleWrap);
     field.appendChild(label);

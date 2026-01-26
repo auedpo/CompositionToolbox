@@ -17,7 +17,7 @@ function resolveInput(ref, runtime) {
     if (!source || !source.activeDraftId) return null;
     return runtime.draftIndex.get(source.activeDraftId) || null;
   }
-  if (ref.mode === "pinned" && ref.sourceDraftId) {
+  if (ref.mode === "freeze" && ref.sourceDraftId) {
     return runtime.draftIndex.get(ref.sourceDraftId) || null;
   }
   return null;
@@ -54,13 +54,13 @@ const runtime = {
 };
 
 const activeRef = { mode: "active", sourceLensInstanceId: "lensA" };
-const pinnedRef = { mode: "pinned", sourceDraftId: fakeDraft.draftId };
+const freezeRef = { mode: "freeze", sourceDraftId: fakeDraft.draftId };
 
 const activeResolved = resolveInput(activeRef, runtime);
-const pinnedResolved = resolveInput(pinnedRef, runtime);
+const freezeResolved = resolveInput(freezeRef, runtime);
 
 invariant(activeResolved && activeResolved.draftId === fakeDraft.draftId, "Active routing failed.");
-invariant(pinnedResolved && pinnedResolved.draftId === fakeDraft.draftId, "Pinned routing failed.");
+invariant(freezeResolved && freezeResolved.draftId === fakeDraft.draftId, "Freeze routing failed.");
 
 const numericPass = [1, [1, 2, 3], [[0, 1], [2, [3]]]];
 numericPass.forEach((value) => {

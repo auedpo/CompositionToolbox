@@ -132,6 +132,8 @@
   /* Knob (if you have rotary controls) */
   --knob-size: 28px;
   --knob-size-lg: 36px;
+  --icon-button-size: var(--icon-size-lg);
+  --lens-rail-icon-size: var(--icon-button-size);
 
   --knob-inner-inset: 6px;     /* replaces inset: 6px */
   --knob-indicator-w: 2px;
@@ -1651,6 +1653,7 @@ details.meta-card[open] summary::after {
   position: relative;
 }
 
+
 .lens-rail {
   position: relative;
   background: var(--color-panel-bg);
@@ -1668,20 +1671,33 @@ details.meta-card[open] summary::after {
   text-align: center;
 }
 
-.lens-rail-remove {
-  position: absolute;
-  top: var(--space-1);
-  left: var(--space-1);
-  width: 18px;
-  height: 18px;
+
+.icon-button {
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
   padding: 0;
   border-radius: var(--radius-none);
   border: 1px solid var(--color-border-soft);
   background: var(--color-panel-bg);
-  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: var(--type-xxs);
   line-height: 1;
   cursor: pointer;
+  color: var(--color-text);
+}
+
+.lens-rail-button {
+  width: var(--lens-rail-icon-size);
+  height: var(--lens-rail-icon-size);
+}
+
+.lens-rail-remove {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  color: var(--color-text);
 }
 
 button.lens-rail-remove:not(.ghost):hover:not(:disabled){
@@ -1706,16 +1722,8 @@ button.lens-rail-remove:not(.ghost):hover:not(:disabled){
 }
 
 .lens-rail-info {
-  width: var(--knob-size);
-  height: var(--knob-size);
-  padding: 0;
-  border-radius: var(--radius-none);
-  border: 1px solid var(--color-border-soft);
-  background: var(--color-panel-bg);
   color: var(--color-text-muted);
   font-size: var(--type-sm);
-  line-height: 1;
-  cursor: pointer;
 }
 
 .lens-rail-menu-list {

@@ -1191,7 +1191,7 @@ function serializeWorkspace() {
     const nextSelected = { ...(snapshot.selectedInputRefsByRole || {}) };
     Object.entries(legacySelected).forEach(([role, draftId]) => {
       if (!nextSelected[role] && draftId) {
-        nextSelected[role] = { mode: "pinned", sourceDraftId: draftId };
+        nextSelected[role] = { mode: "freeze", sourceDraftId: draftId };
       }
     });
     instance.selectedInputRefsByRole = nextSelected;
@@ -1532,7 +1532,7 @@ function renderTransformerVisualizer(elements, instance) {
   function normalizeInputRefChange(value) {
     if (!value) return null;
     if (typeof value === "object") return value;
-    return { mode: "pinned", sourceDraftId: value };
+    return { mode: "freeze", sourceDraftId: value };
   }
 
   function refreshTransformerInputs() {
@@ -1711,7 +1711,7 @@ function clearSelectionsForDraftIds(draftIds) {
       const ref = selected[role];
       const draftId = typeof ref === "string"
         ? ref
-        : (ref && ref.mode === "pinned" ? ref.sourceDraftId : null);
+        : (ref && ref.mode === "freeze" ? ref.sourceDraftId : null);
       if (draftId && toClear.has(draftId)) {
         selected[role] = null;
       }
@@ -1736,7 +1736,7 @@ function pruneMissingSelections() {
         }
         return;
       }
-      if (ref.mode === "pinned" && ref.sourceDraftId && !draftIds.has(ref.sourceDraftId)) {
+      if (ref.mode === "freeze" && ref.sourceDraftId && !draftIds.has(ref.sourceDraftId)) {
         selected[role] = null;
         changed = true;
         return;
@@ -1939,7 +1939,7 @@ function moveTransformer(trackId, instanceId, delta) {
         };
       } else if (match) {
         instance.selectedInputRefsByRole[spec.role] = {
-          mode: "pinned",
+          mode: "freeze",
           sourceDraftId: match.draftId
         };
       }
@@ -1959,7 +1959,7 @@ function buildLensPanel(instance, opts = {}) {
   rail.className = "lens-rail";
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
-  removeBtn.className = "lens-rail-remove";
+  removeBtn.className = "lens-rail-remove lens-rail-button icon-button";
   removeBtn.setAttribute("aria-label", "Remove lens");
   removeBtn.appendChild(icon("square-x"));
   removeBtn.addEventListener("click", () => {
@@ -1982,7 +1982,7 @@ function buildLensPanel(instance, opts = {}) {
     railInputsMenu.className = "lens-rail-menu";
     const infoButton = document.createElement("button");
     infoButton.type = "button";
-    infoButton.className = "lens-rail-info";
+    infoButton.className = "lens-rail-info lens-rail-button icon-button";
     infoButton.appendChild(icon("workflow"));
     infoButton.setAttribute("aria-label", "Select lens inputs");
     railInputsMenuList = document.createElement("div");

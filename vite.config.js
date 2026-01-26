@@ -1,8 +1,8 @@
 import { defineConfig } from "vite";
 import { fileURLToPath, URL } from "node:url";
 
-export default defineConfig({
-  base: "/CompositionToolbox/",
+export default defineConfig(({ command }) => ({
+  base: command === "build" ? "/CompositionToolbox/" : "/",
   resolve: {
     alias: [
       {
@@ -14,10 +14,10 @@ export default defineConfig({
     ]
   },
   server: {
-    open: true
+    open: "/"
   },
   build: {
     outDir: "dist",
     emptyOutDir: true
   }
-});
+}));

@@ -1,0 +1,34 @@
+node_modules/
+dist/
+
+AGENTS.md
+GUIDELINES.md
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Environment
+.env
+.env.*
+
+# Vite
+.vite/
+
+# Coverage
+coverage/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
