@@ -1,6 +1,7 @@
 import { MATERIAL_TYPES } from "../core/materialTypes.js";
 import { formatNumericTree, flattenNumericTree } from "../core/displayHelpers.js";
 import { makeDraft } from "../core/invariants.js";
+import { resolveValuesForRole } from "./inputResolution.js";
 
 const LENS_ID = "basicMath";
 
@@ -112,16 +113,33 @@ export function evaluateBasicMathTransformerLens(ctx = {}) {
   if (!ctx.context || typeof ctx.context.lensId !== "string" || typeof ctx.context.lensInstanceId !== "string") {
     throw new Error("Lens context missing lensId/lensInstanceId.");
   }
-  const inputs = Array.isArray(ctx.inputs) ? ctx.inputs : [];
-  const entry = inputs[0] ? inputs[0].draft : null;
-  if (!entry) {
+  const context = ctx.context || {};
+  const instance = context.instance;
+  if (!instance) {
+    throw new Error("Lens instance context missing.");
+  }
+  const lensInputs = Array.isArray(instance.lens.inputs) ? instance.lens.inputs : [];
+  const spec = lensInputs[0];
+  const missingMessage = spec ? `Input ${spec.role} required.` : "Draft input missing.";
+  const resolved = spec ? resolveValuesForRole({
+    instance,
+    roleSpec: spec,
+    upstreamInstance: context.upstreamInstance,
+    getLensInstanceById: context.getLensInstanceById,
+    draftCatalog: context.draftCatalog
+  }) : null;
+  if (!resolved || !resolved.ok) {
+    const message = resolved && resolved.message ? resolved.message : missingMessage;
     return {
       ok: false,
       drafts: [],
-      errors: ["Select a numeric draft to transform."]
+      notices: [{ level: "warn", message }]
     };
   }
-  const values = extractInputValues(entry);
+  const entry = resolved.draft || null;
+  const values = entry
+    ? extractInputValues(entry)
+    : (Array.isArray(resolved.values) ? flattenNumericTree(resolved.values) : []);
   if (!values.length) {
     return {
       ok: false,

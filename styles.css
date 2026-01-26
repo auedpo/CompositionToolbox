@@ -1327,18 +1327,7 @@ details.meta-card[open] summary::after {
 .track-body {
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: max-content max-content;
-  justify-content: start;
-  align-items: start;
-}
-
-.track-lane {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.track-lane-title {
-  display: none;
+  grid-template-columns: 1fr;
 }
 
 .track-placeholder {
@@ -1349,10 +1338,18 @@ details.meta-card[open] summary::after {
   font-size: var(--type-md);
 }
 
+.track-lens-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
 .track-lens {
   width: 100%;
   height: var(--track-lens-height);
   --lens-unit: calc(var(--track-lens-height) / var(--lens-units-y));
+  box-sizing: border-box;
+  --lens-depth: 0;
+  padding-left: calc(var(--space-2) * var(--lens-depth));
 }
 
 .track-lens .lens-layout {
@@ -2795,4 +2792,101 @@ tr.selected:hover {
     opacity: 1;
     transform: translateY(0);
   }
+}
+body.workspace2 {
+  /* Placeholder hook so classic styles remain untouched when the flag is off. */
+}
+body.workspace2 #workspace2Root[hidden] {
+  display: none;
+}
+body.workspace2 .workspace2-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+body.workspace2 .ws2-header {
+  border-bottom: 1px solid var(--color-border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+}
+body.workspace2 .ws2-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+body.workspace2 .ws2-header-title {
+  font-size: var(--type-lg);
+  letter-spacing: var(--ls-tight);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+body.workspace2 .ws2-body {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  flex: 1;
+  min-height: 0;
+}
+body.workspace2 .ws2-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+  overflow: hidden;
+}
+body.workspace2 .ws2-main {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: var(--space-3);
+  min-height: 0;
+  overflow: hidden;
+}
+body.workspace2 .ws2-panel {
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-button);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+body.workspace2 .ws2-panel-header {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-soft);
+  font-size: var(--type-sm);
+  font-weight: 600;
+}
+body.workspace2 .ws2-panel-body {
+  padding: var(--space-3);
+  overflow: auto;
+  min-height: 0;
+}
+body.workspace2 .ws2-placeholder {
+  color: var(--color-text-muted);
+  font-size: var(--type-sm);
+}
+body.workspace2 .ws2-tracks {
+  border-top: 1px solid var(--color-border-soft);
+  padding: var(--space-2) var(--space-3);
+}
+body.workspace2 .ws2-tracks-body {
+  padding-top: var(--space-2);
+}
+body.workspace2 .ws2-footer {
+  border-top: 1px solid var(--color-border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  gap: var(--space-3);
+}
+body.workspace2 .ws2-view-switch,
+body.workspace2 .ws2-help {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }

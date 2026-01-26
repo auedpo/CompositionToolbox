@@ -1,5 +1,6 @@
 import { formatNumericTree, flattenNumericTree } from "../../core/displayHelpers.js";
 import { makeDraft } from "../../core/invariants.js";
+import { resolveValuesForRole } from "../inputResolution.js";
 
 const LENS_ID = "shiftSweep";
 
@@ -46,16 +47,34 @@ export function evaluateShiftSweepLens(ctx = {}) {
   if (!ctx.context || typeof ctx.context.lensId !== "string" || typeof ctx.context.lensInstanceId !== "string") {
     throw new Error("Lens context missing lensId/lensInstanceId.");
   }
-  const inputs = Array.isArray(ctx.inputs) ? ctx.inputs : [];
-  const entry = inputs[0] ? inputs[0].draft : null;
-  if (!entry) {
+  const context = ctx.context || {};
+  const instance = context.instance;
+  if (!instance) {
+    throw new Error("Lens instance context missing.");
+  }
+  const lensInputs = Array.isArray(instance.lens.inputs) ? instance.lens.inputs : [];
+  const spec = lensInputs[0];
+  const resolved = spec ? resolveValuesForRole({
+    instance,
+    roleSpec: spec,
+    upstreamInstance: context.upstreamInstance,
+    getLensInstanceById: context.getLensInstanceById,
+    draftCatalog: context.draftCatalog
+  }) : null;
+  if (!resolved || !resolved.ok) {
+    const message = resolved && resolved.message
+      ? resolved.message
+      : `Input ${spec ? spec.role : "source"} required.`;
     return {
       ok: false,
       drafts: [],
-      errors: ["Select a numeric draft to sweep."]
+      notices: [{ level: "warn", message }]
     };
   }
-  const values = extractNumberList(entry);
+  const entry = resolved.draft || null;
+  const values = entry
+    ? extractNumberList(entry)
+    : (Array.isArray(resolved.values) ? flattenNumericTree(resolved.values) : []);
   if (!values.length) {
     return {
       ok: false,
@@ -63,7 +82,6 @@ export function evaluateShiftSweepLens(ctx = {}) {
       errors: ["Selected draft does not expose a numeric list."]
     };
   }
-
   const params = ctx.params || {};
   const op = params.op === "rotate" ? "rotate" : "add";
   const count = clampInt(params.count, 8, 1, 64);
@@ -100,7 +118,9 @@ export function evaluateShiftSweepLens(ctx = {}) {
     }));
   }
 
-  const sourceName = entry.summary || entry.name || entry.type;
+  const sourceName = entry
+    ? (entry.summary || entry.name || entry.type)
+    : "literal values";
   const vizModel = {
     operationLabel: "Shift Sweep",
     inputValues: baseValues.slice(),

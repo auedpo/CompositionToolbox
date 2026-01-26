@@ -1,5 +1,6 @@
 import { hashParams } from "../core/model.js";
 import { assertDraft, assertDraftKeys, DraftInvariantError, normalizeDraft } from "../core/invariants.js";
+import { resolveValuesForRole } from "./inputResolution.js";
 
 function buildDefaults(specs) {
   const values = {};
@@ -43,109 +44,30 @@ function normalizeSpecValue(spec, value) {
   return value;
 }
 
-function filterDraftsBySpec(drafts, spec) {
-  const types = Array.isArray(spec.accepts) ? spec.accepts : [];
-  const subtypes = Array.isArray(spec.acceptsSubtypes) ? spec.acceptsSubtypes : null;
-  return drafts.filter((draft) => {
-    if (!draft || !draft.type) return false;
-    if (types.length && !types.includes(draft.type)) return false;
-    if (subtypes && subtypes.length && !subtypes.includes(draft.subtype)) return false;
-    return true;
-  });
-}
-
-function normalizeInputRef(raw) {
-  if (!raw) return null;
-  if (typeof raw === "string") {
-    return { mode: "freeze", sourceDraftId: raw };
-  }
-  if (raw && typeof raw === "object") {
-    if (!raw.mode && raw.sourceLensInstanceId) {
-      return { mode: "active", sourceLensInstanceId: raw.sourceLensInstanceId };
-    }
-    if (!raw.mode && raw.sourceDraftId) {
-      return { mode: "freeze", sourceDraftId: raw.sourceDraftId };
-    }
-    if (raw.mode === "active" && raw.sourceLensInstanceId) {
-      return { mode: "active", sourceLensInstanceId: raw.sourceLensInstanceId };
-    }
-    if (raw.mode === "freeze" && raw.sourceDraftId) {
-      return { mode: "freeze", sourceDraftId: raw.sourceDraftId };
-    }
-    if (raw.draftId) {
-      return { mode: "freeze", sourceDraftId: raw.draftId };
-    }
-  }
-  return null;
-}
-
-function getDraftId(draft) {
-  if (!draft || typeof draft !== "object") return null;
-  return draft.draftId || draft.id || null;
-}
-
-function buildDraftIndex(draftCatalog) {
-  const index = new Map();
-  draftCatalog.forEach((draft) => {
-    const id = getDraftId(draft);
-    if (!id) return;
-    index.set(id, draft);
-  });
-  return index;
-}
-
-function resolveInputs(lens, instance, draftCatalog, draftIndex, getInstanceById) {
+function gatherResolvedInputs({
+  lens,
+  instance,
+  draftCatalog,
+  getLensInstanceById,
+  upstreamInstance
+}) {
   const inputSpecs = Array.isArray(lens.inputs) ? lens.inputs : [];
-  const selected = instance.selectedInputRefsByRole || {};
-  const liveRefs = instance._liveInputRefs || {};
-  const inputs = [];
-  const errors = [];
-  inputSpecs.forEach((spec) => {
-    const live = normalizeInputRef(liveRefs[spec.role]);
-    const chosenRef = live || normalizeInputRef(selected[spec.role]);
-    const candidates = filterDraftsBySpec(draftCatalog, spec);
-    if (!chosenRef) {
-      if (spec.required) {
-        errors.push(`Select input draft for ${spec.role}.`);
-      }
-      return;
-    }
-    if (chosenRef.mode === "active") {
-      const source = typeof getInstanceById === "function"
-        ? getInstanceById(chosenRef.sourceLensInstanceId)
-        : null;
-      if (!source || !source.activeDraftId) {
-        if (spec.required) {
-          errors.push(`Active draft missing for ${spec.role}.`);
-        }
-        return;
-      }
-      const match = candidates.find((draft) => getDraftId(draft) === source.activeDraftId);
-      if (!match) {
-        if (spec.required) {
-          errors.push(`Active draft missing for ${spec.role}.`);
-        }
-        return;
-      }
-      inputs.push({ draftId: match.draftId, role: spec.role, draft: match, ref: chosenRef });
-      return;
-    }
-    if (chosenRef.mode === "freeze") {
-      const match = draftIndex.get(chosenRef.sourceDraftId) || null;
-      if (!match || !candidates.some((draft) => getDraftId(draft) === chosenRef.sourceDraftId)) {
-        if (spec.required) {
-          errors.push(`Selected draft missing for ${spec.role}.`);
-        }
-        return;
-      }
-      inputs.push({ draftId: match.draftId, role: spec.role, draft: match, ref: chosenRef });
-      return;
-    }
-    if (spec.required) {
-      errors.push(`Select input draft for ${spec.role}.`);
-    }
-  });
-  return { inputs, errors };
+  return inputSpecs.map((spec) => {
+    const result = resolveValuesForRole({
+      instance,
+      roleSpec: spec,
+      upstreamInstance,
+      getLensInstanceById,
+      draftCatalog
+    });
+    if (!result.ok || !result.draft) return null;
+    return {
+      role: spec.role,
+      draft: result.draft,
+      draftId: result.draft.draftId,
+      ref: result.ref
+    };
+  }).filter(Boolean);
 }
 
 export function createLensInstance(lens, lensInstanceId) {
@@ -228,6 +150,7 @@ export function scheduleLensEvaluation(instance, options) {
     getContext,
     getDraftCatalog,
     getLensInstanceById,
+    getUpstreamInstance,
     onUpdate,
     debounceMs = 80
   } = options;
@@ -239,19 +162,17 @@ export function scheduleLensEvaluation(instance, options) {
   instance._token = token;
   instance._timer = setTimeout(() => {
     const draftCatalog = typeof getDraftCatalog === "function" ? getDraftCatalog() : [];
-    const draftIndex = buildDraftIndex(draftCatalog);
     const context = typeof getContext === "function" ? getContext() : {};
-    const { inputs, errors } = resolveInputs(instance.lens, instance, draftCatalog, draftIndex, getLensInstanceById);
-    if (errors.length) {
-      instance.evaluateResult = { ok: false, drafts: [], errors };
-      instance.lastError = errors.join(" ");
-      if (typeof onUpdate === "function") onUpdate(instance);
-      return;
-    }
+    const upstreamInstance = typeof getUpstreamInstance === "function"
+      ? getUpstreamInstance(instance)
+      : null;
+    context.draftCatalog = draftCatalog;
+    context.getLensInstanceById = getLensInstanceById;
+    context.upstreamInstance = upstreamInstance;
+    context.instance = instance;
     let result = null;
     try {
       result = instance.lens.evaluate({
-        inputs,
         generatorInput: instance.generatorInputValues,
         params: instance.paramsValues,
         context
@@ -271,13 +192,20 @@ export function scheduleLensEvaluation(instance, options) {
     // INVARIANT: All drafts must be canonical Draft with payload.kind="numericTree" and numeric-tree values.
     // Do not assign instance.currentDrafts anywhere else.
     if (instance.evaluateResult.ok) {
+      const resolvedInputs = gatherResolvedInputs({
+        lens: instance.lens,
+        instance,
+        draftCatalog,
+        getLensInstanceById,
+        upstreamInstance
+      });
       let drafts = [];
       try {
         drafts = materializeDrafts({
           lens: instance.lens,
           lensInstanceId: instance.lensInstanceId,
           evaluateResult: instance.evaluateResult,
-          inputs,
+          inputs: resolvedInputs,
           params: instance.paramsValues,
           generatorInput: instance.generatorInputValues,
           context

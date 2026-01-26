@@ -27,6 +27,7 @@ import {
   calibrateAlpha
 } from "../core/intervalMath.js";
 import { defaultParams } from "../core/defaultParams.js";
+import { resolveValuesForRole } from "./inputResolution.js";
 
 const LENS_ID = "intervalPlacement";
 const LENS_VERSION = "1.0";
@@ -400,8 +401,33 @@ export function evaluateIntervalPlacementLens(input = {}) {
   if (!input.context || typeof input.context.lensId !== "string" || typeof input.context.lensInstanceId !== "string") {
     throw new Error("Lens context missing lensId/lensInstanceId.");
   }
-  const generatorInput = input.generatorInput || {};
-  const intervals = Array.isArray(generatorInput.intervals) ? generatorInput.intervals.slice() : [];
+  const context = input.context || {};
+  const instance = context.instance;
+  if (!instance) {
+    throw new Error("Lens instance context missing.");
+  }
+  const lensInputs = Array.isArray(instance.lens.inputs) ? instance.lens.inputs : [];
+  const spec = lensInputs.find((entry) => entry.role === "intervals");
+  const resolved = spec ? resolveValuesForRole({
+    instance,
+    roleSpec: spec,
+    upstreamInstance: context.upstreamInstance,
+    getLensInstanceById: context.getLensInstanceById,
+    draftCatalog: context.draftCatalog
+  }) : null;
+  if (!resolved || !resolved.ok) {
+    const message = resolved && resolved.message
+      ? resolved.message
+      : `Input ${spec ? spec.role : "intervals"} required.`;
+    return {
+      ok: false,
+      drafts: [],
+      notices: [{ level: "warn", message }]
+    };
+  }
+  const intervals = Array.isArray(resolved.values)
+    ? resolved.values.map((value) => Number(value)).filter((value) => Number.isFinite(value))
+    : [];
   if (!intervals.length) {
     return {
       ok: false,
@@ -412,6 +438,7 @@ export function evaluateIntervalPlacementLens(input = {}) {
   const params = { ...defaultParams, ...(input.params || {}) };
   params.useDamping = params.useDamping !== false;
   params.roughAlpha = calibrateAlpha(params, 0.5);
+  const generatorInput = input.generatorInput || {};
   const windowOctaves = Number.isFinite(generatorInput.windowOctaves)
     ? generatorInput.windowOctaves
     : 1;
@@ -450,6 +477,15 @@ export const intervalPlacementLens = {
     hasVisualizer: true,
     kind: "generator"
   },
+  inputs: [
+    {
+      role: "intervals",
+      accepts: "numericTree",
+      required: true,
+      allowUpstream: true,
+      fallbackLiteralKey: "intervals"
+    }
+  ],
   params: [
     { key: "placementMode", label: "Placement mode", kind: "select", default: "v2", options: [
       { value: "v1", label: "uniform-centers" },

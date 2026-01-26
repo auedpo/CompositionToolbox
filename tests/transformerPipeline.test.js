@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { ensureSingleInputTransformerSelections } from "../src/transformerPipeline.js";
+import { ensureDefaultSignalFlowSelections } from "../src/transformerPipeline.js";
 import { makeDraft } from "../src/core/invariants.js";
 
 function buildDraft(id) {
@@ -7,7 +7,7 @@ function buildDraft(id) {
     draftId: id,
     lensId: "test",
     lensInstanceId: "lens-test",
-    type: "pitchList",
+    type: "numeric",
     values: [id.length]
   });
 }
@@ -15,43 +15,46 @@ function buildDraft(id) {
 function buildGenerator(id, draft, token = 1) {
   return {
     lensInstanceId: id,
-    lens: { meta: { id: "intervalPlacement", kind: "generator" } },
+    lens: { meta: { id: "source" } },
     currentDrafts: [draft],
     activeDraft: draft,
-    activeDraftId: draft.draftId,
+    activeDraftId: draft ? draft.draftId : null,
     activeDraftIndex: 0,
     _updateToken: token
+    ,
+    path: [1]
   };
 }
 
-function buildTransformer(id) {
+function buildLensInstance(id, inputs = [], path = [2]) {
   return {
     lensInstanceId: id,
     lens: {
-      meta: { id: "passthrough", kind: "transformer" },
-      inputs: [{ role: "input", required: true }]
+      meta: { id: "passthrough" },
+      inputs
     },
     selectedInputRefsByRole: {},
     _liveInputRefs: {},
     _liveInputSource: {},
-    _lastLiveDraftIdByRole: {},
-    _liveSourceTokens: {}
+    _liveSourceTokens: {},
+    _lastLiveDraftIdByRole: {}
+    ,
+    path
   };
 }
 
-function buildTrack(generatorId, transformerId) {
+function buildTrack(lensIds) {
   return {
-    id: `track_${generatorId}`,
-    generatorInstanceId: generatorId,
-    transformerInstanceIds: [transformerId]
+    id: `track_${lensIds.join("_")}`,
+    lensInstanceIds: lensIds.slice()
   };
 }
 
 {
   const firstDraft = buildDraft("draftA");
   const generator = buildGenerator("gen", firstDraft, 1);
-  const transformer = buildTransformer("trans");
-  const tracks = [buildTrack(generator.lensInstanceId, transformer.lensInstanceId)];
+  const transformer = buildLensInstance("trans", [{ role: "input", required: true }]);
+  const tracks = [buildTrack([generator.lensInstanceId, transformer.lensInstanceId])];
   const lensInstances = new Map([
     [generator.lensInstanceId, generator],
     [transformer.lensInstanceId, transformer]
@@ -59,12 +62,12 @@ function buildTrack(generatorId, transformerId) {
   const scheduleCalls = [];
   const scheduleLens = (instance) => scheduleCalls.push(instance.lensInstanceId);
 
-  ensureSingleInputTransformerSelections(tracks, lensInstances, scheduleLens);
-  assert.deepStrictEqual(transformer._liveInputRefs.input, {
+  ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens);
+  assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, {
     mode: "active",
     sourceLensInstanceId: generator.lensInstanceId
   });
-  assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, {
+  assert.deepStrictEqual(transformer._liveInputRefs.input, {
     mode: "active",
     sourceLensInstanceId: generator.lensInstanceId
   });
@@ -76,23 +79,15 @@ function buildTrack(generatorId, transformerId) {
   generator.activeDraftId = secondDraft.draftId;
   generator._updateToken = 2;
 
-  ensureSingleInputTransformerSelections(tracks, lensInstances, scheduleLens);
-  assert.deepStrictEqual(transformer._liveInputRefs.input, {
-    mode: "active",
-    sourceLensInstanceId: generator.lensInstanceId
-  });
-  assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, {
-    mode: "active",
-    sourceLensInstanceId: generator.lensInstanceId
-  });
+  ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens);
   assert.deepStrictEqual(scheduleCalls, [transformer.lensInstanceId, transformer.lensInstanceId]);
 }
 
 {
-  const draft = buildDraft("draftSame");
-  const generator = buildGenerator("gen2", draft, 5);
-  const transformer = buildTransformer("trans2");
-  const tracks = [buildTrack(generator.lensInstanceId, transformer.lensInstanceId)];
+  const generator = buildGenerator("gen2", buildDraft("draftSame"), 5);
+  const transformer = buildLensInstance("trans2", [{ role: "input", required: true }]);
+  transformer.selectedInputRefsByRole.input = { mode: "freeze", sourceDraftId: "legacy" };
+  const tracks = [buildTrack([generator.lensInstanceId, transformer.lensInstanceId])];
   const lensInstances = new Map([
     [generator.lensInstanceId, generator],
     [transformer.lensInstanceId, transformer]
@@ -100,16 +95,9 @@ function buildTrack(generatorId, transformerId) {
   const scheduleCalls = [];
   const scheduleLens = (instance) => scheduleCalls.push(instance.lensInstanceId);
 
-  ensureSingleInputTransformerSelections(tracks, lensInstances, scheduleLens);
-  assert.strictEqual(scheduleCalls.length, 1);
-
-  generator._updateToken = 6;
-  ensureSingleInputTransformerSelections(tracks, lensInstances, scheduleLens);
-  assert.strictEqual(scheduleCalls.length, 2);
-  assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, {
-    mode: "active",
-    sourceLensInstanceId: generator.lensInstanceId
-  });
+  ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens);
+  assert.deepStrictEqual(scheduleCalls, []);
+  assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, { mode: "freeze", sourceDraftId: "legacy" });
 }
 
 console.log("transformerPipeline tests ok");

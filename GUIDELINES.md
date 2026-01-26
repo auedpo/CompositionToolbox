@@ -22,6 +22,12 @@ constraints for the interval applet. Keep it short, specific, and actionable.
 - Only Inventory materials get IDs.
 - Clips reference `materialId`, not data.
 
+## Track & Lens Identity
+- Tracks maintain ordered `lensInstanceIds`; generators and transformers no longer have distinct slots.
+- Each lens instance keeps a canonical `path` (numeric array) per track so labels render as `T<track>.<path>`.
+- When tracks mutate or lenses move, recompute just the final path index to keep parent segments intact.
+- Signal flow/displays rely on path-aware sibling detection; keep helpers aligned with this invariant.
+
 ## Lens Authoring
 - Drafts must use the canonical Draft shape with `payload.kind="numericTree"` and numeric-tree values only.
 - Use `makeDraft(...)` from `src/core/invariants.js` to construct drafts (no ad-hoc draft objects).

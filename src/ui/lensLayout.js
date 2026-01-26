@@ -102,13 +102,26 @@ function filterDraftsBySpec(drafts, spec) {
   });
 }
 
-function buildOptionText(draft, meta) {
-  const title = draft.summary || draft.type;
-  const prefix = meta && meta.label ? `${meta.label} - ${meta.lensName || "Lens"}` : "Lens";
-  return `${prefix}: ${title}`;
+function comparePathArrays(a = [], b = []) {
+  const len = Math.max(a.length, b.length);
+  for (let i = 0; i < len; i += 1) {
+    const va = Number.isFinite(a[i]) ? a[i] : -1;
+    const vb = Number.isFinite(b[i]) ? b[i] : -1;
+    if (va < vb) return -1;
+    if (va > vb) return 1;
+  }
+  return 0;
 }
 
-export function renderTransformerInputs(container, inputSpecs, draftCatalog, selectedByRole, onChange, options = {}) {
+function buildOptionText(draft, meta) {
+  const title = draft.summary || draft.type;
+  const prefix = meta && meta.label
+    ? `${meta.label} · ${meta.lensName || "Lens"}`
+    : (meta && meta.lensName ? meta.lensName : "Lens");
+  return title ? `${prefix}: ${title}` : prefix;
+}
+
+export function renderLensInputs(container, inputSpecs, draftCatalog, selectedByRole, onChange, options = {}) {
   if (!container) return;
   container.innerHTML = "";
   const metaById = options.metaById || new Map();
@@ -173,12 +186,16 @@ export function renderTransformerInputs(container, inputSpecs, draftCatalog, sel
         const trackName = sampleMeta && sampleMeta.trackName ? sampleMeta.trackName : "Untitled";
         const group = document.createElement("optgroup");
         group.label = `Track ${trackNumber} - ${trackName}`;
-        groupItems
-          .sort((a, b) => {
-            const labelA = a.meta && a.meta.label ? a.meta.label : "";
-            const labelB = b.meta && b.meta.label ? b.meta.label : "";
-            return labelA.localeCompare(labelB);
-          })
+      groupItems
+        .sort((a, b) => {
+          const pathA = (a.meta && Array.isArray(a.meta.path)) ? a.meta.path : [];
+          const pathB = (b.meta && Array.isArray(b.meta.path)) ? b.meta.path : [];
+          const pathOrder = comparePathArrays(pathA, pathB);
+          if (pathOrder !== 0) return pathOrder;
+          const labelA = a.meta && a.meta.label ? a.meta.label : "";
+          const labelB = b.meta && b.meta.label ? b.meta.label : "";
+          return labelA.localeCompare(labelB);
+        })
           .forEach(({ draft, meta }) => {
             const option = document.createElement("option");
             option.value = draft.draftId;

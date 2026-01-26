@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { evaluateBasicMathTransformerLens } from "../src/lenses/basicMathTransformerLens.js";
+import { evaluateBasicMathTransformerLens, basicMathTransformerLens } from "../src/lenses/basicMathTransformerLens.js";
 import { makeDraft } from "../src/core/invariants.js";
 
 function buildDraft(payload) {
@@ -13,17 +13,34 @@ function buildDraft(payload) {
   });
 }
 
+function makeContext(draft) {
+  return {
+    lensId: "basicMath",
+    lensInstanceId: "basicMath-test",
+    instance: {
+      lens: basicMathTransformerLens,
+      selectedInputRefsByRole: {
+        input: { mode: "freeze", sourceDraftId: draft.draftId }
+      },
+      generatorInputValues: {},
+      _liveInputRefs: {}
+    },
+    draftCatalog: [draft],
+    getLensInstanceById: () => null,
+    upstreamInstance: null
+  };
+}
+
 {
   const draft = buildDraft([0, 2, 4, 10, 12]);
   const result = evaluateBasicMathTransformerLens({
-    inputs: [{ draft }],
     params: {
       operation: "add",
       operands: [1, 3, 5],
       modEnabled: true,
       modValue: 12
     },
-    context: { lensId: "basicMath", lensInstanceId: "basicMath-test" }
+    context: makeContext(draft)
   });
   assert.ok(result.ok, result.errors);
   assert.deepStrictEqual(result.drafts[0].payload.values, [1, 5, 9, 11, 3]);
@@ -35,11 +52,10 @@ function buildDraft(payload) {
 {
   const draft = buildDraft([9, 16, 25]);
   const result = evaluateBasicMathTransformerLens({
-    inputs: [{ draft }],
     params: {
       operation: "sqrt"
     },
-    context: { lensId: "basicMath", lensInstanceId: "basicMath-test" }
+    context: makeContext(draft)
   });
   assert.ok(result.ok, result.errors);
   assert.deepStrictEqual(result.drafts[0].payload.values, [3, 4, 5]);
@@ -49,12 +65,11 @@ function buildDraft(payload) {
 {
   const draft = buildDraft([2, 3, 4]);
   const result = evaluateBasicMathTransformerLens({
-    inputs: [{ draft }],
     params: {
       operation: "multiply",
       operands: [2, 4]
     },
-    context: { lensId: "basicMath", lensInstanceId: "basicMath-test" }
+    context: makeContext(draft)
   });
   assert.ok(result.ok, result.errors);
   assert.deepStrictEqual(result.drafts[0].payload.values, [4, 12, 8]);

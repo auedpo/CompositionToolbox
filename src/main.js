@@ -27,7 +27,7 @@ import {
   initLensControls,
   renderLensDrafts,
   renderLensNotices,
-  renderTransformerInputs
+  renderLensInputs
 } from "./ui/lensLayout.js";
 import {
   renderInventory,
@@ -48,7 +48,7 @@ import {
   toggleFavorite
 } from "./ui/favoritesPanel.js";
 import { icon } from "./ui/icons.js";
-import { ensureSingleInputTransformerSelections } from "./transformerPipeline.js";
+import { ensureDefaultSignalFlowSelections } from "./transformerPipeline.js";
 import { assertNumericTree, DraftInvariantError } from "./core/invariants.js";
 
 let openLensInputsMenu = null;
@@ -66,6 +66,22 @@ function parseIntervals(text) {
     .split(/[,\s]+/)
     .map((v) => parseInt(v, 10))
     .filter((v) => Number.isFinite(v));
+}
+
+function getLayoutMode() {
+  const raw = localStorage.getItem(storageKeys.layoutMode);
+  return raw === "workspace2" ? "workspace2" : "classic";
+}
+
+function applyLayoutMode(mode) {
+  const next = mode === "workspace2" ? "workspace2" : "classic";
+  document.body.classList.toggle("workspace2", next === "workspace2");
+  const ws2 = document.getElementById("workspace2Root");
+  if (ws2) ws2.hidden = next !== "workspace2";
+}
+
+function initLayoutMode() {
+  applyLayoutMode(getLayoutMode());
 }
 
 
@@ -997,6 +1013,26 @@ function getTrackById(trackId) {
   return getOrderedTracks().find((track) => track.id === trackId) || null;
 }
 
+function getUpstreamLensInstance(instance) {
+  if (!instance || !instance.trackId) return null;
+  const track = getTrackById(instance.trackId);
+  if (!track) return null;
+  const ordered = ensureTrackLensOrder(track);
+  const targetPath = Array.isArray(instance.path) ? instance.path : [];
+  let previousSibling = null;
+  for (const lensId of ordered) {
+    const candidate = lensInstances.get(lensId);
+    if (!candidate) continue;
+    const candidatePath = Array.isArray(candidate.path) ? candidate.path : [];
+    if (!hasSameParentPath(candidatePath, targetPath)) continue;
+    if (candidate.lensInstanceId === instance.lensInstanceId) {
+      return previousSibling;
+    }
+    previousSibling = candidate;
+  }
+  return null;
+}
+
 function createStableId(prefix) {
   const base = (typeof crypto !== "undefined" && crypto.randomUUID)
     ? crypto.randomUUID()
@@ -1014,31 +1050,73 @@ function getTrackNumber(trackId) {
   return index >= 0 ? index + 1 : 0;
 }
 
-function getGeneratorLabel(trackId) {
-  const number = getTrackNumber(trackId);
-  return number ? `${number}G` : "G";
-}
-
-function getTransformerLabel(trackId, transformerInstanceId) {
-  const track = getTrackById(trackId);
-  if (!track) return "T";
-  const idx = track.transformerInstanceIds.indexOf(transformerInstanceId);
-  const number = getTrackNumber(trackId);
-  const k = idx >= 0 ? idx + 1 : 0;
-  if (!number || !k) return `${number || "?"}G?T`;
-  return `${number}G${k}T`;
-}
-
-  function getLensInstanceLabel(instance) {
-    if (!instance) return "";
-    if (instance.lane === "G") return getGeneratorLabel(instance.trackId);
-    return getTransformerLabel(instance.trackId, instance.lensInstanceId);
+function ensureTrackLensOrder(track) {
+  if (!track) return [];
+  if (!Array.isArray(track.lensInstanceIds)) {
+    track.lensInstanceIds = [];
   }
+  return track.lensInstanceIds;
+}
+
+function updateTrackLensPaths(track) {
+  const lensIds = ensureTrackLensOrder(track);
+  lensIds.forEach((lensId, index) => {
+    const instance = lensInstances.get(lensId);
+    if (!instance) return;
+    const basePath = Array.isArray(instance.path) ? instance.path.slice(0, -1) : [];
+    instance.path = [...basePath, index + 1];
+  });
+}
+
+function addLensToTrack(track, lensInstanceId) {
+  const ids = ensureTrackLensOrder(track);
+  ids.push(lensInstanceId);
+  updateTrackLensPaths(track);
+}
+
+function removeLensFromTrack(track, lensInstanceId) {
+  if (!track) return;
+  track.lensInstanceIds = ensureTrackLensOrder(track).filter((id) => id !== lensInstanceId);
+  updateTrackLensPaths(track);
+}
+
+function getLensPathLabel(instance) {
+  if (!instance) return "";
+  const trackNumber = getTrackNumber(instance.trackId);
+  const path = Array.isArray(instance.path)
+    ? instance.path.filter((value) => Number.isFinite(value))
+    : [];
+  const pathLabel = path.length ? path.join(".") : "?";
+  return trackNumber ? `T${trackNumber}.${pathLabel}` : `T?.${pathLabel}`;
+}
 
 function getLensHeaderLabel(instance) {
-  const label = getLensInstanceLabel(instance);
+  const pathLabel = getLensPathLabel(instance);
   const name = instance.lens && instance.lens.meta ? instance.lens.meta.name : "Lens";
-  return `${label} - ${name}`;
+  return `${pathLabel} · ${name}`;
+}
+
+function getParentPath(path) {
+  if (!Array.isArray(path) || !path.length) return [];
+  return path.slice(0, -1);
+}
+
+function hasSameParentPath(pathA, pathB) {
+  const parentA = getParentPath(pathA);
+  const parentB = getParentPath(pathB);
+  if (parentA.length !== parentB.length) return false;
+  return parentA.every((value, index) => value === parentB[index]);
+}
+
+function comparePathArrays(a, b) {
+  const len = Math.max(a.length, b.length);
+  for (let i = 0; i < len; i += 1) {
+    const va = Number.isFinite(a[i]) ? a[i] : -1;
+    const vb = Number.isFinite(b[i]) ? b[i] : -1;
+    if (va < vb) return -1;
+    if (va > vb) return 1;
+  }
+  return 0;
 }
 
 function setFocusedLensInstance(lensId, instanceId) {
@@ -1108,33 +1186,24 @@ function createTrack(name) {
   const track = {
     id: createStableId("track"),
     name: name || "Untitled track",
-    generatorInstanceId: null,
-    transformerInstanceIds: []
+    lensInstanceIds: []
   };
   state.tracks.push(track);
   return track;
 }
 
-function listGeneratorLenses() {
-  return listLenses().filter((lens) => lens.meta && lens.meta.kind === "generator");
-}
-
-function listTransformerLenses() {
-  return listLenses().filter((lens) => lens.meta && lens.meta.kind === "transformer");
-}
-
-  function createInstanceForTrack(lens, trackId, lane) {
+  function createInstanceForTrack(lens, trackId) {
     const instanceId = createStableId("lens");
     const instance = createLensInstance(lens, instanceId);
     instance.lensId = lens.meta.id;
     instance.kind = lens.meta.kind;
     instance.trackId = trackId;
-    instance.lane = lane;
-  lensInstances.set(instanceId, instance);
-  state.lensInstancesById.set(instanceId, instance);
-  applyGlobalMidiParamsToInstance(instance);
-  return instance;
-}
+    instance.path = [];
+    lensInstances.set(instanceId, instance);
+    state.lensInstancesById.set(instanceId, instance);
+    applyGlobalMidiParamsToInstance(instance);
+    return instance;
+  }
 
 function serializeWorkspace() {
   return {
@@ -1142,24 +1211,23 @@ function serializeWorkspace() {
     tracks: getOrderedTracks().map((track) => ({
       id: track.id,
       name: track.name || "Untitled track",
-      generatorInstanceId: track.generatorInstanceId || null,
-      transformerInstanceIds: Array.isArray(track.transformerInstanceIds)
-        ? track.transformerInstanceIds.slice()
+      lensInstanceIds: Array.isArray(track.lensInstanceIds)
+        ? track.lensInstanceIds.slice()
         : []
-      })),
-      lensInstances: Array.from(lensInstances.values()).map((instance) => ({
-        lensInstanceId: instance.lensInstanceId,
-        lensId: instance.lens && instance.lens.meta ? instance.lens.meta.id : instance.lensId,
-        trackId: instance.trackId || null,
-        lane: instance.lane || null,
-        paramsValues: { ...(instance.paramsValues || {}) },
-        generatorInputValues: { ...(instance.generatorInputValues || {}) },
-        selectedInputRefsByRole: { ...(instance.selectedInputRefsByRole || {}) },
-        activeDraftId: instance.activeDraftId || null,
-        activeDraftIndex: Number.isFinite(instance.activeDraftIndex)
-          ? instance.activeDraftIndex
-          : null
-      })),
+    })),
+    lensInstances: Array.from(lensInstances.values()).map((instance) => ({
+      lensInstanceId: instance.lensInstanceId,
+      lensId: instance.lens && instance.lens.meta ? instance.lens.meta.id : instance.lensId,
+      trackId: instance.trackId || null,
+      path: Array.isArray(instance.path) ? instance.path.slice() : [],
+      paramsValues: { ...(instance.paramsValues || {}) },
+      generatorInputValues: { ...(instance.generatorInputValues || {}) },
+      selectedInputRefsByRole: { ...(instance.selectedInputRefsByRole || {}) },
+      activeDraftId: instance.activeDraftId || null,
+      activeDraftIndex: Number.isFinite(instance.activeDraftIndex)
+        ? instance.activeDraftIndex
+        : null
+    })),
     focus: {
       focusedIntervalPlacementId: state.focusedIntervalPlacementId || null,
       focusedLensInstances: Array.from(focusedLensInstances.entries())
@@ -1184,7 +1252,7 @@ function serializeWorkspace() {
     instance.lensId = lens.meta.id;
     instance.kind = lens.meta.kind;
     instance.trackId = snapshot.trackId || null;
-    instance.lane = snapshot.lane || null;
+    instance.path = Array.isArray(snapshot.path) ? snapshot.path.slice() : [];
     instance.paramsValues = { ...instance.paramsValues, ...(snapshot.paramsValues || {}) };
     instance.generatorInputValues = { ...instance.generatorInputValues, ...(snapshot.generatorInputValues || {}) };
     const legacySelected = snapshot.selectedInputDraftIdsByRole || {};
@@ -1217,28 +1285,36 @@ function loadWorkspace() {
   if (!parsed || !Array.isArray(parsed.tracks) || !Array.isArray(parsed.lensInstances)) {
     return false;
   }
-  state.tracks = parsed.tracks.map((track) => ({
-    id: track.id,
-    name: track.name || "Untitled track",
-    generatorInstanceId: track.generatorInstanceId || null,
-    transformerInstanceIds: Array.isArray(track.transformerInstanceIds)
-      ? track.transformerInstanceIds.slice()
-      : []
-  }));
+  state.tracks = parsed.tracks.map((track) => {
+    const lensIds = Array.isArray(track.lensInstanceIds)
+      ? track.lensInstanceIds.slice()
+      : [];
+    if (!lensIds.length) {
+      if (track.generatorInstanceId) {
+        lensIds.push(track.generatorInstanceId);
+      }
+      if (Array.isArray(track.transformerInstanceIds)) {
+        lensIds.push(...track.transformerInstanceIds);
+      }
+    }
+    return {
+      id: track.id,
+      name: track.name || "Untitled track",
+      lensInstanceIds: lensIds
+    };
+  });
   lensInstances.clear();
   state.lensInstancesById.clear();
   focusedLensInstances.clear();
   state.focusedIntervalPlacementId = null;
-    const createdIds = new Set();
-    parsed.lensInstances.forEach((snapshot) => {
-      const instance = restoreLensInstance(snapshot);
-      if (instance) createdIds.add(instance.lensInstanceId);
-    });
+  const createdIds = new Set();
+  parsed.lensInstances.forEach((snapshot) => {
+    const instance = restoreLensInstance(snapshot);
+    if (instance) createdIds.add(instance.lensInstanceId);
+  });
   state.tracks.forEach((track) => {
-    if (track.generatorInstanceId && !createdIds.has(track.generatorInstanceId)) {
-      track.generatorInstanceId = null;
-    }
-    track.transformerInstanceIds = (track.transformerInstanceIds || []).filter((id) => createdIds.has(id));
+    track.lensInstanceIds = (track.lensInstanceIds || []).filter((id) => createdIds.has(id));
+    updateTrackLensPaths(track);
   });
   const focus = parsed.focus || {};
   if (Array.isArray(focus.focusedLensInstances)) {
@@ -1481,8 +1557,8 @@ function renderTransformerVisualizer(elements, instance) {
             syncedIntervalPlacement = true;
           }
           }
-          ensureSingleInputTransformerSelections(getOrderedTracks(), lensInstances, scheduleLens);
-          refreshTransformerInputs();
+          ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+          refreshLensInputs();
         },
       onAddToInventory: (draft) => {
         addDraftToInventory(draft);
@@ -1499,7 +1575,7 @@ function renderTransformerVisualizer(elements, instance) {
       vizActive = true;
     } else if (isIntervalPlacement) {
       vizActive = true;
-    } else if (!isIntervalPlacement && instance.lens.meta.kind === "transformer" && lensSupportsVisualizer) {
+    } else if (!isIntervalPlacement && lensSupportsVisualizer) {
       vizActive = renderTransformerVisualizer(elements, instance);
     }
     updateLensVisualizerState(instance, elements, vizActive);
@@ -1511,12 +1587,8 @@ function renderTransformerVisualizer(elements, instance) {
     render();
     renderWorkspaceIntervalPlacementViz(instance);
   }
-    if (instance.lane === "G") {
-      ensureSingleInputTransformerSelections(getOrderedTracks(), lensInstances, scheduleLens);
-    } else {
-      ensureSingleInputTransformerSelections(getOrderedTracks(), lensInstances, scheduleLens);
-    }
-    refreshTransformerInputs();
+    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    refreshLensInputs();
   }
 
   function scheduleLens(instance) {
@@ -1524,6 +1596,7 @@ function renderTransformerVisualizer(elements, instance) {
       getContext: () => getLensContext(instance),
       getDraftCatalog: () => collectDraftCatalog(Array.from(lensInstances.values())),
       getLensInstanceById: (id) => lensInstances.get(id) || null,
+      getUpstreamInstance: getUpstreamLensInstance,
       onUpdate: handleLensUpdate,
       debounceMs: 80
     });
@@ -1535,24 +1608,27 @@ function renderTransformerVisualizer(elements, instance) {
     return { mode: "freeze", sourceDraftId: value };
   }
 
-  function refreshTransformerInputs() {
+  function refreshLensInputs() {
     const draftCatalog = collectDraftCatalog(Array.from(lensInstances.values()));
     const metaById = buildDraftMetaById();
     const activeDraftIdByLensInstanceId = buildActiveDraftIdByLensInstanceId();
     const trackOrder = getOrderedTracks().map((track) => track.id);
+    const handleInputChange = (instance, role, value) => {
+      instance.selectedInputRefsByRole = instance.selectedInputRefsByRole || {};
+      instance.selectedInputRefsByRole[role] = normalizeInputRefChange(value);
+      scheduleLens(instance);
+    };
     lensInstances.forEach((instance) => {
-      if (instance.lens.meta.kind !== "transformer") return;
+      const inputSpecs = Array.isArray(instance.lens.inputs) ? instance.lens.inputs : [];
+      if (!inputSpecs.length) return;
       const elements = lensElements.get(instance.lensInstanceId);
       if (elements) {
-        renderTransformerInputs(
+        renderLensInputs(
           elements.inputs,
-          instance.lens.inputs,
+          inputSpecs,
           draftCatalog,
           instance.selectedInputRefsByRole,
-          (role, value) => {
-            instance.selectedInputRefsByRole[role] = normalizeInputRefChange(value);
-            scheduleLens(instance);
-          },
+          (role, value) => handleInputChange(instance, role, value),
           { metaById, trackOrder, activeDraftIdByLensInstanceId }
         );
       }
@@ -1560,21 +1636,18 @@ function renderTransformerVisualizer(elements, instance) {
       if (focusedId === instance.lensInstanceId) {
         const dash = dashboardLensElements.get(instance.lens.meta.id);
         if (dash) {
-          renderTransformerInputs(
+          renderLensInputs(
             dash.inputs,
-            instance.lens.inputs,
+            inputSpecs,
             draftCatalog,
             instance.selectedInputRefsByRole,
-            (role, value) => {
-              instance.selectedInputRefsByRole[role] = normalizeInputRefChange(value);
-              scheduleLens(instance);
-            },
+            (role, value) => handleInputChange(instance, role, value),
             { metaById, trackOrder, activeDraftIdByLensInstanceId }
           );
         }
       }
-  });
-}
+    });
+  }
 
 function initDashboardLensElements() {
   ["intervalPlacement", "euclideanPatterns"].forEach((lensId) => {
@@ -1592,23 +1665,24 @@ function bindLensInputsForInstance(instance, elements, options = {}) {
   if (lens.meta.id === "euclideanPatterns") {
     renderEuclidInputs(elements.inputs, instance, lens);
     renderEuclidParams(elements.params, instance, lens);
-    } else if (lens.meta.kind === "transformer" && Array.isArray(lens.inputs) && lens.inputs.length) {
-      renderTransformerInputs(
-        elements.inputs,
-        lens.inputs,
-        collectDraftCatalog(Array.from(lensInstances.values())),
-        instance.selectedInputRefsByRole,
-        (role, value) => {
-          instance.selectedInputRefsByRole[role] = normalizeInputRefChange(value);
-          scheduleLens(instance);
-        },
-        {
-          metaById: buildDraftMetaById(),
-          trackOrder: getOrderedTracks().map((track) => track.id),
-          activeDraftIdByLensInstanceId: buildActiveDraftIdByLensInstanceId()
-        }
-      );
-    } else {
+  } else if (Array.isArray(lens.inputs) && lens.inputs.length) {
+    renderLensInputs(
+      elements.inputs,
+      lens.inputs,
+      collectDraftCatalog(Array.from(lensInstances.values())),
+      instance.selectedInputRefsByRole,
+      (role, value) => {
+        instance.selectedInputRefsByRole = instance.selectedInputRefsByRole || {};
+        instance.selectedInputRefsByRole[role] = normalizeInputRefChange(value);
+        scheduleLens(instance);
+      },
+      {
+        metaById: buildDraftMetaById(),
+        trackOrder: getOrderedTracks().map((track) => track.id),
+        activeDraftIdByLensInstanceId: buildActiveDraftIdByLensInstanceId()
+      }
+    );
+  } else {
     initLensControls(elements.inputs, lens.generatorInputs, instance.generatorInputValues, (spec, value) => {
       bindLensInputHandlers(instance, lens.generatorInputs, spec.key, value);
       storeLensSpecValue(lens.meta.id, "inputs", spec.key, instance.generatorInputValues[spec.key]);
@@ -1635,8 +1709,8 @@ function initDefaultTracks() {
   const first = createTrack("Track 1");
   const intervalLens = getLens("intervalPlacement");
   if (intervalLens) {
-    const instance = createInstanceForTrack(intervalLens, first.id, "G");
-    first.generatorInstanceId = instance.lensInstanceId;
+    const instance = createInstanceForTrack(intervalLens, first.id);
+    addLensToTrack(first, instance.lensInstanceId);
     setFocusedLensInstance(intervalLens.meta.id, instance.lensInstanceId);
     (intervalLens.generatorInputs || []).forEach((spec) => {
       instance.generatorInputValues[spec.key] = loadLensSpecValue(intervalLens.meta.id, "inputs", spec);
@@ -1654,39 +1728,24 @@ function buildDraftMetaById() {
   ordered.forEach((track) => {
     const trackNumber = getTrackNumber(track.id);
     const trackName = track.name || `Track ${trackNumber}`;
-    if (track.generatorInstanceId) {
-      const instance = lensInstances.get(track.generatorInstanceId);
-      if (instance) {
-        const label = getGeneratorLabel(track.id);
-        (instance.currentDrafts || []).forEach((draft) => {
-          metaById.set(draft.draftId, {
-            trackId: track.id,
-            trackNumber,
-            trackName,
-            label,
-            lensName: instance.lens.meta.name,
-            lensInstanceId: instance.lensInstanceId,
-            isActive: instance.activeDraftId === draft.draftId
-          });
-        });
-      }
-    }
-      track.transformerInstanceIds.forEach((instanceId) => {
-        const instance = lensInstances.get(instanceId);
-        if (!instance) return;
-        const label = getTransformerLabel(track.id, instanceId);
-        (instance.currentDrafts || []).forEach((draft) => {
-          metaById.set(draft.draftId, {
-            trackId: track.id,
-            trackNumber,
-            trackName,
-            label,
-            lensName: instance.lens.meta.name,
-            lensInstanceId: instance.lensInstanceId,
-            isActive: instance.activeDraftId === draft.draftId
-          });
+    const lensIds = ensureTrackLensOrder(track);
+    lensIds.forEach((instanceId) => {
+      const instance = lensInstances.get(instanceId);
+      if (!instance) return;
+      const label = getLensPathLabel(instance);
+      (instance.currentDrafts || []).forEach((draft) => {
+        metaById.set(draft.draftId, {
+          trackId: track.id,
+          trackNumber,
+          trackName,
+          label,
+          path: Array.isArray(instance.path) ? instance.path.slice() : [],
+          lensName: instance.lens.meta.name,
+          lensInstanceId: instance.lensInstanceId,
+          isActive: instance.activeDraftId === draft.draftId
         });
       });
+    });
   });
   return metaById;
 }
@@ -1705,7 +1764,8 @@ function clearSelectionsForDraftIds(draftIds) {
   const toClear = new Set(draftIds);
   if (!toClear.size) return;
   lensInstances.forEach((instance) => {
-    if (instance.lens.meta.kind !== "transformer") return;
+    const hasInputs = Array.isArray(instance.lens.inputs) && instance.lens.inputs.length;
+    if (!hasInputs) return;
     const selected = instance.selectedInputRefsByRole || {};
     Object.keys(selected).forEach((role) => {
       const ref = selected[role];
@@ -1723,7 +1783,8 @@ function clearSelectionsForDraftIds(draftIds) {
 function pruneMissingSelections() {
   const draftIds = new Set(collectDraftCatalog(Array.from(lensInstances.values())).map((draft) => draft.draftId));
   lensInstances.forEach((instance) => {
-    if (instance.lens.meta.kind !== "transformer") return;
+    const hasInputs = Array.isArray(instance.lens.inputs) && instance.lens.inputs.length;
+    if (!hasInputs) return;
     const selected = instance.selectedInputRefsByRole || {};
     let changed = false;
     Object.keys(selected).forEach((role) => {
@@ -1752,7 +1813,7 @@ function pruneMissingSelections() {
 
 function propagateActiveDrafts(instance) {
   if (!instance) return;
-  ensureSingleInputTransformerSelections(getOrderedTracks(), lensInstances, scheduleLens);
+  ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
 }
 
 function removeLensInstance(instanceId) {
@@ -1761,11 +1822,7 @@ function removeLensInstance(instanceId) {
   const track = getTrackById(instance.trackId);
   const removedDrafts = (instance.currentDrafts || []).map((draft) => draft.draftId);
   if (track) {
-    if (instance.lane === "G") {
-      track.generatorInstanceId = null;
-    } else {
-      track.transformerInstanceIds = track.transformerInstanceIds.filter((id) => id !== instanceId);
-    }
+    removeLensFromTrack(track, instanceId);
   }
   lensInstances.delete(instanceId);
   state.lensInstancesById.delete(instanceId);
@@ -1903,56 +1960,54 @@ function moveTrackToIndex(trackId, targetIndex) {
   renderTrackWorkspace();
 }
 
-function moveTransformer(trackId, instanceId, delta) {
+function moveLensInTrack(trackId, instanceId, delta) {
   const track = getTrackById(trackId);
   if (!track) return;
-  const index = track.transformerInstanceIds.indexOf(instanceId);
+  const lensIds = ensureTrackLensOrder(track);
+  const index = lensIds.indexOf(instanceId);
   if (index < 0) return;
   const nextIndex = index + delta;
-  if (nextIndex < 0 || nextIndex >= track.transformerInstanceIds.length) return;
-  moveArrayItem(track.transformerInstanceIds, index, nextIndex);
+  if (nextIndex < 0 || nextIndex >= lensIds.length) return;
+  moveArrayItem(lensIds, index, nextIndex);
+  updateTrackLensPaths(track);
   renderTrackWorkspace();
 }
 
-  function seedTransformerDefaults(instance, trackId) {
-    const track = getTrackById(trackId);
-    if (!track || !track.generatorInstanceId) return;
-    const generator = lensInstances.get(track.generatorInstanceId);
-    if (!generator) return;
-    const drafts = generator.currentDrafts || [];
+  function seedLensDefaults(instance) {
+    if (!instance) return;
+    const upstream = getUpstreamLensInstance(instance);
+    if (!upstream) return;
+    const drafts = upstream.currentDrafts || [];
     if (!drafts.length) return;
+    instance.selectedInputRefsByRole = instance.selectedInputRefsByRole || {};
     (instance.lens.inputs || []).forEach((spec) => {
       if (instance.selectedInputRefsByRole[spec.role]) return;
-      const match = drafts.find((draft) => {
+      const matches = drafts.filter((draft) => {
         if (!draft || !draft.type) return false;
         if (Array.isArray(spec.accepts) && spec.accepts.length && !spec.accepts.includes(draft.type)) return false;
         if (Array.isArray(spec.acceptsSubtypes) && spec.acceptsSubtypes.length && !spec.acceptsSubtypes.includes(draft.subtype)) return false;
         return true;
       });
-      const activeMatch = drafts.find((draft) => draft.draftId === generator.activeDraftId
-        && (!Array.isArray(spec.accepts) || !spec.accepts.length || spec.accepts.includes(draft.type))
-        && (!Array.isArray(spec.acceptsSubtypes) || !spec.acceptsSubtypes.length || spec.acceptsSubtypes.includes(draft.subtype)));
-      if (activeMatch) {
-        instance.selectedInputRefsByRole[spec.role] = {
-          mode: "active",
-          sourceLensInstanceId: generator.lensInstanceId
-        };
-      } else if (match) {
-        instance.selectedInputRefsByRole[spec.role] = {
-          mode: "freeze",
-          sourceDraftId: match.draftId
-        };
-      }
+      if (!matches.length) return;
+      const activeMatch = matches.find((draft) => draft.draftId === upstream.activeDraftId);
+      const candidate = activeMatch || matches[0];
+      if (!candidate) return;
+      instance.selectedInputRefsByRole[spec.role] = activeMatch
+        ? { mode: "active", sourceLensInstanceId: upstream.lensInstanceId }
+        : { mode: "freeze", sourceDraftId: candidate.draftId };
     });
   }
 
 function buildLensPanel(instance, opts = {}) {
   const lens = instance.lens;
-  const hasTransformerInputs = Boolean(
-    lens.meta.kind === "transformer" && Array.isArray(lens.inputs) && lens.inputs.length
+  const hasLensInputs = Boolean(
+    Array.isArray(lens.inputs) && lens.inputs.length
   );
   const root = document.createElement("section");
   root.className = `lens-layout lens-compact track-lens ${opts.className || ""}`.trim();
+  const depth = Array.isArray(instance.path) ? instance.path.length : 0;
+  root.dataset.depth = depth;
+  root.style.setProperty("--lens-depth", depth);
   root.dataset.lensInstanceId = instance.lensInstanceId;
 
   const rail = document.createElement("div");
@@ -1963,9 +2018,7 @@ function buildLensPanel(instance, opts = {}) {
   removeBtn.setAttribute("aria-label", "Remove lens");
   removeBtn.appendChild(icon("square-x"));
   removeBtn.addEventListener("click", () => {
-    const confirmMsg = instance.lane === "G"
-      ? "Remove generator lens from this track?"
-      : "Remove transformer lens from this track?";
+    const confirmMsg = "Remove this lens from the track?";
     if (window.confirm(confirmMsg)) {
       removeLensInstance(instance.lensInstanceId);
       renderTrackWorkspace();
@@ -1977,7 +2030,7 @@ function buildLensPanel(instance, opts = {}) {
   rail.appendChild(railLabel);
   let railInputsMenu = null;
   let railInputsMenuList = null;
-  if (hasTransformerInputs) {
+  if (hasLensInputs) {
     railInputsMenu = document.createElement("div");
     railInputsMenu.className = "lens-rail-menu";
     const infoButton = document.createElement("button");
@@ -2026,7 +2079,7 @@ function buildLensPanel(instance, opts = {}) {
   const leftBody = document.createElement("div");
   leftBody.className = "lens-column-body";
   let inputBody = railInputsMenuList;
-  if (!hasTransformerInputs) {
+  if (!hasLensInputs) {
     const inputSection = document.createElement("div");
     inputSection.className = "lens-section";
     const inputHeader = document.createElement("div");
@@ -2200,6 +2253,14 @@ function renderTrackWorkspace() {
   const placeholder = document.createElement("div");
   placeholder.className = "track-drop-placeholder";
 
+  const availableLenses = listLenses()
+    .slice()
+    .sort((a, b) => {
+      const labelA = (a && a.meta && a.meta.name) || "";
+      const labelB = (b && b.meta && b.meta.name) || "";
+      return labelA.localeCompare(labelB);
+    });
+
   function clearPlaceholder() {
     if (placeholder.parentElement) {
       placeholder.parentElement.removeChild(placeholder);
@@ -2259,7 +2320,7 @@ function renderTrackWorkspace() {
     nameInput.placeholder = "Track name";
     nameInput.addEventListener("input", () => {
       track.name = nameInput.value.trim() || "Untitled track";
-      refreshTransformerInputs();
+      refreshLensInputs();
     });
     const dragHandle = document.createElement("button");
     dragHandle.type = "button";
@@ -2286,89 +2347,54 @@ function renderTrackWorkspace() {
 
     const actions = document.createElement("div");
     actions.className = "track-actions";
-    const generatorMenu = document.createElement("div");
-    generatorMenu.className = "track-menu";
-    const generatorBtn = document.createElement("button");
-    generatorBtn.type = "button";
-    generatorBtn.className = "track-menu-trigger ghost";
-    generatorBtn.textContent = "+ generator";
-    generatorBtn.disabled = Boolean(track.generatorInstanceId);
-    if (generatorBtn.disabled) generatorBtn.classList.add("is-disabled");
-    generatorMenu.appendChild(generatorBtn);
-    const generatorList = document.createElement("div");
-    generatorList.className = "track-menu-list";
-    const generatorLenses = listGeneratorLenses();
-    if (!generatorLenses.length) {
+    const lensMenu = document.createElement("div");
+    lensMenu.className = "track-menu";
+    const lensBtn = document.createElement("button");
+    lensBtn.type = "button";
+    lensBtn.className = "track-menu-trigger ghost";
+    lensBtn.textContent = "+ Lens";
+    lensMenu.appendChild(lensBtn);
+    const lensList = document.createElement("div");
+    lensList.className = "track-menu-list";
+    if (!availableLenses.length) {
       const empty = document.createElement("div");
       empty.className = "track-menu-empty";
-      empty.textContent = "No generator lenses";
-      generatorList.appendChild(empty);
+      empty.textContent = "No lenses available";
+      lensList.appendChild(empty);
     } else {
-      generatorLenses.forEach((lens) => {
+      availableLenses.forEach((lens) => {
         const item = document.createElement("button");
         item.type = "button";
         item.className = "track-menu-item";
         item.textContent = lens.meta.name;
         item.addEventListener("click", (event) => {
           event.stopPropagation();
-          if (track.generatorInstanceId) return;
-          const instance = createInstanceForTrack(lens, track.id, "G");
-          track.generatorInstanceId = instance.lensInstanceId;
-          setFocusedLensInstance(lens.meta.id, instance.lensInstanceId);
+          lensMenu.classList.remove("is-open");
+          const instance = createInstanceForTrack(lens, track.id);
+          addLensToTrack(track, instance.lensInstanceId);
+          seedLensDefaults(instance);
           (lens.generatorInputs || []).forEach((spec) => {
             instance.generatorInputValues[spec.key] = loadLensSpecValue(lens.meta.id, "inputs", spec);
           });
           (lens.params || []).forEach((spec) => {
             instance.paramsValues[spec.key] = loadLensSpecValue(lens.meta.id, "params", spec);
           });
+          setFocusedLensInstance(lens.meta.id, instance.lensInstanceId);
           renderTrackWorkspace();
         });
-        generatorList.appendChild(item);
+        lensList.appendChild(item);
       });
     }
-    generatorMenu.appendChild(generatorList);
-    generatorBtn.addEventListener("click", (event) => {
+    lensMenu.appendChild(lensList);
+    lensBtn.addEventListener("click", (event) => {
       event.stopPropagation();
-      transformerMenu.classList.remove("is-open");
-      generatorMenu.classList.toggle("is-open");
-    });
-
-    const transformerMenu = document.createElement("div");
-    transformerMenu.className = "track-menu";
-    const transformerBtn = document.createElement("button");
-    transformerBtn.type = "button";
-    transformerBtn.className = "track-menu-trigger ghost";
-    transformerBtn.textContent = "+ transformer";
-    transformerMenu.appendChild(transformerBtn);
-    const transformerList = document.createElement("div");
-    transformerList.className = "track-menu-list";
-    const transformerLenses = listTransformerLenses();
-    if (!transformerLenses.length) {
-      const empty = document.createElement("div");
-      empty.className = "track-menu-empty";
-      empty.textContent = "No transformer lenses";
-      transformerList.appendChild(empty);
-    } else {
-      transformerLenses.forEach((lens) => {
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "track-menu-item";
-        item.textContent = lens.meta.name;
-        item.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const instance = createInstanceForTrack(lens, track.id, "T");
-          track.transformerInstanceIds.push(instance.lensInstanceId);
-          seedTransformerDefaults(instance, track.id);
-          renderTrackWorkspace();
-        });
-        transformerList.appendChild(item);
+      const otherMenus = container.querySelectorAll(".track-menu.is-open");
+      otherMenus.forEach((menu) => {
+        if (menu !== lensMenu) {
+          menu.classList.remove("is-open");
+        }
       });
-    }
-    transformerMenu.appendChild(transformerList);
-    transformerBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      generatorMenu.classList.remove("is-open");
-      transformerMenu.classList.toggle("is-open");
+      lensMenu.classList.toggle("is-open");
     });
     const removeTrackBtn = document.createElement("button");
     removeTrackBtn.type = "button";
@@ -2379,77 +2405,52 @@ function renderTrackWorkspace() {
     removeTrackLabel.textContent = "Remove Track";
     removeTrackBtn.appendChild(removeTrackLabel);
     removeTrackBtn.addEventListener("click", () => {
-      const hasLenses = track.generatorInstanceId || track.transformerInstanceIds.length;
+      const hasLenses = track.lensInstanceIds.length;
       if (hasLenses && !window.confirm("Remove this track and all its lenses?")) return;
-      if (track.generatorInstanceId) removeLensInstance(track.generatorInstanceId);
-      track.transformerInstanceIds.forEach((id) => removeLensInstance(id));
+      track.lensInstanceIds.slice().forEach((id) => removeLensInstance(id));
       state.tracks = state.tracks.filter((entry) => entry.id !== track.id);
       renderTrackWorkspace();
     });
-    actions.appendChild(generatorMenu);
-    actions.appendChild(transformerMenu);
+    actions.appendChild(lensMenu);
     actions.appendChild(removeTrackBtn);
     left.appendChild(actions);
 
     const body = document.createElement("div");
     body.className = "track-body";
 
-    const generatorLane = document.createElement("div");
-    generatorLane.className = "track-lane";
-    const generatorTitle = document.createElement("div");
-    generatorTitle.className = "track-lane-title";
-    generatorTitle.textContent = "Generator lane";
-    generatorLane.appendChild(generatorTitle);
-    if (track.generatorInstanceId) {
-      const instance = lensInstances.get(track.generatorInstanceId);
-      if (instance) {
-        generatorLane.appendChild(buildLensPanel(instance));
-      }
-    } else {
+    const lensContainer = document.createElement("div");
+    lensContainer.className = "track-lens-list";
+    if (!track.lensInstanceIds.length) {
       const placeholder = document.createElement("div");
       placeholder.className = "track-placeholder";
-      placeholder.textContent = "No generator in this track.";
-      generatorLane.appendChild(placeholder);
-    }
-    body.appendChild(generatorLane);
-
-    const transformerLane = document.createElement("div");
-    transformerLane.className = "track-lane";
-    const transformerTitle = document.createElement("div");
-    transformerTitle.className = "track-lane-title";
-    transformerTitle.textContent = "Transformers lane";
-    transformerLane.appendChild(transformerTitle);
-    if (!track.transformerInstanceIds.length) {
-      const placeholder = document.createElement("div");
-      placeholder.className = "track-placeholder";
-      placeholder.textContent = "No transformers in this track.";
-      transformerLane.appendChild(placeholder);
+      placeholder.textContent = "No lenses in this track.";
+      lensContainer.appendChild(placeholder);
     } else {
-      track.transformerInstanceIds.forEach((instanceId, idx) => {
+      track.lensInstanceIds.forEach((instanceId, idx) => {
         const instance = lensInstances.get(instanceId);
         if (!instance) return;
-        const panel = buildLensPanel(instance, { className: "track-transformer" });
-        const actions = panel.querySelector(".lens-panel-actions");
-        if (actions) {
+        const panel = buildLensPanel(instance, { className: "track-lens-item" });
+        const actionsContainer = panel.querySelector(".lens-panel-actions");
+        if (actionsContainer) {
           const upBtn = document.createElement("button");
           upBtn.type = "button";
           upBtn.className = "ghost";
           upBtn.textContent = "Up";
           upBtn.disabled = idx === 0;
-          upBtn.addEventListener("click", () => moveTransformer(track.id, instanceId, -1));
+          upBtn.addEventListener("click", () => moveLensInTrack(track.id, instanceId, -1));
           const downBtn = document.createElement("button");
           downBtn.type = "button";
           downBtn.className = "ghost";
           downBtn.textContent = "Down";
-          downBtn.disabled = idx === track.transformerInstanceIds.length - 1;
-          downBtn.addEventListener("click", () => moveTransformer(track.id, instanceId, 1));
-          actions.appendChild(upBtn);
-          actions.appendChild(downBtn);
+          downBtn.disabled = idx === track.lensInstanceIds.length - 1;
+          downBtn.addEventListener("click", () => moveLensInTrack(track.id, instanceId, 1));
+          actionsContainer.appendChild(upBtn);
+          actionsContainer.appendChild(downBtn);
         }
-        transformerLane.appendChild(panel);
+        lensContainer.appendChild(panel);
       });
     }
-    body.appendChild(transformerLane);
+    body.appendChild(lensContainer);
 
     card.appendChild(left);
     card.appendChild(body);
@@ -2458,7 +2459,7 @@ function renderTrackWorkspace() {
   container.appendChild(list);
   syncFocusedLensInstances();
   renderFocusedDashboard();
-  refreshTransformerInputs();
+  refreshLensInputs();
 }
 
 function renderFocusedDashboard() {
@@ -2485,7 +2486,7 @@ function renderFocusedDashboard() {
       renderWorkspaceIntervalPlacementViz(instance);
     }
         propagateActiveDrafts(instance);
-        refreshTransformerInputs();
+        refreshLensInputs();
       },
       onAddToInventory: addDraftToInventory,
       onAddToDesk: addDraftToDesk
@@ -3199,6 +3200,7 @@ if (els.selectedInfo) {
   });
 }
 
+initLayoutMode();
 loadInputs();
 renderMidiParams();
 loadFavorites();

@@ -134,5 +134,6 @@ export const storageKeys = {
   workspaceLaneState: "intervalApplet.workspaceLaneState",
   workspaceDockHeight: "intervalApplet.workspaceDockHeight",
   workspaceDockCollapsed: "intervalApplet.workspaceDockCollapsed",
+  layoutMode: "intervalApplet.layoutMode",
   tracks: "intervalApplet.tracks"
 };
