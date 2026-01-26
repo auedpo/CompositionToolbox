@@ -100,4 +100,33 @@ function buildTrack(lensIds) {
   assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, { mode: "freeze", sourceDraftId: "legacy" });
 }
 
+{
+  const firstDraft = buildDraft("draftA");
+  const generator = buildGenerator("gen-multi", firstDraft, 1);
+  const transformerA = buildLensInstance("transA", [{ role: "input", required: true }]);
+  const transformerB = buildLensInstance("transB", [{ role: "input", required: true }]);
+  const tracks = [buildTrack([generator.lensInstanceId, transformerA.lensInstanceId, transformerB.lensInstanceId])];
+  const lensInstances = new Map([
+    [generator.lensInstanceId, generator],
+    [transformerA.lensInstanceId, transformerA],
+    [transformerB.lensInstanceId, transformerB]
+  ]);
+  const scheduleCalls = [];
+  const scheduleLens = (instance) => scheduleCalls.push(instance.lensInstanceId);
+
+  transformerA.currentDrafts = [buildDraft("draftTransA")];
+  transformerA.activeDraft = transformerA.currentDrafts[0];
+  transformerA.activeDraftId = transformerA.activeDraft.draftId;
+  ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens);
+  assert.deepStrictEqual(transformerA.selectedInputRefsByRole.input, {
+    mode: "active",
+    sourceLensInstanceId: generator.lensInstanceId
+  });
+  assert.deepStrictEqual(transformerB.selectedInputRefsByRole.input, {
+    mode: "active",
+    sourceLensInstanceId: transformerA.lensInstanceId
+  });
+  assert.deepStrictEqual(scheduleCalls, [transformerA.lensInstanceId, transformerB.lensInstanceId]);
+}
+
 console.log("transformerPipeline tests ok");

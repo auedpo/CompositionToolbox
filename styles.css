@@ -2854,6 +2854,7 @@ body.workspace2 .ws2-panel {
   flex-direction: column;
   min-height: 0;
 }
+
 body.workspace2 .ws2-panel-header {
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border-soft);
@@ -2865,11 +2866,13 @@ body.workspace2 .ws2-panel-body {
   overflow: auto;
   min-height: 0;
 }
+/* phase 8 */
 body.workspace2 .ws2-placeholder {
-  color: var(--color-text-muted);
+  color: var(--app-debug-1);
   font-size: var(--type-sm);
 }
 body.workspace2 .ws2-tracks {
+  background: var(--app-debug-1);
   border-top: 1px solid var(--color-border-soft);
   padding: var(--space-2) var(--space-3);
 }
@@ -2890,28 +2893,69 @@ body.workspace2 .ws2-help {
   align-items: center;
   gap: var(--space-2);
 }
-body.workspace2 .ws2-track-row {
+body.workspace2 .ws2-lane {
+  display: grid;
+  grid-template-columns: 220px 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--color-border-soft);
 }
-body.workspace2 .ws2-track-row-header {
+body.workspace2 .ws2-lane-header {
   font-weight: 500;
   cursor: pointer;
+  user-select: none;
 }
-body.workspace2 .ws2-track-row.is-selected .ws2-track-row-header {
+body.workspace2 .ws2-lane.is-selected .ws2-lane-header {
   font-weight: 600;
 }
-body.workspace2 .ws2-track-row-lenses {
-  margin-top: var(--space-2);
+body.workspace2 .ws2-lane-pills {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: var(--space-1) 0;
 }
-body.workspace2 .ws2-lens-item {
-  width: 100%;
-  text-align: left;
-  padding: var(--space-1) var(--space-2);
+body.workspace2 .ws2-signal-out {
+  display: flex;
+  justify-content: flex-end;
 }
-body.workspace2 .ws2-lens-item.is-active {
-  background: var(--alpha-black-05);
+body.workspace2 .ws2-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--control-height);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-button);
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-panel-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 420px;
+}
+body.workspace2 .ws2-pill:hover {
+  background: var(--overlay-hover);
+}
+body.workspace2 .ws2-pill-label {
+  font-size: var(--type-xs);
+  opacity: 0.8;
+}
+body.workspace2 .ws2-pill-name {
+  font-size: var(--type-sm);
+}
+body.workspace2 .ws2-pill-summary {
+  font-size: var(--type-xs);
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+body.workspace2 .ws2-pill.is-focused {
+  border-color: var(--button-accent);
+  background: var(--overlay-selected);
+  box-shadow: 0 0 0 1px var(--button-accent);
+}
+body.workspace2 .ws2-pill.ws2-pill-out {
+  border-style: dashed;
 }
