@@ -2890,3 +2890,28 @@ body.workspace2 .ws2-help {
   align-items: center;
   gap: var(--space-2);
 }
+body.workspace2 .ws2-track-row {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+body.workspace2 .ws2-track-row-header {
+  font-weight: 500;
+  cursor: pointer;
+}
+body.workspace2 .ws2-track-row.is-selected .ws2-track-row-header {
+  font-weight: 600;
+}
+body.workspace2 .ws2-track-row-lenses {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+body.workspace2 .ws2-lens-item {
+  width: 100%;
+  text-align: left;
+  padding: var(--space-1) var(--space-2);
+}
+body.workspace2 .ws2-lens-item.is-active {
+  background: var(--alpha-black-05);
+}

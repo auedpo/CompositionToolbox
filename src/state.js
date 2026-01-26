@@ -21,7 +21,9 @@ export const state = {
   selectedInventoryId: null,
   selectedDeskId: null,
   lastCapturedMaterialId: null,
-  inventoryFilter: ""
+  inventoryFilter: "",
+  selectedTrackId: null,
+  focusedLensInstanceId: null
 };
 
 export const els = {

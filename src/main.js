@@ -78,10 +78,40 @@ function applyLayoutMode(mode) {
   document.body.classList.toggle("workspace2", next === "workspace2");
   const ws2 = document.getElementById("workspace2Root");
   if (ws2) ws2.hidden = next !== "workspace2";
+  if (next === "workspace2") {
+    renderWorkspace2();
+  }
 }
 
 function initLayoutMode() {
   applyLayoutMode(getLayoutMode());
+}
+
+function getWorkspace2Els() {
+  return {
+    root: document.getElementById("workspace2Root"),
+    header: document.getElementById("ws2Header"),
+    lensInspector: document.getElementById("ws2LensInspector"),
+    trackInspector: document.getElementById("ws2TrackInspector"),
+    lensBrowser: document.getElementById("ws2LensBrowser"),
+    viz: document.getElementById("ws2VizRegion"),
+    drafts: document.getElementById("ws2DraftRegion"),
+    tracks: document.getElementById("ws2TracksRegion"),
+    help: document.getElementById("ws2Help")
+  };
+}
+
+function isWorkspace2Enabled() {
+  return getLayoutMode() === "workspace2";
+}
+
+function setSelectedTrackId(trackId) {
+  state.selectedTrackId = trackId || null;
+}
+
+function getSelectedTrack() {
+  const id = state.selectedTrackId;
+  return id ? getTrackById(id) : null;
 }
 
 
@@ -1127,8 +1157,41 @@ function setFocusedLensInstance(lensId, instanceId) {
   }
 }
 
+function setFocusedLensInstanceGlobal(instanceId) {
+  if (!instanceId) {
+    state.focusedLensInstanceId = null;
+    return;
+  }
+  const inst = lensInstances.get(instanceId);
+  if (!inst || !inst.lens || !inst.lens.meta) {
+    state.focusedLensInstanceId = null;
+    return;
+  }
+  state.focusedLensInstanceId = instanceId;
+  const lensId = inst.lens.meta.id;
+  setFocusedLensInstance(lensId, inst.lensInstanceId);
+}
+
 function getFocusedLensInstanceId(lensId) {
   return focusedLensInstances.get(lensId) || null;
+}
+
+function getFocusedWorkspace2Instance() {
+  const globalFocused = state.focusedLensInstanceId ? lensInstances.get(state.focusedLensInstanceId) : null;
+  if (globalFocused) return globalFocused;
+
+  const track = getSelectedTrack();
+  if (track) {
+    const candidateId = Array.isArray(track.transformerInstanceIds) && track.transformerInstanceIds.length
+      ? track.transformerInstanceIds[track.transformerInstanceIds.length - 1]
+      : track.generatorInstanceId;
+    if (candidateId && lensInstances.has(candidateId)) {
+      return lensInstances.get(candidateId);
+    }
+  }
+
+  const first = Array.from(lensInstances.values())[0] || null;
+  return first;
 }
 
 function getFocusedIntervalPlacementInstance() {
@@ -1587,9 +1650,12 @@ function renderTransformerVisualizer(elements, instance) {
     render();
     renderWorkspaceIntervalPlacementViz(instance);
   }
-    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
-    refreshLensInputs();
+  ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+  refreshLensInputs();
+  if (isWorkspace2Enabled()) {
+    renderWorkspace2();
   }
+}
 
   function scheduleLens(instance) {
     scheduleLensEvaluation(instance, {
@@ -1711,7 +1777,7 @@ function initDefaultTracks() {
   if (intervalLens) {
     const instance = createInstanceForTrack(intervalLens, first.id);
     addLensToTrack(first, instance.lensInstanceId);
-    setFocusedLensInstance(intervalLens.meta.id, instance.lensInstanceId);
+    setFocusedLensInstanceGlobal(instance.lensInstanceId);
     (intervalLens.generatorInputs || []).forEach((spec) => {
       instance.generatorInputValues[spec.key] = loadLensSpecValue(intervalLens.meta.id, "inputs", spec);
     });
@@ -2209,6 +2275,208 @@ function buildLensPanel(instance, opts = {}) {
   return root;
 }
 
+function renderWorkspace2TracksList() {
+  const ws2 = getWorkspace2Els();
+  if (!ws2.tracks) return;
+  const body = ws2.tracks.querySelector(".ws2-tracks-body") || ws2.tracks;
+  body.innerHTML = "";
+
+  const tracks = getOrderedTracks();
+  if (!tracks.length) {
+    body.innerHTML = `<div class="ws2-placeholder">No tracks.</div>`;
+    return;
+  }
+
+  if (!getSelectedTrack()) {
+    setSelectedTrackId(tracks[0].id);
+  }
+
+  tracks.forEach((track) => {
+    const row = document.createElement("div");
+    row.className = `ws2-track-row${state.selectedTrackId === track.id ? " is-selected" : ""}`;
+    row.tabIndex = 0;
+
+    const header = document.createElement("div");
+    header.className = "ws2-track-row-header";
+    header.textContent = `${getTrackNumber(track.id)} — ${track.name || "Untitled track"}`;
+    header.addEventListener("click", () => {
+      setSelectedTrackId(track.id);
+      if (!getFocusedWorkspace2Instance() && track.generatorInstanceId) {
+        setFocusedLensInstanceGlobal(track.generatorInstanceId);
+      }
+      renderWorkspace2();
+    });
+    row.appendChild(header);
+
+    const lensesList = document.createElement("div");
+    lensesList.className = "ws2-track-row-lenses";
+
+    const appendLensItem = (instanceId) => {
+      const inst = instanceId ? lensInstances.get(instanceId) : null;
+      if (!inst) return;
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "ws2-lens-item ghost";
+      item.classList.toggle("is-active", state.focusedLensInstanceId === inst.lensInstanceId);
+      const label = getLensHeaderLabel(inst);
+      const draft = inst.activeDraft;
+      const summary = draft && draft.summary ? ` — ${draft.summary}` : "";
+      item.textContent = `${label}${summary}`;
+      item.addEventListener("click", () => {
+        setSelectedTrackId(track.id);
+        setFocusedLensInstanceGlobal(inst.lensInstanceId);
+        renderWorkspace2();
+      });
+      lensesList.appendChild(item);
+    };
+
+    if (track.generatorInstanceId) appendLensItem(track.generatorInstanceId);
+    (Array.isArray(track.transformerInstanceIds) ? track.transformerInstanceIds : []).forEach((id) => {
+      appendLensItem(id);
+    });
+
+    row.appendChild(lensesList);
+    body.appendChild(row);
+  });
+}
+
+function renderWorkspace2TrackInspector() {
+  const ws2 = getWorkspace2Els();
+  if (!ws2.trackInspector) return;
+  const panel = ws2.trackInspector;
+  const body = panel.querySelector(".ws2-panel-body") || panel;
+  const track = getSelectedTrack();
+  if (!track) {
+    body.innerHTML = `<div class="ws2-placeholder">Select a track.</div>`;
+    return;
+  }
+  const trackNumber = getTrackNumber(track.id);
+  const generator = track.generatorInstanceId ? lensInstances.get(track.generatorInstanceId) : null;
+  const transformerCount = Array.isArray(track.transformerInstanceIds) ? track.transformerInstanceIds.length : 0;
+  body.innerHTML = `
+    <div class="meta-lines">
+      <div class="meta-line"><strong>Track</strong>: ${trackNumber ? `T${trackNumber}` : "—"} — ${track.name || "Untitled track"}</div>
+      <div class="meta-line">Generator: ${generator ? generator.lens.meta.name : "—"}</div>
+      <div class="meta-line">Transformers: ${transformerCount}</div>
+    </div>
+  `;
+}
+
+function renderWorkspace2LensInspector() {
+  const ws2 = getWorkspace2Els();
+  if (!ws2.lensInspector) return;
+  const panel = ws2.lensInspector;
+  const body = panel.querySelector(".ws2-panel-body") || panel;
+  const inst = getFocusedWorkspace2Instance();
+  if (!inst) {
+    body.innerHTML = `<div class="ws2-placeholder">Select a lens.</div>`;
+    return;
+  }
+  const draft = inst.activeDraft || null;
+  const draftSummary = draft ? (draft.summary || "") : "";
+  const draftId = draft ? (draft.draftId || draft.id || "") : "";
+  body.innerHTML = `
+    <div class="meta-lines">
+      <div class="meta-line"><strong>${getLensHeaderLabel(inst)}</strong></div>
+      <div class="meta-line">Kind: ${inst.lens.meta.kind}</div>
+      <div class="meta-line">Active draft: ${draftId ? draftId : "—"}</div>
+      <div class="meta-line">Summary: ${draftSummary ? draftSummary : "—"}</div>
+    </div>
+  `;
+}
+
+function renderWorkspace2Viz() {
+  const ws2 = getWorkspace2Els();
+  if (!ws2.viz) return;
+  const panel = ws2.viz;
+  const body = panel.querySelector(".ws2-panel-body") || panel;
+  const inst = getFocusedWorkspace2Instance();
+  if (!inst) {
+    body.innerHTML = `<div class="ws2-placeholder">No focused lens.</div>`;
+    return;
+  }
+  const draft = inst.activeDraft || null;
+  const summary = draft ? (draft.summary || "") : "";
+  body.innerHTML = `
+    <div class="meta-lines">
+      <div class="meta-line"><strong>Focused</strong>: ${getLensHeaderLabel(inst)}</div>
+      <div class="meta-line">Output: ${summary ? summary : "—"}</div>
+    </div>
+  `;
+}
+
+function renderWorkspace2Drafts() {
+  const ws2 = getWorkspace2Els();
+  if (!ws2.drafts) return;
+  const panel = ws2.drafts;
+  const body = panel.querySelector(".ws2-panel-body") || panel;
+  const inst = getFocusedWorkspace2Instance();
+  if (!inst) {
+    body.innerHTML = `<div class="ws2-placeholder">No focused lens.</div>`;
+    return;
+  }
+  body.innerHTML = "";
+  const mount = document.createElement("div");
+  mount.className = "ws2-drafts-mount";
+  body.appendChild(mount);
+
+  const handlers = {
+    onSelect: (draft) => {
+      const currentDrafts = Array.isArray(inst.currentDrafts) ? inst.currentDrafts : [];
+      const idx = currentDrafts.findIndex((item) => item.draftId === draft.draftId);
+      inst.activeDraftIndex = idx >= 0 ? idx : null;
+      inst.activeDraftId = draft.draftId;
+      inst.activeDraft = idx >= 0 ? currentDrafts[idx] : null;
+      setFocusedLensInstanceGlobal(inst.lensInstanceId);
+      ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+      refreshLensInputs();
+      renderWorkspace2();
+    },
+    onAddToInventory: (draft) => {
+      addDraftToInventory(draft);
+    },
+    onAddToDesk: (draft) => {
+      addDraftToDesk(draft);
+    }
+  };
+
+  renderLensDrafts(mount, inst, handlers);
+}
+
+function renderWorkspace2() {
+  if (!isWorkspace2Enabled()) return;
+  const ws2 = getWorkspace2Els();
+  if (!ws2.root || ws2.root.hidden) return;
+
+  const tracks = getOrderedTracks();
+  if (tracks.length) {
+    if (!getSelectedTrack()) {
+      setSelectedTrackId(tracks[0].id);
+    }
+  } else {
+    setSelectedTrackId(null);
+  }
+
+  if (!getFocusedWorkspace2Instance() && tracks.length) {
+    const track = getSelectedTrack();
+    if (track) {
+      const fallbackId = track.generatorInstanceId
+        || (Array.isArray(track.transformerInstanceIds) && track.transformerInstanceIds.length
+          ? track.transformerInstanceIds[track.transformerInstanceIds.length - 1]
+          : null);
+      if (fallbackId) {
+        setFocusedLensInstanceGlobal(fallbackId);
+      }
+    }
+  }
+
+  renderWorkspace2TracksList();
+  renderWorkspace2TrackInspector();
+  renderWorkspace2LensInspector();
+  renderWorkspace2Viz();
+  renderWorkspace2Drafts();
+}
+
 function renderTrackWorkspace() {
   const container = els.workspaceTracks;
   if (!container) return;
@@ -2460,6 +2728,7 @@ function renderTrackWorkspace() {
   syncFocusedLensInstances();
   renderFocusedDashboard();
   refreshLensInputs();
+  renderWorkspace2();
 }
 
 function renderFocusedDashboard() {
