@@ -24,7 +24,8 @@ export const state = {
   inventoryFilter: "",
   selectedTrackId: null,
   focusedLensInstanceId: null,
-  ws2Drag: { active: false, lensId: null, overTrackId: null, insertIndex: null }
+  ws2Drag: { active: false, lensId: null, overTrackId: null, insertIndex: null },
+  ws2ViewMode: "workspace"
 };
 
 export const els = {
@@ -138,5 +139,6 @@ export const storageKeys = {
   workspaceDockHeight: "intervalApplet.workspaceDockHeight",
   workspaceDockCollapsed: "intervalApplet.workspaceDockCollapsed",
   layoutMode: "intervalApplet.layoutMode",
+  ws2ViewMode: "intervalApplet.ws2ViewMode",
   tracks: "intervalApplet.tracks"
 };

@@ -3006,6 +3006,42 @@ body.workspace2 .ws2-help {
   align-items: center;
   gap: var(--space-2);
 }
+body.workspace2 .ws2-views {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+body.workspace2 .ws2-view {
+  min-height: 0;
+}
+body.workspace2 .ws2-view[hidden] {
+  display: none;
+}
+body.workspace2 .ws2-view-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+body.workspace2 .ws2-view-library {
+  padding: var(--space-3);
+  min-height: 0;
+  flex: 1;
+  display: flex;
+}
+body.workspace2 .ws2-library-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  min-height: 0;
+  width: 100%;
+}
+body.workspace2 #ws2InventoryMount,
+body.workspace2 #ws2DeskMount {
+  min-height: 0;
+  overflow: auto;
+}
 body.workspace2 .ws2-lane {
   display: grid;
   grid-template-columns: 220px 1fr auto;

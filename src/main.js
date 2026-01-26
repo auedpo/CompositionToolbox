@@ -61,6 +61,7 @@ import {
 
 let openLensInputsMenu = null;
 let lensInputsMenuListenerBound = false;
+let workspaceDockPanels = null;
 
 function closeLensInputsMenu() {
   if (!openLensInputsMenu) return;
@@ -91,8 +92,26 @@ function applyLayoutMode(mode) {
   }
 }
 
+function initWorkspace2ViewMode() {
+  const stored = localStorage.getItem(storageKeys.ws2ViewMode);
+  state.ws2ViewMode = stored === "library" ? "library" : "workspace";
+}
+
 function initLayoutMode() {
+  initWorkspace2ViewMode();
   applyLayoutMode(getLayoutMode());
+}
+
+function getWs2ViewMode() {
+  return state.ws2ViewMode === "library" ? "library" : "workspace";
+}
+
+function setWs2ViewMode(mode) {
+  const normalized = mode === "library" ? "library" : "workspace";
+  if (state.ws2ViewMode === normalized) return;
+  state.ws2ViewMode = normalized;
+  localStorage.setItem(storageKeys.ws2ViewMode, normalized);
+  renderWorkspace2();
 }
 
 function getWorkspace2Els() {
@@ -111,6 +130,50 @@ function getWorkspace2Els() {
 
 function isWorkspace2Enabled() {
   return getLayoutMode() === "workspace2";
+}
+
+function renderWorkspace2ViewSwitch() {
+  const el = document.getElementById("ws2ViewSwitch");
+  if (!el) return;
+  const mode = getWs2ViewMode();
+  el.innerHTML = "";
+  const workspaceBtn = document.createElement("button");
+  workspaceBtn.type = "button";
+  workspaceBtn.className = mode === "workspace" ? "" : "ghost";
+  workspaceBtn.textContent = "Workspace";
+  workspaceBtn.addEventListener("click", () => setWs2ViewMode("workspace"));
+  const libraryBtn = document.createElement("button");
+  libraryBtn.type = "button";
+  libraryBtn.className = mode === "library" ? "" : "ghost";
+  libraryBtn.textContent = "Library";
+  libraryBtn.addEventListener("click", () => setWs2ViewMode("library"));
+  el.appendChild(workspaceBtn);
+  el.appendChild(libraryBtn);
+}
+
+function renderWorkspace2LibraryView() {
+  const invMount = document.getElementById("ws2InventoryMount");
+  const deskMount = document.getElementById("ws2DeskMount");
+  if (!invMount || !deskMount) return;
+  const inventoryPanel = workspaceDockPanels?.inventoryPanel || document.querySelector(".inventory-panel");
+  const deskPanel = workspaceDockPanels?.deskPanel || document.querySelector(".desk-panel");
+  if (inventoryPanel) {
+    invMount.innerHTML = "";
+    invMount.appendChild(inventoryPanel);
+  }
+  if (deskPanel) {
+    deskMount.innerHTML = "";
+    deskMount.appendChild(deskPanel);
+  }
+  renderInventory();
+  renderDesk();
+}
+
+function applyWorkspace2ViewVisibility(mode) {
+  const workspaceView = document.getElementById("ws2ViewWorkspace");
+  const libraryView = document.getElementById("ws2ViewLibrary");
+  if (workspaceView) workspaceView.hidden = mode !== "workspace";
+  if (libraryView) libraryView.hidden = mode !== "library";
 }
 
 function setSelectedTrackId(trackId) {
@@ -3237,6 +3300,15 @@ function renderWorkspace2() {
   const ws2 = getWorkspace2Els();
   if (!ws2.root || ws2.root.hidden) return;
 
+  const viewMode = getWs2ViewMode();
+  applyWorkspace2ViewVisibility(viewMode);
+  renderWorkspace2ViewSwitch();
+  if (viewMode === "library") {
+    renderWorkspace2LibraryView();
+  } else if (workspaceDockPanels) {
+    mountDockPanels(workspaceDockPanels);
+  }
+
   const tracks = getOrderedTracks();
   if (tracks.length) {
     if (!getSelectedTrack()) {
@@ -4280,6 +4352,7 @@ if (typeof window !== "undefined") {
 }
 renderTrackWorkspace();
 const panels = initWorkspaceDock();
+workspaceDockPanels = panels;
 if (panels) {
   mountDockPanels(panels);
 }
