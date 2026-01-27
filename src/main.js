@@ -138,6 +138,25 @@ import {
 } from "./workspace2InspectorUtils.js";
 
 
+const PROBE_STORAGE_KEY = "themeProbeOpen";
+
+const isDebugMode = (() => {
+  if (typeof window === "undefined") return false;
+  try {
+    const search = (window.location && window.location.search) || "";
+    if (new URLSearchParams(search).get("debug") === "1") return true;
+  } catch {
+    /* fall through */
+  }
+  try {
+    return !!window.localStorage && window.localStorage.getItem("appDebug") === "1";
+  } catch {
+    return false;
+  }
+})();
+
+let themeProbeElements = null;
+
 
 let openLensInputsMenu = null;
 
@@ -9272,11 +9291,299 @@ renderDesk();
 
 render();
 
-
+if (isDebugMode) {
+  mountThemeProbe();
+}
 
 if (import.meta.env && import.meta.env.DEV) {
 
   import("./dev/selfTest.js");
 
+}
+
+function mountThemeProbe() {
+  if (themeProbeElements || typeof document === "undefined") return;
+  const body = document.body;
+  if (!body) return;
+  const overlay = document.createElement("div");
+  overlay.className = "theme-probe-overlay";
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "theme-probe-toggle ghost";
+  toggle.setAttribute("aria-pressed", "false");
+  toggle.setAttribute("aria-label", "Toggle theme probe");
+  const panel = buildThemeProbePanel();
+  overlay.appendChild(toggle);
+  overlay.appendChild(panel);
+  body.appendChild(overlay);
+  themeProbeElements = {
+    overlay,
+    panel,
+    toggle,
+    isOpen: readThemeProbePreference()
+  };
+  toggle.addEventListener("click", () => {
+    applyThemeProbeVisibility(!themeProbeElements.isOpen);
+  });
+  applyThemeProbeVisibility(themeProbeElements.isOpen);
+}
+
+function applyThemeProbeVisibility(isOpen) {
+  if (!themeProbeElements) return;
+  themeProbeElements.isOpen = isOpen;
+  themeProbeElements.panel.classList.toggle("is-visible", isOpen);
+  themeProbeElements.panel.setAttribute("aria-hidden", isOpen ? "false" : "true");
+  if (themeProbeElements.toggle) {
+    themeProbeElements.toggle.textContent = isOpen ? "Hide theme probe" : "Show theme probe";
+    themeProbeElements.toggle.setAttribute("aria-pressed", isOpen ? "true" : "false");
+  }
+  saveThemeProbePreference(isOpen);
+}
+
+function readThemeProbePreference() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage && window.localStorage.getItem(PROBE_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function saveThemeProbePreference(value) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage && window.localStorage.setItem(PROBE_STORAGE_KEY, value ? "1" : "0");
+  } catch {
+    // ignore
+  }
+}
+
+function buildThemeProbePanel() {
+  const panel = document.createElement("div");
+  panel.className = "theme-probe";
+  panel.setAttribute("role", "region");
+  panel.setAttribute("aria-label", "Theme probe preview");
+  const header = document.createElement("div");
+  header.className = "theme-probe__header";
+  const title = document.createElement("div");
+  title.className = "theme-probe__header-title";
+  title.textContent = "Theme probe";
+  const subtitle = document.createElement("div");
+  subtitle.className = "theme-probe__header-subtitle";
+  subtitle.textContent = "Tokens · components · samples";
+  header.appendChild(title);
+  header.appendChild(subtitle);
+  const body = document.createElement("div");
+  body.className = "theme-probe__body";
+  body.appendChild(buildTokensSection());
+  body.appendChild(buildButtonsSection());
+  body.appendChild(buildFormSection());
+  body.appendChild(buildMenuSection());
+  body.appendChild(buildPillsSection());
+  body.appendChild(buildPanelSection());
+  panel.appendChild(header);
+  panel.appendChild(body);
+  return panel;
+}
+
+function buildTokensSection() {
+  const section = createProbeSection("Tokens");
+  const grid = document.createElement("div");
+  grid.className = "theme-probe__grid theme-probe__grid--tokens";
+  const tokens = [
+    { label: "Background", token: "--color-bg" },
+    { label: "Panel", token: "--color-panel-bg" },
+    { label: "Border", token: "--color-border" },
+    { label: "Accent", token: "--color-accent" },
+    { label: "Warning", token: "--color-warning-surface" },
+    { label: "Danger", token: "--color-danger-surface" },
+    { label: "Highlight", token: "--color-highlight-surface" }
+  ];
+  tokens.forEach((entry) => grid.appendChild(createSwatch(entry.label, entry.token)));
+  section.appendChild(grid);
+  const textSamples = document.createElement("div");
+  textSamples.className = "theme-probe__text-samples";
+  const normal = document.createElement("p");
+  normal.textContent = "Normal text preview";
+  const muted = document.createElement("p");
+  muted.className = "theme-probe__text--muted";
+  muted.textContent = "Muted text preview";
+  textSamples.appendChild(normal);
+  textSamples.appendChild(muted);
+  section.appendChild(textSamples);
+  return section;
+}
+
+function createProbeSection(label) {
+  const container = document.createElement("section");
+  container.className = "theme-probe__section";
+  const heading = document.createElement("div");
+  heading.className = "theme-probe__section-label";
+  heading.textContent = label;
+  container.appendChild(heading);
+  return container;
+}
+
+function createSwatch(label, token) {
+  const swatch = document.createElement("div");
+  swatch.className = "theme-probe__swatch";
+  const sample = document.createElement("span");
+  sample.className = "theme-probe__swatch-sample";
+  sample.style.background = `var(${token})`;
+  const labelEl = document.createElement("div");
+  labelEl.className = "theme-probe__swatch-label";
+  labelEl.textContent = label;
+  const tokenEl = document.createElement("div");
+  tokenEl.className = "theme-probe__swatch-token";
+  tokenEl.textContent = token;
+  swatch.appendChild(sample);
+  swatch.appendChild(labelEl);
+  swatch.appendChild(tokenEl);
+  return swatch;
+}
+
+function buildButtonsSection() {
+  const section = createProbeSection("Buttons");
+  const grid = document.createElement("div");
+  grid.className = "theme-probe__grid";
+  const primary = document.createElement("button");
+  primary.type = "button";
+  primary.textContent = "Primary";
+  const ghost = document.createElement("button");
+  ghost.type = "button";
+  ghost.className = "ghost";
+  ghost.textContent = "Ghost";
+  const iconButton = document.createElement("button");
+  iconButton.type = "button";
+  iconButton.className = "icon-btn ghost";
+  iconButton.setAttribute("aria-label", "Icon");
+  const icon = document.createElement("span");
+  icon.className = "icon";
+  icon.textContent = "★";
+  iconButton.appendChild(icon);
+  const disabled = document.createElement("button");
+  disabled.type = "button";
+  disabled.textContent = "Disabled";
+  disabled.disabled = true;
+  grid.appendChild(primary);
+  grid.appendChild(ghost);
+  grid.appendChild(iconButton);
+  grid.appendChild(disabled);
+  section.appendChild(grid);
+  return section;
+}
+
+function buildFormSection() {
+  const section = createProbeSection("Form controls");
+  const grid = document.createElement("div");
+  grid.className = "theme-probe__grid theme-probe__form-grid";
+  const textInput = document.createElement("input");
+  textInput.type = "text";
+  textInput.placeholder = "Text input";
+  const select = document.createElement("select");
+  ["Option A", "Option B", "Option C"].forEach((label, idx) => {
+    const option = document.createElement("option");
+    option.value = `option-${idx}`;
+    option.textContent = label;
+    select.appendChild(option);
+  });
+  const checkboxLabel = document.createElement("label");
+  checkboxLabel.className = "theme-probe__control-label";
+  const checkboxInput = document.createElement("input");
+  checkboxInput.type = "checkbox";
+  checkboxInput.checked = true;
+  checkboxLabel.appendChild(checkboxInput);
+  checkboxLabel.appendChild(document.createTextNode("Checkbox"));
+  const radioLabel = document.createElement("label");
+  radioLabel.className = "theme-probe__control-label";
+  const radioInput = document.createElement("input");
+  radioInput.type = "radio";
+  radioInput.name = "theme-probe-radio";
+  radioInput.checked = true;
+  radioLabel.appendChild(radioInput);
+  radioLabel.appendChild(document.createTextNode("Radio"));
+  const sliderRow = document.createElement("div");
+  sliderRow.className = "theme-probe__slider-row";
+  const sliderHint = document.createElement("span");
+  sliderHint.textContent = "Range slider";
+  const sliderInput = document.createElement("input");
+  sliderInput.type = "range";
+  sliderInput.min = "0";
+  sliderInput.max = "100";
+  sliderInput.value = "65";
+  sliderRow.appendChild(sliderHint);
+  sliderRow.appendChild(sliderInput);
+  grid.appendChild(textInput);
+  grid.appendChild(select);
+  grid.appendChild(checkboxLabel);
+  grid.appendChild(radioLabel);
+  grid.appendChild(sliderRow);
+  section.appendChild(grid);
+  return section;
+}
+
+function buildMenuSection() {
+  const section = createProbeSection("Menus & popovers");
+  const menu = document.createElement("div");
+  menu.className = "theme-probe__menu";
+  menu.appendChild(createMenuItem("Default item"));
+  menu.appendChild(createMenuItem("Hovered item", "theme-probe__menu-item--hover"));
+  menu.appendChild(createMenuItem("Selected item", "theme-probe__menu-item--selected"));
+  menu.appendChild(createMenuItem("Disabled item", "theme-probe__menu-item--disabled"));
+  section.appendChild(menu);
+  return section;
+}
+
+function createMenuItem(text, modifier) {
+  const item = document.createElement("div");
+  item.className = "theme-probe__menu-item";
+  if (modifier) {
+    item.classList.add(modifier);
+  }
+  item.textContent = text;
+  return item;
+}
+
+function buildPillsSection() {
+  const section = createProbeSection("Pills");
+  const row = document.createElement("div");
+  row.className = "theme-probe__pill-row";
+  const pillOne = document.createElement("div");
+  pillOne.className = "theme-probe__pill";
+  pillOne.textContent = "Lens pill";
+  const pillTwo = document.createElement("div");
+  pillTwo.className = "theme-probe__pill theme-probe__pill--accent";
+  pillTwo.textContent = "Selected pill";
+  const pillNeutral = document.createElement("div");
+  pillNeutral.className = "theme-probe__pill";
+  pillNeutral.textContent = "Neutral pill";
+  row.appendChild(pillOne);
+  row.appendChild(pillTwo);
+  row.appendChild(pillNeutral);
+  section.appendChild(row);
+  return section;
+}
+
+function buildPanelSection() {
+  const section = createProbeSection("Panels");
+  const card = document.createElement("div");
+  card.className = "panel theme-probe__panel";
+  const header = document.createElement("div");
+  header.className = "panel-header";
+  header.textContent = "Panel header";
+  const body = document.createElement("div");
+  body.className = "panel-body";
+  body.textContent = "Panel body text reflects spacing and typography.";
+  const footer = document.createElement("div");
+  footer.className = "panel-footer";
+  const action = document.createElement("button");
+  action.type = "button";
+  action.textContent = "Panel action";
+  footer.appendChild(action);
+  card.appendChild(header);
+  card.appendChild(body);
+  card.appendChild(footer);
+  section.appendChild(card);
+  return section;
 }
 
