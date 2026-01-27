@@ -54,7 +54,6 @@ export function updateLivePortRef(instance, sourceInstance, role, scheduleLens) 
 
 function clearLivePortRef(instance, role, scheduleLens) {
   if (!instance || !role) return;
-  clearMissingUpstream(instance, role);
   const lastLive = instance._liveInputRefs && instance._liveInputRefs[role];
   if (!lastLive) return;
   const selectedRef = instance.selectedInputRefsByRole && instance.selectedInputRefsByRole[role];

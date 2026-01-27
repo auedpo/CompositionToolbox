@@ -8,7 +8,7 @@ import {
   makeDraft
 } from "../core/invariants.js";
 import { createLensInstance, materializeDrafts, scheduleLensEvaluation } from "../lenses/lensRuntime.js";
-import { evaluateShiftSweepLens } from "../lenses/transformers/shiftSweep.js";
+import { evaluateShiftSweepLens, shiftSweepLens } from "../lenses/transformers/shiftSweep.js";
 import { normalizeLensInstanceGridFields } from "../core/gridNormalization.js";
 import {
   buildLaneRowIndex,
@@ -135,10 +135,23 @@ const transformerInput = makeDraft({
   type: "numeric",
   values: [3, 5, 7]
 });
+const shiftSweepInstance = {
+  lens: shiftSweepLens,
+  lensInstanceId: "shiftSweep-test",
+  selectedInputRefsByRole: {
+    source: { mode: "freeze", sourceDraftId: transformerInput.draftId }
+  }
+};
 const transformerResult = evaluateShiftSweepLens({
   inputs: [{ draft: transformerInput }],
   params: { count: 2, step: 1 },
-  context: { lensId: "shiftSweep", lensInstanceId: "shiftSweep-test" }
+  context: {
+    lensId: "shiftSweep",
+    lensInstanceId: "shiftSweep-test",
+    instance: shiftSweepInstance,
+    draftCatalog: [transformerInput],
+    getLensInstanceById: () => null
+  }
 });
 invariant(transformerResult.ok, "Transformer should produce drafts.");
 invariant(transformerResult.drafts[0].payload.kind === "numericTree", "Transformer drafts should use numericTree payload.");

@@ -5860,6 +5860,12 @@ function renderWorkspace2ModularGrid() {
   });
   gridRoot.appendChild(laneContainer);
   body.appendChild(gridRoot);
+  if (isDebugMode) {
+    const cellCount = gridRoot.querySelectorAll(".ws2-grid-cell").length;
+    if (!cellCount) {
+      console.warn("WS2 modular grid: expected ws2-grid-cell nodes; check renderer mount target");
+    }
+  }
 }
 function renderWorkspace2TrackInspector() {
 
