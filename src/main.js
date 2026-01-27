@@ -206,15 +206,41 @@ function parseIntervals(text) {
 
 
 
+function getLayoutModeFromUrl() {
+
+  if (typeof window === "undefined") return null;
+
+  const params = new URLSearchParams(window.location.search);
+
+  const raw = params.get("layout");
+
+  if (!raw) return null;
+
+  const normalized = String(raw).toLowerCase();
+
+  if (normalized === "classic") return "classic";
+
+  if (normalized === "workspace" || normalized === "workspace2") return "workspace";
+
+  return null;
+
+}
+
+
+
 function getLayoutMode() {
+
+  const fromUrl = getLayoutModeFromUrl();
+
+  if (fromUrl) return fromUrl;
 
   const raw = localStorage.getItem(storageKeys.layoutMode);
 
   if (raw === "classic") return "classic";
 
-  if (raw === "workspace2") return "workspace2";
+  if (raw === "workspace" || raw === "workspace2") return "workspace";
 
-  return "workspace2";
+  return "workspace";
 
 }
 
@@ -222,13 +248,29 @@ function getLayoutMode() {
 
 function applyLayoutMode(mode) {
 
-  const next = mode === "classic" ? "classic" : "workspace2";
+  const next = mode === "classic" ? "classic" : "workspace";
 
-  document.body.classList.toggle("workspace2", next === "workspace2");
+  if (document.documentElement) {
+
+    document.documentElement.dataset.layout = next;
+
+    if (next !== "workspace") {
+
+      document.documentElement.classList.remove("ws2-dragging");
+
+    }
+
+  }
+
+  if (document.body) {
+
+    document.body.classList.remove("workspace2", "ws2-dragging");
+
+  }
 
   const ws2 = document.getElementById("workspace2Root");
 
-  if (ws2) ws2.hidden = next !== "workspace2";
+  if (ws2) ws2.hidden = next !== "workspace";
 
   const classicRoot = document.getElementById("classicRoot");
 
@@ -252,7 +294,7 @@ function applyLayoutMode(mode) {
 
   }
 
-  if (next === "workspace2") {
+  if (next === "workspace") {
 
     renderWorkspace2();
 
@@ -336,7 +378,7 @@ function getWorkspace2Els() {
 
 function isWorkspace2Enabled() {
 
-  return getLayoutMode() === "workspace2";
+  return getLayoutMode() === "workspace";
 
 }
 
@@ -2400,9 +2442,9 @@ function getUpstreamLensInstance(instance) {
 
 function ws2SetDraggingUI(active) {
 
-  if (typeof document !== "undefined" && document.body) {
+  if (typeof document !== "undefined" && document.documentElement) {
 
-    document.body.classList.toggle("ws2-dragging", !!active);
+    document.documentElement.classList.toggle("ws2-dragging", !!active);
 
   }
 
@@ -7265,6 +7307,8 @@ function renderWorkspace2() {
 
 function renderTrackWorkspace() {
 
+  if (getLayoutMode() !== "classic") return;
+
   const container = els.workspaceTracks;
 
   if (!container) return;
@@ -9291,7 +9335,9 @@ if (typeof window !== "undefined") {
 
 }
 
-renderTrackWorkspace();
+if (getLayoutMode() === "classic") {
+  renderTrackWorkspace();
+}
 
 const panels = initWorkspaceDock();
 
