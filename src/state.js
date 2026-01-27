@@ -24,7 +24,14 @@ export const state = {
   inventoryFilter: "",
   selectedTrackId: null,
   focusedLensInstanceId: null,
-  ws2Drag: { active: false, lensId: null, overTrackId: null, insertIndex: null },
+  ws2Drag: {
+    active: false,
+    type: null,
+    lensId: null,
+    lensInstanceId: null,
+    fromLaneId: null,
+    fromRow: null
+  },
   ws2ViewMode: "workspace"
 };
 
