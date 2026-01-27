@@ -155,6 +155,18 @@ const isDebugMode = (() => {
   }
 })();
 
+if (typeof document !== "undefined") {
+  const applyDebugClass = () => {
+    const body = document.body;
+    if (!body) return;
+    body.classList.toggle("is-debug", isDebugMode);
+  };
+  applyDebugClass();
+  if (!document.body) {
+    document.addEventListener("DOMContentLoaded", applyDebugClass, { once: true });
+  }
+}
+
 let themeProbeElements = null;
 
 
