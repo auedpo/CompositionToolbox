@@ -1,5 +1,19 @@
 import { isFreezeRef } from "./lenses/inputResolution.js";
 
+/*
+ * Lane/row terminology (Phase 0 doc + scaffolding):
+ * - Lane: a vertical signal column that matches an existing "track".
+ * - Row: a vertical position index within a lane; higher rows are downstream.
+ * - Auto input: the default behavior where a lens pulls from the nearest upstream lens in the same lane.
+ * - Lane-based input: a future mode where a lens selects a source lane and implicitly pulls from the nearest upstream lens in that lane above its own row.
+ * - Upstream: any lens instance sharing the lane whose row index is strictly less than the target.
+ * Routing is lane- and row-based, not graph-based.
+ * Active drafts are always used as upstream outputs, and compatibility is assumed (all drafts are lists).
+ */
+
+export const INPUT_SOURCE_AUTO = "auto";
+export const INPUT_SOURCE_LANE = "lane";
+
 export function updateLivePortRef(instance, sourceInstance, role, scheduleLens) {
   if (!instance || !sourceInstance || !role) return;
   const draft = sourceInstance.activeDraft || null;
@@ -46,6 +60,7 @@ export function ensureDefaultSignalFlowSelections(tracks, lensInstances, schedul
         ? instance.lens.inputs
         : [];
       if (!inputSpecs.length) return;
+      // Phase 3: This is where lane/row-based upstream resolution will be introduced.
       const upstream = findPreviousSibling(track, instance, lensInstances);
       if (!upstream) return;
       inputSpecs.forEach((spec) => {

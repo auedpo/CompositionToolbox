@@ -73,22 +73,24 @@ function gatherResolvedInputs({
 export function createLensInstance(lens, lensInstanceId) {
   const paramsValues = buildDefaults(lens.params);
   const generatorInputValues = buildDefaults(lens.generatorInputs);
-  return {
-    lens,
-    lensInstanceId,
-    paramsValues,
-    generatorInputValues,
-    _updateToken: 0,
-    activeDraftIndex: null,
-    activeDraft: null,
-    selectedInputRefsByRole: {},
-    activeDraftId: null,
-    vizCollapsed: false,
-    evaluateResult: { ok: false, drafts: [] },
-    currentDrafts: [],
-    lastError: null
-  };
-}
+    return {
+      lens,
+      lensInstanceId,
+      paramsValues,
+      generatorInputValues,
+      _updateToken: 0,
+      activeDraftIndex: null,
+      activeDraft: null,
+      selectedInputRefsByRole: {},
+      selectedInputLaneByRole: {},
+      row: null,
+      activeDraftId: null,
+      vizCollapsed: false,
+      evaluateResult: { ok: false, drafts: [] },
+      currentDrafts: [],
+      lastError: null
+    };
+  }
 
 export function updateSpecValue(state, specs, key, value) {
   const spec = (specs || []).find((entry) => entry.key === key);

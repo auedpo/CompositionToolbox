@@ -24,7 +24,17 @@ A modular “track + lenses” workspace where **lenses generate/transform numer
 - **Active ref**: a transformer input bound to a `sourceLensInstanceId`.
 - **Frozen ref**: a transformer input bound to a specific `sourceDraftId`.
 
----
+## 1.1) Routing terminology (Phase 0)
+
+- **Lane**: a vertical signal column that matches an existing track.
+- **Row**: a vertical index within a lane; higher rows come later in the signal flow.
+- **Auto input**: the default behavior where a lens pulls from the nearest upstream lens within the same lane.
+- **Lane-based input**: a future mode in which a lens specifies a lane and implicitly inherits the closest upstream lens above its own row.
+- **Upstream**: any lens instance in the same lane whose row index is strictly less than the target lens.
+
+Routing is explicitly lane- and row-based rather than graph-based, active drafts are always the payloads used for upstream outputs, and compatibility is currently assumed (all drafts are lists).
+
+--- 
 
 ## 2) Data contracts (hard rules)
 

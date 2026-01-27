@@ -9,6 +9,7 @@ import {
 } from "../core/invariants.js";
 import { createLensInstance, materializeDrafts, scheduleLensEvaluation } from "../lenses/lensRuntime.js";
 import { evaluateShiftSweepLens } from "../lenses/transformers/shiftSweep.js";
+import { normalizeLensInstanceGridFields } from "../core/gridNormalization.js";
 
 function resolveInput(ref, runtime) {
   if (!ref) return null;
@@ -132,5 +133,23 @@ const transformerResult = evaluateShiftSweepLens({
 });
 invariant(transformerResult.ok, "Transformer should produce drafts.");
 invariant(transformerResult.drafts[0].payload.kind === "numericTree", "Transformer drafts should use numericTree payload.");
+
+{
+  const instance = {
+    row: NaN,
+    selectedInputLaneByRole: {
+      primary: "missing-lane"
+    }
+  };
+  normalizeLensInstanceGridFields({
+    instance,
+    track: { id: "track-a" },
+    indexInTrack: 0,
+    lensDefinition: { inputs: [{ role: "primary" }] },
+    laneIds: ["track-a"]
+  });
+  invariant(instance.row === 0, "Dev normalization should default row to the index.");
+  invariant(instance.selectedInputLaneByRole.primary === "auto", "Dev normalization should fall back to auto for missing lanes.");
+}
 
 console.log("selfTest ok");

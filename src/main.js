@@ -49,6 +49,7 @@ import {
 } from "./ui/favoritesPanel.js";
 import { icon } from "./ui/icons.js";
 import { ensureDefaultSignalFlowSelections } from "./transformerPipeline.js";
+import { normalizeLensInstanceGridFields } from "./core/gridNormalization.js";
 import { assertNumericTree, DraftInvariantError } from "./core/invariants.js";
 import {
   findTrackIdForLensInstance,
@@ -1238,9 +1239,15 @@ function createStableId(prefix) {
   return prefix ? `${prefix}_${base}` : base;
 }
 
-function getOrderedTracks() {
-  return Array.isArray(state.tracks) ? state.tracks.slice() : [];
-}
+  function getOrderedTracks() {
+    return Array.isArray(state.tracks) ? state.tracks.slice() : [];
+  }
+
+  function getLaneIds() {
+    return getOrderedTracks()
+      .map((track) => track.id)
+      .filter((id) => typeof id === "string" && id.length);
+  }
 
 function getTrackNumber(trackId) {
   const ordered = getOrderedTracks();
@@ -1275,15 +1282,23 @@ function migrateTrackToLensPath(track) {
   return track;
 }
 
-function updateTrackLensPaths(track) {
-  const lensIds = ensureTrackLensOrder(track);
-  lensIds.forEach((lensId, index) => {
-    const instance = lensInstances.get(lensId);
-    if (!instance) return;
-    const basePath = Array.isArray(instance.path) ? instance.path.slice(0, -1) : [];
-    instance.path = [...basePath, index + 1];
-  });
-}
+  function updateTrackLensPaths(track) {
+    const lensIds = ensureTrackLensOrder(track);
+    const laneIds = getLaneIds();
+    lensIds.forEach((lensId, index) => {
+      const instance = lensInstances.get(lensId);
+      if (!instance) return;
+      const basePath = Array.isArray(instance.path) ? instance.path.slice(0, -1) : [];
+      instance.path = [...basePath, index + 1];
+      normalizeLensInstanceGridFields({
+        instance,
+        track,
+        indexInTrack: index,
+        lensDefinition: instance.lens || getLens(instance.lensId),
+        laneIds
+      });
+    });
+  }
 
 function addLensToTrack(track, lensInstanceId) {
   const ids = ensureTrackLensOrder(track);
@@ -1527,7 +1542,7 @@ function createInstanceForTrack(lens, trackId) {
     return instance;
   }
 
-const WORKSPACE_VERSION = 2;
+  const WORKSPACE_VERSION = 3;
 
 function serializeWorkspace() {
   return {
@@ -1547,13 +1562,15 @@ function serializeWorkspace() {
       lensId: instance.lens && instance.lens.meta ? instance.lens.meta.id : instance.lensId,
       trackId: instance.trackId || null,
       path: Array.isArray(instance.path) ? instance.path.slice() : [],
-      paramsValues: { ...(instance.paramsValues || {}) },
-      generatorInputValues: { ...(instance.generatorInputValues || {}) },
-      selectedInputRefsByRole: { ...(instance.selectedInputRefsByRole || {}) },
-      activeDraftId: instance.activeDraftId || null,
-      activeDraftIndex: Number.isFinite(instance.activeDraftIndex)
-        ? instance.activeDraftIndex
-        : null
+        paramsValues: { ...(instance.paramsValues || {}) },
+        generatorInputValues: { ...(instance.generatorInputValues || {}) },
+        selectedInputLaneByRole: { ...(instance.selectedInputLaneByRole || {}) },
+        row: Number.isFinite(instance.row) ? instance.row : null,
+        selectedInputRefsByRole: { ...(instance.selectedInputRefsByRole || {}) },
+        activeDraftId: instance.activeDraftId || null,
+        activeDraftIndex: Number.isFinite(instance.activeDraftIndex)
+          ? instance.activeDraftIndex
+          : null
     })),
     focus: {
       focusedIntervalPlacementId: state.focusedIntervalPlacementId || null,
@@ -1582,14 +1599,22 @@ function serializeWorkspace() {
     instance.path = Array.isArray(snapshot.path) ? snapshot.path.slice() : [];
     instance.paramsValues = { ...instance.paramsValues, ...(snapshot.paramsValues || {}) };
     instance.generatorInputValues = { ...instance.generatorInputValues, ...(snapshot.generatorInputValues || {}) };
-    const legacySelected = snapshot.selectedInputDraftIdsByRole || {};
-    const nextSelected = { ...(snapshot.selectedInputRefsByRole || {}) };
-    Object.entries(legacySelected).forEach(([role, draftId]) => {
-      if (!nextSelected[role] && draftId) {
-        nextSelected[role] = { mode: "freeze", sourceDraftId: draftId };
-      }
-    });
-    instance.selectedInputRefsByRole = nextSelected;
+  const legacySelected = snapshot.selectedInputDraftIdsByRole || {};
+  const nextSelected = { ...(snapshot.selectedInputRefsByRole || {}) };
+  Object.entries(legacySelected).forEach(([role, draftId]) => {
+    if (!nextSelected[role] && draftId) {
+      nextSelected[role] = { mode: "freeze", sourceDraftId: draftId };
+    }
+  });
+  const laneSelection = snapshot.selectedInputLaneByRole;
+  instance.selectedInputLaneByRole =
+    laneSelection && typeof laneSelection === "object" ? { ...laneSelection } : {};
+  if (Number.isFinite(snapshot.row)) {
+    instance.row = Math.max(0, Math.floor(snapshot.row));
+  } else {
+    instance.row = null;
+  }
+  instance.selectedInputRefsByRole = nextSelected;
     instance.activeDraftId = snapshot.activeDraftId || null;
     instance.activeDraftIndex = Number.isFinite(snapshot.activeDraftIndex)
       ? snapshot.activeDraftIndex
@@ -2363,6 +2388,7 @@ function buildLensPanel(instance, opts = {}) {
     railInputsMenuList = document.createElement("div");
     railInputsMenuList.className = "lens-rail-menu-list";
     railInputsMenuList.dataset.lensInputs = "true";
+    // Phase 4: This is where lane selection UI will be added.
     infoButton.addEventListener("click", (event) => {
       event.stopPropagation();
       if (openLensInputsMenu && openLensInputsMenu.menu !== railInputsMenu) {
