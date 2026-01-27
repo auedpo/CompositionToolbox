@@ -50,6 +50,7 @@ import {
 import { icon } from "./ui/icons.js";
 import { ensureDefaultSignalFlowSelections } from "./transformerPipeline.js";
 import { normalizeLensInstanceGridFields } from "./core/gridNormalization.js";
+import { buildLaneRowIndex, findNearestUpstreamLens } from "./core/laneRowRouting.js";
 import { assertNumericTree, DraftInvariantError } from "./core/invariants.js";
 import {
   findTrackIdForLensInstance,
@@ -1131,7 +1132,30 @@ function getTrackById(trackId) {
   return getOrderedTracks().find((track) => track.id === trackId) || null;
 }
 
+function getWorkspace2UpstreamLensInstance(instance) {
+  if (!instance || !instance.trackId) return null;
+  const index = buildLaneRowIndex({
+    tracks: getOrderedTracks(),
+    lensInstancesById: lensInstances
+  });
+  const laneId = instance.trackId;
+  if (!laneId) return null;
+  const targetRow = Number.isFinite(instance.row)
+    ? instance.row
+    : Number.MAX_SAFE_INTEGER;
+  const upstreamLensInstanceId = findNearestUpstreamLens({
+    index,
+    sourceLaneId: laneId,
+    targetRow
+  });
+  if (!upstreamLensInstanceId) return null;
+  return lensInstances.get(upstreamLensInstanceId) || null;
+}
+
 function getUpstreamLensInstance(instance) {
+  if (isWorkspace2Enabled()) {
+    return getWorkspace2UpstreamLensInstance(instance);
+  }
   if (!instance || !instance.trackId) return null;
   const track = getTrackById(instance.trackId);
   if (!track) return null;
@@ -1516,7 +1540,12 @@ function createLensInstanceForTrack(lensId, trackId, insertIndex = null) {
   updateTrackLensPaths(track);
   seedLensDefaults(instance);
   scheduleLens(instance);
-  ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+  ensureDefaultSignalFlowSelections(
+    getOrderedTracks(),
+    lensInstances,
+    scheduleLens,
+    { workspace2: isWorkspace2Enabled() }
+  );
   track.lensInstanceIds.slice(targetIndex + 1).forEach((instanceId) => {
     const downstream = lensInstances.get(instanceId);
     if (downstream) {
@@ -1900,7 +1929,12 @@ function renderTransformerVisualizer(elements, instance) {
             syncedIntervalPlacement = true;
           }
           }
-          ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+          ensureDefaultSignalFlowSelections(
+            getOrderedTracks(),
+            lensInstances,
+            scheduleLens,
+            { workspace2: isWorkspace2Enabled() }
+          );
           refreshLensInputs();
         },
       onAddToInventory: (draft) => {
@@ -1930,7 +1964,12 @@ function renderTransformerVisualizer(elements, instance) {
     render();
     renderWorkspaceIntervalPlacementViz(instance);
   }
-  ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+  ensureDefaultSignalFlowSelections(
+    getOrderedTracks(),
+    lensInstances,
+    scheduleLens,
+    { workspace2: isWorkspace2Enabled() }
+  );
   refreshLensInputs();
   if (isWorkspace2Enabled()) {
     renderWorkspace2();
@@ -2159,7 +2198,12 @@ function pruneMissingSelections() {
 
 function propagateActiveDrafts(instance) {
   if (!instance) return;
-  ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+  ensureDefaultSignalFlowSelections(
+    getOrderedTracks(),
+    lensInstances,
+    scheduleLens,
+    { workspace2: isWorkspace2Enabled() }
+  );
 }
 
 function removeLensInstance(instanceId) {
@@ -2939,7 +2983,12 @@ function renderWorkspace2TrackInspector() {
     if (!window.confirm("Clear all lenses from this track?")) return;
     lensPath.slice().forEach((instanceId) => removeLensInstance(instanceId));
     track.lensInstanceIds = [];
-    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    ensureDefaultSignalFlowSelections(
+      getOrderedTracks(),
+      lensInstances,
+      scheduleLens,
+      { workspace2: isWorkspace2Enabled() }
+    );
     renderTrackWorkspace();
     const fallback = () => {
       for (const candidate of orderedTracks) {
@@ -3125,7 +3174,12 @@ function renderWorkspace2LensInspector() {
     const nextIndex = pickFocusAfterRemoval(nextPath, currentIndex);
     const nextFocus = nextIndex >= 0 ? nextPath[nextIndex] : null;
     removeLensInstance(inst.lensInstanceId);
-    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    ensureDefaultSignalFlowSelections(
+      getOrderedTracks(),
+      lensInstances,
+      scheduleLens,
+      { workspace2: isWorkspace2Enabled() }
+    );
     renderTrackWorkspace();
     if (nextFocus && lensInstances.has(nextFocus)) {
       setFocusedLensInstanceGlobal(nextFocus);
@@ -3155,7 +3209,12 @@ function renderWorkspace2LensInspector() {
     lensIds.splice(insertIndex + 1, 0, clone.lensInstanceId);
     updateTrackLensPaths(track);
     scheduleLens(clone);
-    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    ensureDefaultSignalFlowSelections(
+      getOrderedTracks(),
+      lensInstances,
+      scheduleLens,
+      { workspace2: isWorkspace2Enabled() }
+    );
     setSelectedTrackId(track.id);
     setFocusedLensInstanceGlobal(clone.lensInstanceId);
     renderTrackWorkspace();
@@ -3164,7 +3223,12 @@ function renderWorkspace2LensInspector() {
   const handleMoveLens = (delta) => {
     if (!track) return;
     moveLensInTrack(track.id, inst.lensInstanceId, delta);
-    ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+    ensureDefaultSignalFlowSelections(
+      getOrderedTracks(),
+      lensInstances,
+      scheduleLens,
+      { workspace2: isWorkspace2Enabled() }
+    );
     scheduleLens(inst);
     setSelectedTrackId(track.id);
     setFocusedLensInstanceGlobal(inst.lensInstanceId);
@@ -3325,7 +3389,12 @@ function renderWorkspace2FocusedLensFullUI() {
       inst.activeDraftId = draft.draftId;
       inst.activeDraft = idx >= 0 ? currentDrafts[idx] : null;
       setFocusedLensInstanceGlobal(inst.lensInstanceId);
-      ensureDefaultSignalFlowSelections(getOrderedTracks(), lensInstances, scheduleLens);
+      ensureDefaultSignalFlowSelections(
+        getOrderedTracks(),
+        lensInstances,
+        scheduleLens,
+        { workspace2: isWorkspace2Enabled() }
+      );
       refreshLensInputs();
       renderWorkspace2();
     },

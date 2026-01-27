@@ -18,6 +18,7 @@ import {
   getRowForLens,
   resolveSourceLaneId
 } from "../core/laneRowRouting.js";
+import { ensureDefaultSignalFlowSelections } from "../transformerPipeline.js";
 
 function resolveInput(ref, runtime) {
   if (!ref) return null;
@@ -204,6 +205,114 @@ invariant(transformerResult.drafts[0].payload.kind === "numericTree", "Transform
     descriptor.upstreamLensInstanceId === "lensB" && descriptor.upstreamRow === 3,
     "Descriptor should surface the resolved candidate."
   );
+}
+
+{
+  const laneADraft = makeDraft({
+    lensId: "lane-source",
+    lensInstanceId: "lane-source-a",
+    type: "numeric",
+    values: [1]
+  });
+  const laneBDraft = makeDraft({
+    lensId: "lane-source",
+    lensInstanceId: "lane-source-b",
+    type: "numeric",
+    values: [2]
+  });
+  const laneA = createLensInstance(
+    { meta: { id: "generator", kind: "generator" }, evaluate: () => ({ ok: true, drafts: [] }) },
+    "laneA"
+  );
+  laneA.currentDrafts = [laneADraft];
+  laneA.activeDraft = laneADraft;
+  laneA.activeDraftId = laneADraft.draftId;
+  laneA._updateToken = 1;
+  laneA.row = 0;
+  const laneB = createLensInstance(
+    { meta: { id: "generator", kind: "generator" }, evaluate: () => ({ ok: true, drafts: [] }) },
+    "laneB"
+  );
+  laneB.currentDrafts = [laneBDraft];
+  laneB.activeDraft = laneBDraft;
+  laneB.activeDraftId = laneBDraft.draftId;
+  laneB._updateToken = 1;
+  laneB.row = 3;
+  const laneTransformer = createLensInstance(
+    {
+      meta: { id: "transformer", kind: "transformer" },
+      inputs: [{ role: "primary", required: true }],
+      evaluate: () => ({ ok: true, drafts: [] })
+    },
+    "laneTransform"
+  );
+  laneTransformer.row = 2;
+  laneTransformer.selectedInputLaneByRole = { primary: "lane1" };
+  const tracks = [
+    { id: "lane1", lensInstanceIds: [laneA.lensInstanceId, laneB.lensInstanceId] },
+    { id: "lane2", lensInstanceIds: [laneTransformer.lensInstanceId] }
+  ];
+  const lensMap = new Map([
+    [laneA.lensInstanceId, laneA],
+    [laneB.lensInstanceId, laneB],
+    [laneTransformer.lensInstanceId, laneTransformer]
+  ]);
+  const scheduleLens = () => {};
+  ensureDefaultSignalFlowSelections(tracks, lensMap, scheduleLens, { workspace2: true });
+  invariant(
+    laneTransformer.selectedInputRefsByRole.primary.sourceLensInstanceId === laneA.lensInstanceId,
+    "Lane transformer should attach to the upper lane source."
+  );
+  laneTransformer.row = 5;
+  ensureDefaultSignalFlowSelections(tracks, lensMap, scheduleLens, { workspace2: true });
+  invariant(
+    laneTransformer.selectedInputRefsByRole.primary.sourceLensInstanceId === laneB.lensInstanceId,
+    "Lane transformer should retarget to the next upstream after moving."
+  );
+
+  const laneNoUpstream = createLensInstance(
+    {
+      meta: { id: "transformer", kind: "transformer" },
+      inputs: [{ role: "primary", required: true }],
+      evaluate: () => ({ ok: true, drafts: [] })
+    },
+    "laneNoUpstream"
+  );
+  laneNoUpstream.row = 0;
+  laneNoUpstream.selectedInputLaneByRole = { primary: "lane1" };
+  tracks[1].lensInstanceIds.push(laneNoUpstream.lensInstanceId);
+  lensMap.set(laneNoUpstream.lensInstanceId, laneNoUpstream);
+  ensureDefaultSignalFlowSelections(tracks, lensMap, scheduleLens, { workspace2: true });
+  invariant(
+    Boolean(laneNoUpstream._missingUpstreamByRole?.primary?.message),
+    "Missing upstream should register an error."
+  );
+  invariant(
+    laneNoUpstream._missingUpstreamByRole.primary.message.includes("No upstream"),
+    "Missing upstream message should mention the absent lane."
+  );
+  scheduleLensEvaluation(laneNoUpstream, {
+    getContext: () => ({
+      lensId: laneNoUpstream.lens.meta.id,
+      lensInstanceId: laneNoUpstream.lensInstanceId
+    }),
+    getDraftCatalog: () => [],
+    getLensInstanceById: (id) => lensMap.get(id) || null,
+    getUpstreamInstance: () => null,
+    onUpdate: () => {},
+    debounceMs: 0
+  });
+  setTimeout(() => {
+    invariant(
+      Array.isArray(laneNoUpstream.evaluateResult.errors)
+        && laneNoUpstream.evaluateResult.errors.some((msg) => msg.includes("No upstream")),
+      "Evaluation should register the missing upstream error."
+    );
+    invariant(
+      laneNoUpstream.lastError && laneNoUpstream.lastError.includes("No upstream"),
+      "lastError should describe the missing upstream."
+    );
+  }, 0);
 }
 
 console.log("selfTest ok");

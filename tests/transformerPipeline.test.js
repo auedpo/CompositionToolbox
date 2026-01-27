@@ -129,4 +129,69 @@ function buildTrack(lensIds) {
   assert.deepStrictEqual(scheduleCalls, [transformerA.lensInstanceId, transformerB.lensInstanceId]);
 }
 
+{
+  const laneADraft = buildDraft("laneADraft");
+  const laneBDraft = buildDraft("laneBDraft");
+  const laneA = buildGenerator("laneA-generator", laneADraft, 1);
+  const laneB = buildGenerator("laneB-generator", laneBDraft, 1);
+  const laneTransformer = buildLensInstance("laneTransform", [{ role: "primary", required: true }]);
+  laneA.row = 0;
+  laneB.row = 3;
+  laneTransformer.row = 2;
+  laneTransformer.selectedInputLaneByRole = { primary: "lane1" };
+  const tracks = [
+    {
+      id: "lane1",
+      lensInstanceIds: [laneA.lensInstanceId, laneB.lensInstanceId]
+    },
+    {
+      id: "lane2",
+      lensInstanceIds: [laneTransformer.lensInstanceId]
+    }
+  ];
+  const lensInstances = new Map([
+    [laneA.lensInstanceId, laneA],
+    [laneB.lensInstanceId, laneB],
+    [laneTransformer.lensInstanceId, laneTransformer]
+  ]);
+  const scheduleCalls = [];
+  const scheduleLens = (instance) => scheduleCalls.push(instance.lensInstanceId);
+
+  ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens, { workspace2: true });
+  assert.deepStrictEqual(laneTransformer.selectedInputRefsByRole.primary, {
+    mode: "active",
+    sourceLensInstanceId: laneA.lensInstanceId
+  });
+  assert.deepStrictEqual(laneTransformer._liveInputRefs.primary, {
+    mode: "active",
+    sourceLensInstanceId: laneA.lensInstanceId
+  });
+  assert.deepStrictEqual(scheduleCalls, [laneTransformer.lensInstanceId]);
+
+  laneTransformer.row = 5;
+  ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens, { workspace2: true });
+  assert.deepStrictEqual(laneTransformer.selectedInputRefsByRole.primary, {
+    mode: "active",
+    sourceLensInstanceId: laneB.lensInstanceId
+  });
+  assert.deepStrictEqual(scheduleCalls, [laneTransformer.lensInstanceId, laneTransformer.lensInstanceId]);
+
+  const laneNoUpstream = buildLensInstance("laneNoUpstream", [{ role: "primary", required: true }]);
+  laneNoUpstream.row = 0;
+  laneNoUpstream.selectedInputLaneByRole = { primary: "lane1" };
+  tracks[1].lensInstanceIds.push(laneNoUpstream.lensInstanceId);
+  lensInstances.set(laneNoUpstream.lensInstanceId, laneNoUpstream);
+  ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens, { workspace2: true });
+  assert.deepStrictEqual(scheduleCalls, [
+    laneTransformer.lensInstanceId,
+    laneTransformer.lensInstanceId,
+    laneNoUpstream.lensInstanceId
+  ]);
+  assert.strictEqual(laneNoUpstream.selectedInputRefsByRole.primary, undefined);
+  assert.strictEqual(
+    laneNoUpstream._liveInputRefs && laneNoUpstream._liveInputRefs.primary,
+    undefined
+  );
+}
+
 console.log("transformerPipeline tests ok");

@@ -70,6 +70,25 @@ function gatherResolvedInputs({
   }).filter(Boolean);
 }
 
+function handleMissingUpstream(instance, onUpdate) {
+  if (!instance || !instance._missingUpstreamByRole) return false;
+  const entries = Object.values(instance._missingUpstreamByRole).filter(Boolean);
+  if (!entries.length) return false;
+  const messages = entries
+    .map((entry) => entry && entry.message)
+    .filter(Boolean);
+  if (!messages.length) return false;
+  const combined = messages.join(" ");
+  instance.evaluateResult = { ok: false, drafts: [], errors: messages };
+  instance.lastError = combined;
+  instance.currentDrafts = [];
+  instance.activeDraftIndex = null;
+  instance.activeDraftId = null;
+  instance.activeDraft = null;
+  if (typeof onUpdate === "function") onUpdate(instance);
+  return true;
+}
+
 export function createLensInstance(lens, lensInstanceId) {
   const paramsValues = buildDefaults(lens.params);
   const generatorInputValues = buildDefaults(lens.generatorInputs);
@@ -163,6 +182,9 @@ export function scheduleLensEvaluation(instance, options) {
   const token = (instance._token || 0) + 1;
   instance._token = token;
   instance._timer = setTimeout(() => {
+    if (handleMissingUpstream(instance, onUpdate)) {
+      return;
+    }
     const draftCatalog = typeof getDraftCatalog === "function" ? getDraftCatalog() : [];
     const context = typeof getContext === "function" ? getContext() : {};
     const upstreamInstance = typeof getUpstreamInstance === "function"
