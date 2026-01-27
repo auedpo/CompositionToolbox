@@ -10,6 +10,14 @@ import {
 import { createLensInstance, materializeDrafts, scheduleLensEvaluation } from "../lenses/lensRuntime.js";
 import { evaluateShiftSweepLens } from "../lenses/transformers/shiftSweep.js";
 import { normalizeLensInstanceGridFields } from "../core/gridNormalization.js";
+import {
+  buildLaneRowIndex,
+  describeResolvedUpstream,
+  findNearestUpstreamLens,
+  getLaneIdForLens,
+  getRowForLens,
+  resolveSourceLaneId
+} from "../core/laneRowRouting.js";
 
 function resolveInput(ref, runtime) {
   if (!ref) return null;
@@ -150,6 +158,52 @@ invariant(transformerResult.drafts[0].payload.kind === "numericTree", "Transform
   });
   invariant(instance.row === 0, "Dev normalization should default row to the index.");
   invariant(instance.selectedInputLaneByRole.primary === "auto", "Dev normalization should fall back to auto for missing lanes.");
+}
+
+{
+  const mockState = {
+    tracks: [
+      { id: "lane1", lensInstanceIds: ["lensA", "lensB"] },
+      { id: "lane2", lensInstanceIds: ["lensC"] }
+    ],
+    lensInstancesById: new Map([
+      ["lensA", { lensInstanceId: "lensA", row: 0 }],
+      ["lensB", { lensInstanceId: "lensB", row: 3 }],
+      ["lensC", { lensInstanceId: "lensC", row: 2 }]
+    ])
+  };
+  const index = buildLaneRowIndex(mockState);
+  invariant(getLaneIdForLens({ index, lensInstanceId: "lensC" }) === "lane2", "Lane lookup should return the correct track.");
+  invariant(getRowForLens({ index, lensInstanceId: "lensA" }) === 0, "Row lookup should expose the normalized row.");
+  invariant(
+    findNearestUpstreamLens({ index, sourceLaneId: "lane1", targetRow: 2 }) === "lensA",
+    "Should find the upstream lens strictly above row 2."
+  );
+  invariant(
+    findNearestUpstreamLens({ index, sourceLaneId: "lane1", targetRow: 5 }) === "lensB",
+    "Should find the nearest upstream lens above row 5."
+  );
+  invariant(
+    findNearestUpstreamLens({ index, sourceLaneId: "lane2", targetRow: 2 }) === null,
+    "Should not find any lens when the target row is not strictly above."
+  );
+  invariant(
+    resolveSourceLaneId({ index, targetLaneId: "lane2", selection: "lane1" }) === "lane1",
+    "Explicit lane selections stay intact."
+  );
+  invariant(
+    resolveSourceLaneId({ index, targetLaneId: "lane2", selection: "auto" }) === "lane2",
+    "Auto selections fall back to the target lane."
+  );
+  invariant(
+    resolveSourceLaneId({ index, targetLaneId: "lane2", selection: "missing" }) === "lane2",
+    "Missing lanes fall back to the target lane."
+  );
+  const descriptor = describeResolvedUpstream({ index, sourceLaneId: "lane1", targetRow: 5 });
+  invariant(
+    descriptor.upstreamLensInstanceId === "lensB" && descriptor.upstreamRow === 3,
+    "Descriptor should surface the resolved candidate."
+  );
 }
 
 console.log("selfTest ok");
