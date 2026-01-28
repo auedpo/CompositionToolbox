@@ -176,6 +176,31 @@ let lensInputsMenuListenerBound = false;
 
 let workspaceDockPanels = null;
 
+// WS2 hover thrash diagnostics + listener binding guard.
+const ws2DebugCounters = {
+  renderWorkspace2: 0,
+  renderWorkspace2ViewSwitch: 0,
+  bindLensInputsForInstance: 0,
+  bindPlacementParamListeners: 0,
+  scheduleLens: 0,
+  handleLensUpdate: 0
+};
+
+let ws2ViewSwitchBound = false;
+
+function bumpWs2DebugCounter(key) {
+  if (!isDebugMode) return;
+  const next = (ws2DebugCounters[key] || 0) + 1;
+  ws2DebugCounters[key] = next;
+  if (next % 30 === 0) {
+    const stamp = new Date().toISOString();
+    console.log(`[ws2 debug] ${key} calls: ${next} @ ${stamp}`);
+    if (key === "renderWorkspace2" && next % 60 === 0) {
+      console.trace("[ws2 debug] renderWorkspace2 stack");
+    }
+  }
+}
+
 
 
 function closeLensInputsMenu() {
@@ -384,43 +409,43 @@ function isWorkspace2Enabled() {
 
 
 
+// WS2 render thrash fix: bind view switch once to avoid repeated listener attachment.
 function renderWorkspace2ViewSwitch() {
 
   const el = document.getElementById("ws2ViewSwitch");
 
   if (!el) return;
 
+  bumpWs2DebugCounter("renderWorkspace2ViewSwitch");
+
   const mode = getWs2ViewMode();
 
-  el.innerHTML = "";
+  if (!ws2ViewSwitchBound) {
+    el.innerHTML = "";
 
-  const workspaceBtn = document.createElement("button");
+    const workspaceBtn = document.createElement("button");
+    workspaceBtn.type = "button";
+    workspaceBtn.classList.add("ws2-view-switch-btn");
+    workspaceBtn.dataset.ws2View = "workspace";
+    workspaceBtn.textContent = "Workspace";
+    workspaceBtn.addEventListener("click", () => setWs2ViewMode("workspace"));
 
-  workspaceBtn.type = "button";
+    const libraryBtn = document.createElement("button");
+    libraryBtn.type = "button";
+    libraryBtn.classList.add("ws2-view-switch-btn");
+    libraryBtn.dataset.ws2View = "library";
+    libraryBtn.textContent = "Library";
+    libraryBtn.addEventListener("click", () => setWs2ViewMode("library"));
 
-  workspaceBtn.classList.add("ws2-view-switch-btn");
+    el.appendChild(workspaceBtn);
+    el.appendChild(libraryBtn);
+    ws2ViewSwitchBound = true;
+  }
 
-  workspaceBtn.classList.toggle("ghost", mode !== "workspace");
-
-  workspaceBtn.textContent = "Workspace";
-
-  workspaceBtn.addEventListener("click", () => setWs2ViewMode("workspace"));
-
-  const libraryBtn = document.createElement("button");
-
-  libraryBtn.type = "button";
-
-  libraryBtn.classList.add("ws2-view-switch-btn");
-
-  libraryBtn.classList.toggle("ghost", mode !== "library");
-
-  libraryBtn.textContent = "Library";
-
-  libraryBtn.addEventListener("click", () => setWs2ViewMode("library"));
-
-  el.appendChild(workspaceBtn);
-
-  el.appendChild(libraryBtn);
+  const workspaceBtn = el.querySelector('[data-ws2-view="workspace"]');
+  const libraryBtn = el.querySelector('[data-ws2-view="library"]');
+  if (workspaceBtn) workspaceBtn.classList.toggle("ghost", mode !== "workspace");
+  if (libraryBtn) libraryBtn.classList.toggle("ghost", mode !== "library");
 
 }
 
@@ -977,6 +1002,8 @@ function bindPlacementParamListeners() {
   const container = els.placementParams;
 
   if (!container) return;
+
+  bumpWs2DebugCounter("bindPlacementParamListeners");
 
   const inputs = Array.from(container.querySelectorAll("input"));
 
@@ -4239,6 +4266,11 @@ function renderTransformerVisualizer(elements, instance) {
 
 
   function handleLensUpdate(instance) {
+    bumpWs2DebugCounter("handleLensUpdate");
+    if (isDebugMode && ws2DebugCounters.handleLensUpdate % 60 === 0) {
+      const lensId = instance?.lens?.meta?.id || "unknown";
+      console.log(`[ws2 debug] handleLensUpdate lens=${lensId}`);
+    }
 
     const lensId = instance.lens.meta.id;
 
@@ -4403,6 +4435,11 @@ function renderTransformerVisualizer(elements, instance) {
 
 
   function scheduleLens(instance) {
+    bumpWs2DebugCounter("scheduleLens");
+    if (isDebugMode && ws2DebugCounters.scheduleLens % 60 === 0) {
+      const lensId = instance?.lens?.meta?.id || "unknown";
+      console.log(`[ws2 debug] scheduleLens lens=${lensId}`);
+    }
 
     scheduleLensEvaluation(instance, {
 
@@ -4539,6 +4576,8 @@ function initDashboardLensElements() {
 function bindLensInputsForInstance(instance, elements, options = {}) {
 
   if (!elements) return;
+
+  bumpWs2DebugCounter("bindLensInputsForInstance");
 
   const lens = instance.lens;
 
@@ -7224,6 +7263,8 @@ function renderWorkspace2FocusedLensFullUI() {
 function renderWorkspace2() {
 
   if (!isWorkspace2Enabled()) return;
+
+  bumpWs2DebugCounter("renderWorkspace2");
 
   const ws2 = getWorkspace2Els();
 

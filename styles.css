@@ -2073,6 +2073,7 @@ tr.selected:hover {
 }
 
 /* Unified interactive surfaces */
+/* WS2 hover flicker fix: keep hover styling centralized here to avoid duplicate hover rules. */
 .interactive-surface,
 .component-row,
 .draft-item,
@@ -2521,8 +2522,6 @@ html[data-layout="workspace"] .ws2-browser-item:active {
 
 html[data-layout="workspace"] .ws2-browser-item:hover {
   cursor: grabbing;
-  border-color: var(--color-accent);
-  background-color: var(--state-hover-overlay);
 }
 
 html[data-layout="workspace"] .ws2-browser-name {
@@ -2803,11 +2802,6 @@ html[data-layout="workspace"] .ws2-pill {
   transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-html[data-layout="workspace"] .ws2-pill:hover {
-  background-color: var(--state-hover-overlay);
-  border-color: var(--control-border-hover);
-}
-
 html[data-layout="workspace"] .ws2-pill-label {
   font-size: var(--type-xs);
   opacity: 0.8;
@@ -2931,11 +2925,6 @@ html[data-layout="workspace"] .ws2-track-lens-row {
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-html[data-layout="workspace"] .ws2-track-lens-row:hover {
-    background-color: var(--state-hover-overlay);
-    border-color: var(--control-border-hover);
-}
-
 html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
     border-color: var(--button-accent);
     background-color: var(--state-selected-overlay);
@@ -2952,11 +2941,6 @@ html[data-layout="workspace"] .ws2-track-lens-row {
     gap: var(--space-2);
     padding: var(--space-1) var(--space-2);
     cursor: pointer;
-}
-
-html[data-layout="workspace"] .ws2-track-lens-row:hover {
-    border-color: var(--color-border);
-    background-color: var(--state-hover-overlay);
 }
 
 html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
@@ -3002,10 +2986,7 @@ html[data-layout="workspace"] .ws2-inspector-wiring-row {
     border-radius: var(--radius-button);
     border: 1px solid transparent;
     background: var(--panel-bg);
-}
-
-html[data-layout="workspace"] .ws2-inspector-wiring-row:hover {
-    border-color: var(--color-border-soft);
+    --interactive-hover-border: var(--color-border-soft);
 }
 
 html[data-layout="workspace"] .ws2-inspector-wiring-role {

@@ -117,6 +117,8 @@ export function ensureDefaultSignalFlowSelections(
   scheduleLens,
   options = {}
 ) {
+  // WS2 hover thrash fix: avoid clearing missing-upstream state on every pass,
+  // which caused setMissingUpstream() to re-schedule lenses in a tight loop.
   if (!Array.isArray(tracks)) return;
   const workspace2 = options && options.workspace2;
   if (!workspace2) {
@@ -178,8 +180,11 @@ export function ensureDefaultSignalFlowSelections(
       inputSpecs.forEach((spec) => {
         const role = spec && spec.role;
         if (!role) return;
-        clearMissingUpstream(instance, role);
-        if (spec.allowUpstream === false) return;
+        if (spec.allowUpstream === false) {
+          clearMissingUpstream(instance, role);
+          clearLivePortRef(instance, role, scheduleLens);
+          return;
+        }
         const selected = instance.selectedInputRefsByRole
           ? instance.selectedInputRefsByRole[role]
           : null;
@@ -224,6 +229,8 @@ export function ensureDefaultSignalFlowSelections(
               },
               scheduleLens
             );
+          } else {
+            clearMissingUpstream(instance, role);
           }
           clearLivePortRef(instance, role, scheduleLens);
           return;
@@ -233,6 +240,7 @@ export function ensureDefaultSignalFlowSelections(
           clearLivePortRef(instance, role, scheduleLens);
           return;
         }
+        clearMissingUpstream(instance, role);
         if (isManualActive && upstream && activeSourceId !== upstream.lensInstanceId) return;
         updateLivePortRef(instance, upstream, role, scheduleLens);
       });
