@@ -98,9 +98,18 @@
 
   --color-hover-highlight-bg: var(--alpha-white-30);
 
-  --overlay-hover: var(--alpha-black-15);
-  --overlay-selected: color-mix(in srgb, var(--color-accent) 20%, var(--white));
-  --overlay-selected-hover: color-mix(in srgb, var(--color-accent) 40%, var(--white));
+  /* Canonical interaction state tokens */
+  --state-hover-overlay: var(--alpha-black-15);
+  --state-selected-overlay: color-mix(in srgb, var(--color-accent) 20%, var(--white));
+  --state-selected-hover-overlay: color-mix(in srgb, var(--color-accent) 40%, var(--white));
+  --state-pressed-overlay: color-mix(in srgb, var(--alpha-black-15) 60%, var(--alpha-black-35));
+  --state-disabled-opacity: 0.55;
+  --state-disabled-saturation: 0.65;
+
+  /* Compatibility aliases */
+  --overlay-hover: var(--state-hover-overlay);
+  --overlay-selected: var(--state-selected-overlay);
+  --overlay-selected-hover: var(--state-selected-hover-overlay);
   /* UI object geometry (semantic sizing contracts) */
   --hit-target-min: 40px;                 /* pointer target floor */
   --focus-ring-width: 2px;                /* outline thickness */
@@ -640,7 +649,8 @@ details.panel.subpanel > div {
 }
 
 .odd-toggle.disabled {
-  opacity: 0.5;
+  opacity: var(--state-disabled-opacity);
+  filter: saturate(var(--state-disabled-saturation));
   cursor: not-allowed;
 }
 
@@ -723,7 +733,8 @@ select:focus-visible {
 .component-field:disabled,
 input:disabled,
 select:disabled {
-  opacity: 0.6;
+  opacity: var(--state-disabled-opacity);
+  filter: saturate(var(--state-disabled-saturation));
   cursor: not-allowed;
 }
 
@@ -807,6 +818,11 @@ button:not(.ghost):hover:not(:disabled) {
   background-color: color-mix(in srgb, var(--button-accent) 58%, var(--white));
 }
 
+.component-button:not(.is-ghost):active:not(:disabled),
+button:not(.ghost):active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--button-accent) 55%, var(--state-pressed-overlay));
+}
+
 .component-button.is-ghost,
 button.ghost {
   background-color: transparent;
@@ -816,8 +832,21 @@ button.ghost {
 
 .component-button.is-ghost:hover:not(:disabled),
 button.ghost:hover:not(:disabled) {
-  background-color: var(--control-bg-hover);
+  background-color: var(--state-hover-overlay);
   border-color: var(--control-border-hover);
+}
+
+.component-button.is-ghost:active:not(:disabled),
+button.ghost:active:not(:disabled) {
+  background-color: var(--state-pressed-overlay);
+  border-color: var(--control-border-hover);
+}
+
+.component-button:disabled,
+button:disabled {
+  opacity: var(--state-disabled-opacity);
+  filter: saturate(var(--state-disabled-saturation));
+  cursor: not-allowed;
 }
 
 .component-button.is-icon,
@@ -1466,8 +1495,14 @@ details.meta-card[open] summary::after {
   display: grid;
 }
 
+.drafts-menu-item {
+  --interactive-hover-bg: color-mix(in srgb, var(--button-accent) 58%, var(--white));
+  --interactive-pressed-bg: color-mix(in srgb, var(--button-accent) 55%, var(--state-pressed-overlay));
+}
+
 .drafts-add:disabled {
-  opacity: 0.5;
+  opacity: var(--state-disabled-opacity);
+  filter: saturate(var(--state-disabled-saturation));
   cursor: not-allowed;
 }
 
@@ -1493,16 +1528,16 @@ details.meta-card[open] summary::after {
 }
 
 .draft-item:hover {
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
 }
 
 .draft-item.active {
   border-color: var(--color-accent);
-  background-color: var(--overlay-selected);
+  background-color: var(--state-selected-overlay);
 }
 
 .draft-item.active:hover {
-  background-color: var(--overlay-selected-hover);
+  background-color: var(--state-selected-hover-overlay);
 }
 
 .draft-left {
@@ -1541,16 +1576,16 @@ details.meta-card[open] summary::after {
 }
 
 .inventory-item:hover {
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
 }
 
 .inventory-item.selected {
   border-color: var(--color-accent);
-  background-color: var(--overlay-selected);
+  background-color: var(--state-selected-overlay);
 }
 
 .inventory-item.selected:hover {
-  background-color: var(--overlay-selected-hover);
+  background-color: var(--state-selected-hover-overlay);
 }
 
 .inventory-title {
@@ -1631,10 +1666,11 @@ details.meta-card[open] summary::after {
   text-overflow: ellipsis;
   cursor: grab;
   touch-action: none;
+  --interactive-hover-border: var(--color-accent);
 }
 
 .desk-item.selected {
-  background: var(--color-bg);
+  background-color: var(--state-selected-overlay);
 }
 
 .desk-item::before,
@@ -1714,7 +1750,7 @@ td.fav-cell {
 }
 
 .fav-btn:hover {
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
 }
 
 .fav-btn.active {
@@ -1732,12 +1768,12 @@ td.fav-cell {
 }
 
 .fav-item:hover {
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
 }
 
 .fav-item button {
   border: none;
-  background-color: var(--overlay-selected);
+  background-color: var(--state-selected-overlay);
   border-radius: var(--radius-button);
   height: var(--table-row-height);
   padding: 0 6px;
@@ -1747,7 +1783,7 @@ td.fav-cell {
 }
 
 .fav-item button:hover {
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
 }
 
 .fav-item .ghost {
@@ -1771,7 +1807,7 @@ td.fav-cell {
 
 .favorites-table tbody tr:hover,
 .favorites-table tbody tr td button:hover {
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
 }
 
 .favorites-table td:last-child,
@@ -1787,17 +1823,17 @@ td.fav-cell {
 
 /* Ranked Results Table */
 tr:hover {
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
   cursor: pointer;
 }
 
 tr.selected {
-  background-color: var(--overlay-selected);
+  background-color: var(--state-selected-overlay);
   font-weight: 600;
 }
 
 tr.selected:hover {
-  background-color: var(--overlay-selected-hover);
+  background-color: var(--state-selected-hover-overlay);
 }
 
 .modal {
@@ -2036,61 +2072,144 @@ tr.selected:hover {
   transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.component-pill:hover {
-  background-color: var(--overlay-hover);
-  border-color: var(--control-border-hover);
+/* Unified interactive surfaces */
+.interactive-surface,
+.component-row,
+.draft-item,
+.inventory-item,
+.component-pill,
+.drafts-menu-item,
+.fav-item,
+.fav-btn,
+.desk-item,
+html[data-layout="workspace"] .ws2-browser-item,
+html[data-layout="workspace"] .ws2-pill,
+html[data-layout="workspace"] .ws2-track-lens-row,
+html[data-layout="workspace"] .ws2-inspector-wiring-row {
+  --interactive-hover-bg: var(--state-hover-overlay);
+  --interactive-selected-bg: var(--state-selected-overlay);
+  --interactive-selected-hover-bg: var(--state-selected-hover-overlay);
+  --interactive-pressed-bg: var(--state-pressed-overlay);
+  --interactive-hover-border: var(--control-border-hover);
+  --interactive-selected-border: var(--button-accent);
+  --interactive-selected-shadow: 0 0 0 1px var(--button-accent);
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, outline-color 0.15s ease;
+  outline: 1px solid transparent;
+  outline-offset: 1px;
 }
 
-.component-pill.is-focused {
+.interactive-surface:hover:not(.is-disabled):not(:disabled),
+.component-row:hover,
+.draft-item:hover,
+.inventory-item:hover,
+.component-pill:hover,
+.drafts-menu-item:hover:not(:disabled),
+.fav-item:hover,
+.fav-btn:hover,
+.desk-item:hover,
+html[data-layout="workspace"] .ws2-browser-item:hover,
+html[data-layout="workspace"] .ws2-pill:hover,
+html[data-layout="workspace"] .ws2-track-lens-row:hover,
+html[data-layout="workspace"] .ws2-inspector-wiring-row:hover {
+  background-color: var(--interactive-hover-bg);
+  border-color: var(--interactive-hover-border);
+}
+
+.interactive-surface.is-hovered {
+  background-color: var(--interactive-hover-bg);
+  border-color: var(--interactive-hover-border);
+}
+
+.interactive-surface:active:not(.is-disabled):not(:disabled),
+.component-row:active,
+.draft-item:active,
+.inventory-item:active,
+.component-pill:active,
+.drafts-menu-item:active:not(:disabled),
+.fav-item:active,
+.fav-btn:active,
+.desk-item:active,
+html[data-layout="workspace"] .ws2-browser-item:active,
+html[data-layout="workspace"] .ws2-pill:active,
+html[data-layout="workspace"] .ws2-track-lens-row:active,
+html[data-layout="workspace"] .ws2-inspector-wiring-row:active {
+  background-color: var(--interactive-pressed-bg);
+}
+
+.interactive-surface.is-selected,
+.component-row.is-selected,
+.draft-item.active,
+.inventory-item.selected,
+.desk-item.selected,
+.component-pill.is-focused,
+html[data-layout="workspace"] .ws2-pill.is-focused,
+html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
+  border-color: var(--interactive-selected-border);
+  background-color: var(--interactive-selected-bg);
+  box-shadow: var(--interactive-selected-shadow);
+}
+
+.interactive-surface.is-selected:hover:not(.is-disabled):not(:disabled),
+.component-row.is-selected:hover,
+.component-row.is-selected:focus-visible,
+.draft-item.active:hover,
+.inventory-item.selected:hover,
+.desk-item.selected:hover,
+.component-pill.is-focused:hover,
+html[data-layout="workspace"] .ws2-pill.is-focused:hover,
+html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
+  background-color: var(--interactive-selected-hover-bg);
+}
+
+.interactive-surface.is-drop-target {
   border-color: var(--button-accent);
-  background-color: var(--overlay-selected);
+  background-color: var(--state-selected-overlay);
   box-shadow: 0 0 0 1px var(--button-accent);
 }
 
-.component-pill:disabled {
-  opacity: 0.5;
+.interactive-surface.is-drop-placeholder {
+  border-color: var(--button-accent);
+  background-color: var(--state-selected-hover-overlay);
+  box-shadow: inset 0 0 0 1px var(--button-accent);
+}
+
+.interactive-surface:focus-visible,
+.component-row:focus-visible,
+.draft-item:focus-visible,
+.inventory-item:focus-visible,
+.component-pill:focus-visible,
+.drafts-menu-item:focus-visible,
+.fav-btn:focus-visible,
+.desk-item:focus-visible,
+html[data-layout="workspace"] .ws2-browser-item:focus-visible,
+html[data-layout="workspace"] .ws2-pill:focus-visible,
+html[data-layout="workspace"] .ws2-track-lens-row:focus-visible,
+html[data-layout="workspace"] .ws2-inspector-wiring-row:focus-visible {
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.interactive-surface.is-disabled,
+.interactive-surface:disabled,
+.component-row:disabled,
+.draft-item:disabled,
+.inventory-item:disabled,
+.component-pill:disabled,
+.drafts-menu-item:disabled,
+.fav-btn:disabled,
+.desk-item:disabled,
+html[data-layout="workspace"] .ws2-pill:disabled {
+  opacity: var(--state-disabled-opacity);
+  filter: saturate(var(--state-disabled-saturation));
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.component-row,
-.draft-item,
-.inventory-item {
-    border-radius: var(--radius-control);
-    border: 1px solid var(--control-border);
-    background-color: var(--color-list-item);
-    color: var(--control-text);
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.component-row:hover,
-.draft-item:hover,
-.inventory-item:hover {
-    background-color: var(--overlay-hover);
-    border-color: var(--control-border-hover);
-}
-
-.component-row.is-selected,
-.draft-item.active,
-.inventory-item.selected {
-    border-color: var(--button-accent);
-    background-color: var(--overlay-selected);
-    box-shadow: 0 0 0 1px var(--button-accent);
-}
-
-.component-row.is-selected:hover,
-.component-row.is-selected:focus-visible,
-.draft-item.active:hover,
-.inventory-item.selected:hover {
-    background-color: var(--overlay-selected-hover);
-}
-
-.component-row:disabled,
-.draft-item:disabled,
-.inventory-item:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
+.component-row {
+  border-radius: var(--radius-control);
+  border: 1px solid var(--control-border);
+  background-color: var(--color-list-item);
+  color: var(--control-text);
 }
 
 .component-divider {
@@ -2099,15 +2218,6 @@ tr.selected:hover {
     background: var(--color-border-soft);
     opacity: 0.7;
     margin: var(--space-2) 0;
-}
-
-.component-button,
-.draft-item,
-.inventory-item,
-.component-row,
-.component-pill {
-  outline: 1px solid transparent;
-  outline-offset: 1px;
 }
 }
 
@@ -2338,7 +2448,7 @@ html[data-layout="workspace"] .ws2-grid-cell.is-occupied {
 html[data-layout="workspace"] .ws2-grid-cell.is-valid-drop {
   border-color: var(--button-accent);
   box-shadow: 0 0 0 1px var(--button-accent);
-  background-color: color-mix(in srgb, var(--button-accent) 12%, var(--panel-bg));
+  background-color: color-mix(in srgb, var(--state-selected-overlay) 45%, var(--panel-bg));
 }
 
 html[data-layout="workspace"] .ws2-grid-cell.is-invalid-drop {
@@ -2350,6 +2460,7 @@ html[data-layout="workspace"] .ws2-grid-cell.is-invalid-drop {
 html[data-layout="workspace"] .ws2-modular-grid-lane--drop-target .ws2-modular-grid-lane-body {
   border-color: var(--button-accent);
   box-shadow: 0 0 0 1px var(--button-accent);
+  background-color: color-mix(in srgb, var(--state-selected-overlay) 20%, var(--panel-bg));
 }
 
 html[data-layout="workspace"] .ws2-modular-grid-lane--full-warning .ws2-modular-grid-lane-body {
@@ -2367,7 +2478,7 @@ html[data-layout="workspace"] .ws2-modular-grid-node {
   gap: 2px;
   padding: var(--space-1) var(--space-2);
   border-radius: calc(var(--radius-button) - 2px);
-  background: var(--overlay-selected);
+  background: var(--state-selected-overlay);
   border: 1px solid var(--button-accent);
   width: 100%;
 }
@@ -2401,6 +2512,7 @@ html[data-layout="workspace"] .ws2-browser-item {
   flex-direction: column;
   gap: var(--space-1);
   transition: border-color 0.2s, background-color 0.2s;
+  --interactive-hover-border: var(--color-accent);
 }
 
 html[data-layout="workspace"] .ws2-browser-item:active {
@@ -2410,7 +2522,7 @@ html[data-layout="workspace"] .ws2-browser-item:active {
 html[data-layout="workspace"] .ws2-browser-item:hover {
   cursor: grabbing;
   border-color: var(--color-accent);
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
 }
 
 html[data-layout="workspace"] .ws2-browser-name {
@@ -2636,7 +2748,7 @@ html[data-layout="workspace"] .ws2-drop-caret {
 }
 
 html[data-layout="workspace"] .ws2-drop-slot.is-over .ws2-drop-caret {
-  background: color-mix(in srgb, var(--button-accent) 20%, transparent);
+  background: var(--state-selected-hover-overlay);
 }
 
 html[data-layout="workspace"] .ws2-drop-slot.is-over .ws2-drop-caret::after {
@@ -2665,6 +2777,9 @@ html[data-layout="workspace"] .ws2-drop-placeholder {
   color: var(--color-text-muted);
   padding: 0 var(--space-2);
   text-align: center;
+  border-radius: var(--radius-button);
+  border: 1px dashed var(--button-accent);
+  background-color: color-mix(in srgb, var(--state-selected-overlay) 25%, transparent);
 }
 
 html[data-layout="workspace"] .ws2-signal-out {
@@ -2689,7 +2804,7 @@ html[data-layout="workspace"] .ws2-pill {
 }
 
 html[data-layout="workspace"] .ws2-pill:hover {
-  background-color: var(--overlay-hover);
+  background-color: var(--state-hover-overlay);
   border-color: var(--control-border-hover);
 }
 
@@ -2712,12 +2827,13 @@ html[data-layout="workspace"] .ws2-pill-summary {
 
 html[data-layout="workspace"] .ws2-pill.is-focused {
   border-color: var(--button-accent);
-  background-color: var(--overlay-selected);
+  background-color: var(--state-selected-overlay);
   box-shadow: 0 0 0 1px var(--button-accent);
 }
 
 html[data-layout="workspace"] .ws2-pill:disabled {
-  opacity: 0.5;
+  opacity: var(--state-disabled-opacity);
+  filter: saturate(var(--state-disabled-saturation));
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -2790,7 +2906,7 @@ html[data-layout="workspace"] .ws2-inspector-focus-badge {
     border-radius: var(--radius-pill);
     padding: 0 var(--space-2);
     border: 1px solid var(--button-accent);
-    background: var(--overlay-selected);
+    background: var(--state-selected-overlay);
     font-size: var(--type-xxs);
 }
 
@@ -2816,18 +2932,18 @@ html[data-layout="workspace"] .ws2-track-lens-row {
 }
 
 html[data-layout="workspace"] .ws2-track-lens-row:hover {
-    background-color: var(--overlay-hover);
+    background-color: var(--state-hover-overlay);
     border-color: var(--control-border-hover);
 }
 
 html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
     border-color: var(--button-accent);
-    background-color: var(--overlay-selected);
+    background-color: var(--state-selected-overlay);
     box-shadow: 0 0 0 1px var(--button-accent);
 }
 
 html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
-    background-color: var(--overlay-selected-hover);
+    background-color: var(--state-selected-hover-overlay);
 }
 
 html[data-layout="workspace"] .ws2-track-lens-row {
@@ -2840,16 +2956,16 @@ html[data-layout="workspace"] .ws2-track-lens-row {
 
 html[data-layout="workspace"] .ws2-track-lens-row:hover {
     border-color: var(--color-border);
-    background-color: var(--overlay-hover);
+    background-color: var(--state-hover-overlay);
 }
 
 html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
     border-color: var(--button-accent);
-    background-color: var(--overlay-selected);
+    background-color: var(--state-selected-overlay);
 }
 
 html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
-    background-color: var(--overlay-selected-hover);
+    background-color: var(--state-selected-hover-overlay);
 }
 
 html[data-layout="workspace"] .ws2-track-lens-label {
