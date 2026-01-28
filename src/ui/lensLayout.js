@@ -39,6 +39,12 @@ function buildSpecInput(spec, value) {
     input.checked = Boolean(value ?? spec.default);
     return input;
   }
+  if (spec.kind === "textarea" || spec.multiline) {
+    input = document.createElement("textarea");
+    if (Number.isFinite(spec.rows)) input.rows = spec.rows;
+    input.value = value ?? spec.default ?? "";
+    return input;
+  }
   input = document.createElement("input");
   if (spec.kind === "int" || spec.kind === "number") {
     input.type = "number";
@@ -59,6 +65,22 @@ function buildSpecInput(spec, value) {
 }
 
 function renderSpecControls(container, specs, values, onChange, options = {}) {
+  const doc = container.ownerDocument;
+  const active = doc ? doc.activeElement : null;
+  let activeKey = null;
+  let activeType = null;
+  let selection = null;
+  if (active && container.contains(active)) {
+    activeKey = active.dataset ? active.dataset.specKey : null;
+    activeType = active.tagName;
+    if (activeKey && (activeType === "INPUT" || activeType === "TEXTAREA")) {
+      const start = active.selectionStart;
+      const end = active.selectionEnd;
+      if (Number.isFinite(start) && Number.isFinite(end)) {
+        selection = { start, end };
+      }
+    }
+  }
   container.innerHTML = "";
   const idPrefix = options.idPrefix ? `${options.idPrefix}-` : "";
   (specs || []).forEach((spec) => {
@@ -84,6 +106,20 @@ function renderSpecControls(container, specs, values, onChange, options = {}) {
     field.appendChild(input);
     container.appendChild(field);
   });
+  if (activeKey) {
+    const next = container.querySelector(`[data-spec-key="${activeKey}"]`);
+    if (next && typeof next.focus === "function") {
+      try {
+        next.focus({ preventScroll: true });
+      } catch {
+        next.focus();
+      }
+      if (selection && (next.tagName === "INPUT" || next.tagName === "TEXTAREA")
+        && typeof next.setSelectionRange === "function") {
+        next.setSelectionRange(selection.start, selection.end);
+      }
+    }
+  }
 }
 
 export function initLensControls(container, specs, values, onChange, options = {}) {

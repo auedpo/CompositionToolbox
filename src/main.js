@@ -4263,9 +4263,42 @@ function renderTransformerVisualizer(elements, instance) {
 
 }
 
+let pendingWorkspace2Render = false;
+
+function deferWorkspace2Render(activeElement) {
+  if (pendingWorkspace2Render) return;
+  pendingWorkspace2Render = true;
+  const finish = () => {
+    pendingWorkspace2Render = false;
+    if (isWorkspace2Enabled()) {
+      renderWorkspace2();
+    }
+  };
+  if (activeElement && typeof activeElement.addEventListener === "function") {
+    activeElement.addEventListener("blur", finish, { once: true });
+  } else {
+    finish();
+  }
+}
+
+let pendingTrackWorkspaceRender = false;
+
+function deferTrackWorkspaceRender(activeElement) {
+  if (pendingTrackWorkspaceRender) return;
+  pendingTrackWorkspaceRender = true;
+  const finish = () => {
+    pendingTrackWorkspaceRender = false;
+    renderTrackWorkspace();
+  };
+  if (activeElement && typeof activeElement.addEventListener === "function") {
+    activeElement.addEventListener("blur", finish, { once: true });
+  } else {
+    finish();
+  }
+}
 
 
-  function handleLensUpdate(instance) {
+function handleLensUpdate(instance) {
     bumpWs2DebugCounter("handleLensUpdate");
     if (isDebugMode && ws2DebugCounters.handleLensUpdate % 60 === 0) {
       const lensId = instance?.lens?.meta?.id || "unknown";
@@ -4425,9 +4458,14 @@ function renderTransformerVisualizer(elements, instance) {
   refreshLensInputs();
 
   if (isWorkspace2Enabled()) {
-
-    renderWorkspace2();
-
+    const active = document.activeElement;
+    const tag = active ? active.tagName : "";
+    const editing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+    if (editing) {
+      deferWorkspace2Render(active);
+    } else {
+      renderWorkspace2();
+    }
   }
 
 }
@@ -4582,6 +4620,15 @@ function bindLensInputsForInstance(instance, elements, options = {}) {
   const lens = instance.lens;
 
   const idPrefix = options.idPrefix || "";
+  const shouldSkipRender = (container) => {
+    if (!container) return false;
+    const doc = container.ownerDocument;
+    if (!doc) return false;
+    const active = doc.activeElement;
+    if (!active || !container.contains(active)) return false;
+    const tag = active.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+  };
 
   if (lens.meta.id === "euclideanPatterns") {
 
@@ -4623,7 +4670,7 @@ function bindLensInputsForInstance(instance, elements, options = {}) {
 
     );
 
-  } else {
+  } else if (!shouldSkipRender(elements.inputs)) {
 
     initLensControls(elements.inputs, lens.generatorInputs, instance.generatorInputValues, (spec, value) => {
 
@@ -4637,7 +4684,7 @@ function bindLensInputsForInstance(instance, elements, options = {}) {
 
   }
 
-  if (lens.meta.id !== "euclideanPatterns") {
+  if (lens.meta.id !== "euclideanPatterns" && !shouldSkipRender(elements.params)) {
 
     initLensControls(elements.params, lens.params, instance.paramsValues, (spec, value) => {
 
@@ -7263,6 +7310,12 @@ function renderWorkspace2FocusedLensFullUI() {
 function renderWorkspace2() {
 
   if (!isWorkspace2Enabled()) return;
+  const active = document.activeElement;
+  const tag = active ? active.tagName : "";
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+    deferWorkspace2Render(active);
+    return;
+  }
 
   bumpWs2DebugCounter("renderWorkspace2");
 
@@ -7353,6 +7406,13 @@ function renderTrackWorkspace() {
   const container = els.workspaceTracks;
 
   if (!container) return;
+  const active = document.activeElement;
+  const tag = active ? active.tagName : "";
+  const editing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+  if (editing && container.contains(active)) {
+    deferTrackWorkspaceRender(active);
+    return;
+  }
 
   lensElements.clear();
 

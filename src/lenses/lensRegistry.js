@@ -1,6 +1,7 @@
 import { basicMathTransformerLens } from "./basicMathTransformerLens.js";
 import { intervalPlacementLens } from "./intervalPlacementLens.js";
 import { euclideanPatternsLens } from "./euclideanPatternsLens.js";
+import { inputListLens } from "./inputList.js";
 import { passthroughLens } from "./passthroughLens.js";
 import { shiftSweepLens } from "./transformers/shiftSweep.js";
 
@@ -21,6 +22,7 @@ export function listLenses() {
 
 registerLens(intervalPlacementLens);
 registerLens(euclideanPatternsLens);
+registerLens(inputListLens);
 registerLens(passthroughLens);
 registerLens(basicMathTransformerLens);
 registerLens(shiftSweepLens);
