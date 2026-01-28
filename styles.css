@@ -217,6 +217,11 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: "Figtree", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -2248,6 +2253,27 @@ html[data-layout="workspace"] #workspace2Root[hidden] {
   display: none;
 }
 
+html[data-layout="workspace"] .app-shell,
+html[data-layout="workspace"] .app-stack,
+html[data-layout="workspace"] .app-scroll,
+html[data-layout="workspace"] .page,
+html[data-layout="workspace"] .workspace-region {
+  height: 100%;
+  min-height: 0;
+}
+
+html[data-layout="workspace"] .app-scroll {
+  overflow: hidden;
+}
+
+html[data-layout="workspace"] .page {
+  padding: 0;
+}
+
+html[data-layout="workspace"] body {
+  height: 100%;
+}
+
 html[data-layout="workspace"] .workspace2-root {
   display: flex;
   flex-direction: column;
@@ -2262,6 +2288,7 @@ html[data-layout="workspace"] .ws2-header {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3);
+  flex: 0 0 auto;
 }
 
 html[data-layout="workspace"] .ws2-header-left {
@@ -2284,6 +2311,7 @@ html[data-layout="workspace"] .ws2-body {
   padding: var(--space-3);
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 html[data-layout="workspace"] .ws2-column-left,
@@ -2305,6 +2333,22 @@ html[data-layout="workspace"] .ws2-column-center {
 
 html[data-layout="workspace"] .ws2-column-right {
   grid-column: 3;
+}
+
+html[data-layout="workspace"] .ws2-column-left > .ws2-panel,
+html[data-layout="workspace"] .ws2-column-center > .ws2-panel {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+html[data-layout="workspace"] .ws2-column-right > .ws2-panel-browser {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+html[data-layout="workspace"] .ws2-column-right > .ws2-panel-modular {
+  flex: 3 1 0;
+  min-height: 0;
 }
 
 html[data-layout="workspace"] .ws2-sidebar {
@@ -2614,7 +2658,7 @@ html[data-layout="workspace"] .ws2-euclid-canvas {
 
 /* phase 8 */
 html[data-layout="workspace"] .ws2-placeholder {
-  color: var(--app-debug-1);
+  color: var(--color-text);
   font-size: var(--type-sm);
 }
 
@@ -2637,6 +2681,7 @@ html[data-layout="workspace"] .ws2-footer {
   gap: var(--space-3);
   background: var(--panel-bg);
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  flex: 0 0 auto;
 }
 
 html[data-layout="workspace"] .ws2-view-switch,
@@ -2652,10 +2697,15 @@ html[data-layout="workspace"] .ws2-views {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 html[data-layout="workspace"] .ws2-view {
   min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 html[data-layout="workspace"] .ws2-view[hidden] {
