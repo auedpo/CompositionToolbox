@@ -30,3 +30,27 @@ export const selectSelectedLensInstance = (state) => {
   const lensInstancesById = selectLensInstancesById(state);
   return lensInstancesById[lensInstanceId] || null;
 };
+
+export const selectSelectedLensInstanceParams = (state) => {
+  const lensInstanceId = selectSelectedLensInstanceId(state);
+  if (!lensInstanceId) return null;
+  const lensInstancesById = selectLensInstancesById(state);
+  const instance = lensInstancesById[lensInstanceId];
+  return instance ? instance.params : null;
+};
+
+export const selectSelectedLensInstanceLensId = (state) => {
+  const lensInstanceId = selectSelectedLensInstanceId(state);
+  if (!lensInstanceId) return null;
+  const lensInstancesById = selectLensInstancesById(state);
+  const instance = lensInstancesById[lensInstanceId];
+  return instance ? instance.lensId : null;
+};
+
+export const selectSelectedLensInstanceLabel = (state) => {
+  const lensInstanceId = selectSelectedLensInstanceId(state);
+  if (!lensInstanceId) return null;
+  const lensInstancesById = selectLensInstancesById(state);
+  const instance = lensInstancesById[lensInstanceId];
+  return instance && instance.ui ? instance.ui.label : null;
+};

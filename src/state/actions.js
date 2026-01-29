@@ -29,6 +29,9 @@ export function createActions(dispatch) {
     setLensParam(lensInstanceId, path, value) {
       dispatch({ type: ACTION_TYPES.LENS_SET_PARAM, payload: { lensInstanceId, path, value } });
     },
+    replaceLensParams(lensInstanceId, params) {
+      dispatch({ type: ACTION_TYPES.LENS_REPLACE_PARAMS, payload: { lensInstanceId, params } });
+    },
     setLensInput(lensInstanceId, input) {
       dispatch({ type: ACTION_TYPES.LENS_SET_INPUT, payload: { lensInstanceId, input } });
     },

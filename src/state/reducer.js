@@ -11,6 +11,7 @@ export const ACTION_TYPES = {
   LENS_REMOVE_INSTANCE: "LENS_REMOVE_INSTANCE",
   LENS_MOVE_INSTANCE: "LENS_MOVE_INSTANCE",
   LENS_SET_PARAM: "LENS_SET_PARAM",
+  LENS_REPLACE_PARAMS: "LENS_REPLACE_PARAMS",
   LENS_SET_INPUT: "LENS_SET_INPUT",
   SELECTION_SET: "SELECTION_SET",
   PERSISTENCE_MARK_CLEAN: "PERSISTENCE_MARK_CLEAN"
@@ -373,6 +374,28 @@ export function reduceAuthoritative(authoritative, action) {
             [lensInstanceId]: {
               ...instance,
               params: nextParams
+            }
+          }
+        },
+        persistence: {
+          ...current.persistence,
+          dirty: true
+        }
+      };
+    }
+    case ACTION_TYPES.LENS_REPLACE_PARAMS: {
+      const lensInstanceId = payload.lensInstanceId;
+      if (!lensInstanceId || !current.lenses.lensInstancesById[lensInstanceId]) return current;
+      const instance = current.lenses.lensInstancesById[lensInstanceId];
+      return {
+        ...current,
+        lenses: {
+          ...current.lenses,
+          lensInstancesById: {
+            ...current.lenses.lensInstancesById,
+            [lensInstanceId]: {
+              ...instance,
+              params: payload.params
             }
           }
         },
