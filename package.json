@@ -7,7 +7,8 @@
     "dev": "vite --open",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node tests/prefixDominanceEngine.test.js && node tests/intervalPlacementLens.test.js && node tests/euclideanPatternsLens.test.js && node tests/inputListLens.test.js && node tests/transformerPipeline.test.js && node tests/basicMathTransformerLens.test.js && node tests/gridNormalization.test.js && node tests/workspace2Inspector.test.js"
+    "policy:check": "node scripts/policyCheck.js",
+    "test": "node scripts/policyCheck.js && node tests/prefixDominanceEngine.test.js && node tests/intervalPlacementLens.test.js && node tests/euclideanPatternsLens.test.js && node tests/inputListLens.test.js && node tests/transformerPipeline.test.js && node tests/basicMathTransformerLens.test.js && node tests/gridNormalization.test.js && node tests/workspace2Inspector.test.js && node src/__tests__/draftInvariants.test.js && node src/__tests__/lensRegistrySmoke.test.js && node src/__tests__/lifecycleSeparation.test.js"
   },
   "devDependencies": {
     "vite": "^5.4.8"

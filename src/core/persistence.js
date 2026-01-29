@@ -1,8 +1,31 @@
 import { storageKeys } from "../state.js";
 import { inventoryStore, deskStore } from "./stores.js";
 
+const SCHEMA_VERSION = 1;
+
+function wrapPersisted(data) {
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    data
+  };
+}
+
+function unwrapPersisted(parsed) {
+  if (!parsed || typeof parsed !== "object") {
+    return { schemaVersion: 0, data: null };
+  }
+  if (Object.prototype.hasOwnProperty.call(parsed, "schemaVersion")) {
+    return {
+      schemaVersion: parsed.schemaVersion,
+      data: parsed.data
+    };
+  }
+  return { schemaVersion: 0, data: parsed };
+}
+
 export function saveInventory() {
-  localStorage.setItem(storageKeys.inventory, JSON.stringify(inventoryStore.serialize()));
+  const payload = wrapPersisted(inventoryStore.serialize());
+  localStorage.setItem(storageKeys.inventory, JSON.stringify(payload));
 }
 
 export function loadInventory() {
@@ -10,7 +33,8 @@ export function loadInventory() {
   if (!stored) return;
   try {
     const parsed = JSON.parse(stored);
-    inventoryStore.deserialize(parsed);
+    const { data } = unwrapPersisted(parsed);
+    inventoryStore.deserialize(data);
     if (inventoryStore.needsMigration && inventoryStore.needsMigration()) {
       saveInventory();
     }
@@ -20,7 +44,8 @@ export function loadInventory() {
 }
 
 export function saveDesk() {
-  localStorage.setItem(storageKeys.desk, JSON.stringify(deskStore.serialize()));
+  const payload = wrapPersisted(deskStore.serialize());
+  localStorage.setItem(storageKeys.desk, JSON.stringify(payload));
 }
 
 export function loadDesk() {
@@ -28,11 +53,22 @@ export function loadDesk() {
   if (!stored) return;
   try {
     const parsed = JSON.parse(stored);
-    deskStore.deserialize(parsed);
+    const { data } = unwrapPersisted(parsed);
+    deskStore.deserialize(data);
     if (deskStore.needsMigration && deskStore.needsMigration()) {
       saveDesk();
     }
   } catch {
     deskStore.clear();
   }
+}
+
+export function saveProject() {
+  saveInventory();
+  saveDesk();
+}
+
+export function loadProject() {
+  loadInventory();
+  loadDesk();
 }
