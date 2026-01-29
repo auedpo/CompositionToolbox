@@ -29,6 +29,16 @@ export default function DraftsRegion() {
     }
   );
 
+  const formatPreview = (values) => {
+    if (values === undefined) return "—";
+    try {
+      const text = JSON.stringify(values, null, 2);
+      return text.length > 240 ? `${text.slice(0, 240)}…` : text;
+    } catch (error) {
+      return "Unserializable payload.";
+    }
+  };
+
   return (
     <section className="workspace-panel workspace-panel-drafts">
       <div className="workspace-panel-header">Drafts</div>
@@ -59,6 +69,13 @@ export default function DraftsRegion() {
                       <div className="draft-desc">
                         {draft.summary || draft.draftId}
                       </div>
+                      <div className="hint">{draft.draftId}</div>
+                      <textarea
+                        className="component-field"
+                        value={formatPreview(draft.payload && draft.payload.values)}
+                        readOnly
+                        rows={4}
+                      />
                     </div>
                   </div>
                 ))}

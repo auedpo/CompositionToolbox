@@ -2350,6 +2350,22 @@ html[data-layout="workspace"] .ws2-column-right {
   grid-column: 3;
 }
 
+html[data-layout="workspace"] .workspace-column-center > .workspace-center-top-split {
+  display: flex;
+  gap: var(--space-3);
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+html[data-layout="workspace"] .workspace-center-top-split > .workspace-panel {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+html[data-layout="workspace"] .workspace-center-top-split > .workspace-panel .workspace-panel-body {
+  overflow: auto;
+}
+
 html[data-layout="workspace"] .workspace-column-left > .workspace-panel,
 html[data-layout="workspace"] .workspace-column-center > .workspace-panel,
 html[data-layout="workspace"] .ws2-column-left > .ws2-panel,
