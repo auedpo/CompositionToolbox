@@ -1,3 +1,6 @@
+// Purpose: workspaceGrid.js provides exports: initWorkspaceGrid.
+// Interacts with: imports: ../state.js, ./panelChrome.js.
+// Role: UI layer module within the broader app graph.
 import { createPanelChrome } from "./panelChrome.js";
 import { storageKeys } from "../state.js";
 

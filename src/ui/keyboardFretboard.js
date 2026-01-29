@@ -1,3 +1,6 @@
+// Purpose: keyboardFretboard.js provides exports: renderFretboard, renderKeyboard.
+// Interacts with: imports: ../core/pitchUtils.js, ../core/visuals.js, ../state.js.
+// Role: UI layer module within the broader app graph.
 import { els, state } from "../state.js";
 import { hueForInterval, intervalLightness } from "../core/visuals.js";
 import { getBaseMidi } from "../core/pitchUtils.js";

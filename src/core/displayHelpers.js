@@ -1,3 +1,6 @@
+// Purpose: displayHelpers.js provides exports: flattenNumericTree, formatNumericTree, formatValueList.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 export function formatValueList(values, options = {}) {
   const { separator = " ", maxLength = 64 } = options;
   if (!Array.isArray(values) || !values.length) return "";

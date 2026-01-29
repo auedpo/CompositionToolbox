@@ -1,3 +1,6 @@
+// Purpose: lensRegistry.js provides exports: getLens, getLensDef, listLenses, registerLens.
+// Interacts with: imports: ./basicMathTransformerLens.js, ./euclideanPatternsLens.js, ./inputList.js, ./intervalPlacementLens.js, ./passthroughLens.js... (+1 more).
+// Role: lens domain layer module within the broader app graph.
 import { basicMathTransformerLens } from "./basicMathTransformerLens.js";
 import { intervalPlacementLens } from "./intervalPlacementLens.js";
 import { euclideanPatternsLens } from "./euclideanPatternsLens.js";

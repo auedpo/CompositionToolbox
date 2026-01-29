@@ -1,3 +1,6 @@
+// Purpose: placementMath.js provides exports: accumulateRepulsionForces, anchorRangeFromBounds, centerBoundsForPerm, clamp, minPairwiseDistance... (+6 more).
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }

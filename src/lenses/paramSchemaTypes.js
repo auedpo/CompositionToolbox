@@ -1,3 +1,6 @@
+// Purpose: paramSchemaTypes.js provides exports: booleanField, createParamSchema, enumField, numberField, SCHEMA_VERSION... (+1 more).
+// Interacts with: no imports.
+// Role: lens domain layer module within the broader app graph.
 const SCHEMA_VERSION = 1;
 
 export { SCHEMA_VERSION };

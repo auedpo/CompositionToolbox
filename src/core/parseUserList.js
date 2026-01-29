@@ -1,3 +1,6 @@
+// Purpose: parseUserList.js provides exports: parseUserList.
+// Interacts with: imports: ./invariants.js.
+// Role: core domain layer module within the broader app graph.
 import { assertNumericTree } from "./invariants.js";
 
 function errorResult(message) {

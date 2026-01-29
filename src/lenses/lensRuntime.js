@@ -1,3 +1,6 @@
+// Purpose: lensRuntime.js provides exports: collectDraftCatalog, createLensInstance, materializeDrafts, scheduleLensEvaluation, updateSpecValue.
+// Interacts with: imports: ../core/invariants.js, ../core/model.js, ./inputResolution.js.
+// Role: lens domain layer module within the broader app graph.
 import { hashParams } from "../core/model.js";
 import { assertDraft, assertDraftKeys, DraftInvariantError, normalizeDraft } from "../core/invariants.js";
 import { resolveValuesForRole } from "./inputResolution.js";
@@ -10,39 +13,6 @@ function buildDefaults(specs) {
   return values;
 }
 
-function normalizeListInput(value, kind) {
-  if (Array.isArray(value)) return value.slice();
-  if (typeof value === "string") {
-    const parts = value.split(/[,\s]+/).filter(Boolean);
-    if (kind === "list:int") {
-      return parts.map((v) => parseInt(v, 10)).filter((v) => Number.isFinite(v));
-    }
-    if (kind === "list:number") {
-      return parts.map((v) => Number(v)).filter((v) => Number.isFinite(v));
-    }
-  }
-  return [];
-}
-
-function normalizeSpecValue(spec, value) {
-  if (spec.kind === "list:int" || spec.kind === "list:number") {
-    return normalizeListInput(value, spec.kind);
-  }
-  if (spec.kind === "int") {
-    const parsed = parseInt(value, 10);
-    if (!Number.isFinite(parsed)) return spec.default;
-    return parsed;
-  }
-  if (spec.kind === "number") {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return spec.default;
-    return parsed;
-  }
-  if (spec.kind === "bool") {
-    return Boolean(value);
-  }
-  return value;
-}
 
 function gatherResolvedInputs({
   lens,
@@ -110,12 +80,6 @@ export function createLensInstance(lens, lensInstanceId) {
       lastError: null
     };
   }
-
-export function updateSpecValue(state, specs, key, value) {
-  const spec = (specs || []).find((entry) => entry.key === key);
-  if (!spec) return;
-  state[key] = normalizeSpecValue(spec, value);
-}
 
 export function materializeDrafts({
   lens,
@@ -276,3 +240,5 @@ export function scheduleLensEvaluation(instance, options) {
 export function collectDraftCatalog(instances) {
   return instances.flatMap((instance) => instance.currentDrafts || []);
 }
+
+export { updateSpecValue } from "../core/paramUtils.js";

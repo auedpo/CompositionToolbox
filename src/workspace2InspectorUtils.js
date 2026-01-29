@@ -1,3 +1,6 @@
+// Purpose: workspace2InspectorUtils.js provides exports: clearLensOrder, findTrackIdForLensInstance, getLensIndexInTrack, getLensLabelForTrackIndex, insertLensAt... (+4 more).
+// Interacts with: no imports.
+// Role: module module within the broader app graph.
 export function findTrackIdForLensInstance(tracks, instanceId) {
   if (!instanceId || !Array.isArray(tracks)) return null;
   for (const track of tracks) {

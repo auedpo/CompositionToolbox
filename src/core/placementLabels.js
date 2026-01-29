@@ -1,3 +1,6 @@
+// Purpose: placementLabels.js provides exports: engineLabelForId.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 export function engineLabelForId(id) {
   if (id === "v1") return "uniform-centers";
   if (id === "repulse") return "repulsion-centers";

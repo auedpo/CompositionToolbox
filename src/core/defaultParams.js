@@ -1,3 +1,6 @@
+// Purpose: defaultParams.js provides exports: defaultParams.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 export const defaultParams = {
   // Pitch/EDO geometry and compound interval handling.
   edoSteps: 12,

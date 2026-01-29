@@ -1,3 +1,6 @@
+// Purpose: passthroughLens.js provides exports: evaluatePassthroughLens, passthroughLens.
+// Interacts with: imports: ../core/invariants.js, ./inputResolution.js.
+// Role: lens domain layer module within the broader app graph.
 import { makeDraft } from "../core/invariants.js";
 import { resolveValuesForRole } from "./inputResolution.js";
 

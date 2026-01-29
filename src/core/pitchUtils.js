@@ -1,3 +1,6 @@
+// Purpose: pitchUtils.js provides exports: getBaseMidi.
+// Interacts with: imports: ../state.js.
+// Role: core domain layer module within the broader app graph.
 import { els, state } from "../state.js";
 
 export function getBaseMidi() {

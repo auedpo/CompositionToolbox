@@ -1,3 +1,6 @@
+// Purpose: workspace2GridConfig.js provides exports: clampWs2Row, getDefaultLaneName, isWs2RowInRange, WS2_GRID_INITIAL_LANES, WS2_GRID_ROWS.
+// Interacts with: no imports.
+// Role: module module within the broader app graph.
 export const WS2_GRID_ROWS = 16;
 export const WS2_GRID_INITIAL_LANES = 6;
 

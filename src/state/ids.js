@@ -1,3 +1,6 @@
+// Purpose: ids.js provides exports: makeDeskNodeId, makeDraftId, makeInventoryItemId, makeLensInstanceId, makeTrackId.
+// Interacts with: imports: ../core/ids.js.
+// Role: state layer module within the broader app graph.
 import { newId } from "../core/ids.js";
 
 export function makeTrackId() {

@@ -1,10 +1,20 @@
+// Purpose: lensHost.js provides exports: lensHost.
+// Interacts with: imports: ../lenses/lensRegistry.js.
+// Role: core domain layer module within the broader app graph.
 import { getLens } from "../lenses/lensRegistry.js";
+
+const DEBUG_LENS_HOST = false;
 
 function formatErrorMessage(error) {
   if (!error) return "Lens evaluation failed.";
   if (typeof error === "string") return error;
   if (error instanceof Error) return error.message || "Lens evaluation failed.";
   return "Lens evaluation failed.";
+}
+
+function debug(...args) {
+  if (!DEBUG_LENS_HOST || !import.meta.env || !import.meta.env.DEV) return;
+  console.log(...args);
 }
 
 export const lensHost = {
@@ -25,28 +35,29 @@ export const lensHost = {
       selectedInputRefsByRole: {},
       _liveInputRefs: {}
     };
-    const upstreamInstance = inputDraft
-      ? { lensInstanceId: inputDraft.lensInstanceId, activeDraft: inputDraft }
+    const upstreamDraft = inputDraft || null;
+    const upstreamInstance = upstreamDraft
+      ? { lensInstanceId: upstreamDraft.lensInstanceId, activeDraft: upstreamDraft }
       : null;
-    const draftCatalog = inputDraft ? [inputDraft] : [];
+    const draftCatalog = upstreamDraft ? [upstreamDraft] : [];
     const lensContext = {
       lensId,
       lensInstanceId,
-      instance,
+      trackId: context && context.trackId ? context.trackId : undefined,
       draftCatalog,
-      getLensInstanceById: () => null,
-      upstreamInstance,
-      ...(context || {})
+      upstreamDraft,
+      instance,
+      upstreamInstance
     };
     let result = null;
     try {
-      console.log(
+      debug(
         "[LENS APPLY]",
         lensId,
         {
           params,
-          hasInput: !!inputDraft,
-          inputPreview: inputDraft?.numericTree ?? inputDraft?.values ?? null
+          hasInput: !!upstreamDraft,
+          inputPreview: upstreamDraft?.numericTree ?? upstreamDraft?.values ?? null
         }
       );
       result = lens.evaluate({
@@ -54,7 +65,7 @@ export const lensHost = {
         lensInput: {},
         context: lensContext
       });
-      console.log(
+      debug(
         "[LENS OUTPUT]",
         lensId,
         result

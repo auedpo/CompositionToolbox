@@ -1,3 +1,6 @@
+// Purpose: main.js is a side-effect module.
+// Interacts with: no imports.
+// Role: module module within the broader app graph.
 const LEGACY_STORAGE_KEY = "useLegacyUI";
 
 function shouldUseLegacyUI() {

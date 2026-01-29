@@ -1,3 +1,6 @@
+// Purpose: shiftSweep.js provides exports: evaluateShiftSweepLens, shiftSweepLens.
+// Interacts with: imports: ../../core/displayHelpers.js, ../../core/invariants.js, ../inputResolution.js.
+// Role: lens domain layer module within the broader app graph.
 import { formatNumericTree, flattenNumericTree } from "../../core/displayHelpers.js";
 import { makeDraft } from "../../core/invariants.js";
 import { resolveValuesForRole } from "../inputResolution.js";

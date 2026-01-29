@@ -1,3 +1,6 @@
+// Purpose: gridNormalization.js provides exports: normalizeLensInstanceGridFields.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 export function normalizeLensInstanceGridFields({
   instance,
   track,

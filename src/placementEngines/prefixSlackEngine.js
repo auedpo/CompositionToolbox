@@ -1,3 +1,6 @@
+// Purpose: prefixSlackEngine.js provides exports: createPrefixSlackEngine.
+// Interacts with: no imports.
+// Role: placement engine module within the broader app graph.
 export function createPrefixSlackEngine(anchorsForPerm) {
   return {
     id: "v2",

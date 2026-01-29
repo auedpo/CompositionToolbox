@@ -1,3 +1,6 @@
+// Purpose: parseListText.js provides exports: parseListText.
+// Interacts with: imports: ./invariants.js.
+// Role: core domain layer module within the broader app graph.
 import { assertNumericTree } from "./invariants.js";
 
 function errorResult(message) {

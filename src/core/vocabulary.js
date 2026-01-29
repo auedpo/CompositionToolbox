@@ -1,3 +1,6 @@
+// Purpose: vocabulary.js provides exports: ENTITY.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 export const ENTITY = {
   DRAFT: "draft",
   MATERIAL: "material",

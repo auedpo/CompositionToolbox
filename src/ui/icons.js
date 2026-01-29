@@ -1,3 +1,6 @@
+// Purpose: icons.js provides exports: icon.
+// Interacts with: imports: lucide.
+// Role: UI layer module within the broader app graph.
 import { createElement, icons } from "lucide";
 
 const fallbackIcon = "circle-help";

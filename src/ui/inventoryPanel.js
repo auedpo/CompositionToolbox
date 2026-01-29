@@ -1,3 +1,6 @@
+// Purpose: inventoryPanel.js provides exports: bindInventoryActions, bindInventorySearch, removeSelectedInventory, renderInventory, renderInventoryDetails... (+1 more).
+// Interacts with: imports: ../core/displayHelpers.js, ../core/persistence.js, ../core/stores.js, ../state.js, ./deskPanel.js.
+// Role: UI layer module within the broader app graph.
 import { els, state, storageKeys } from "../state.js";
 import { inventoryStore, deskStore } from "../core/stores.js";
 import { saveInventory, saveDesk } from "../core/persistence.js";

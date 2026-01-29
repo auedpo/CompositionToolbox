@@ -1,3 +1,6 @@
+// Purpose: activePlacement.js provides exports: getFocusedIntervalPlacementDraft, getFocusedIntervalPlacementInstance, getFocusedIntervalPlacementRecord.
+// Interacts with: imports: ../state.js.
+// Role: core domain layer module within the broader app graph.
 import { state } from "../state.js";
 
 export function getFocusedIntervalPlacementInstance() {

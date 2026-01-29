@@ -1,3 +1,6 @@
+// Purpose: basicMathTransformerLens.js provides exports: basicMathTransformerLens, evaluateBasicMathTransformerLens.
+// Interacts with: imports: ../core/displayHelpers.js, ../core/invariants.js, ../core/materialTypes.js, ./inputResolution.js, ./paramSchemaTypes.js.
+// Role: lens domain layer module within the broader app graph.
 import { MATERIAL_TYPES } from "../core/materialTypes.js";
 import { formatNumericTree, flattenNumericTree } from "../core/displayHelpers.js";
 import { makeDraft } from "../core/invariants.js";

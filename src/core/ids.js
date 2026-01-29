@@ -1,3 +1,6 @@
+// Purpose: ids.js provides exports: newId.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 let counter = 0;
 
 export function newId(prefix = "id") {

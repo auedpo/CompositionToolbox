@@ -1,3 +1,6 @@
+// Purpose: outputsPanel.js provides exports: captureSelectedDrafts, draftKeyForRecord, getSelectedDraftEntries, placeSelectedDraftsOnDesk, renderDrafts... (+1 more).
+// Interacts with: imports: ../core/persistence.js, ../core/stores.js, ../state.js, ./deskPanel.js, ./inventoryPanel.js.
+// Role: UI layer module within the broader app graph.
 import { els, state } from "../state.js";
 import { inventoryStore, deskStore } from "../core/stores.js";
 import { saveInventory, saveDesk } from "../core/persistence.js";

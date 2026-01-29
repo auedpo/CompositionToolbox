@@ -1,3 +1,6 @@
+// Purpose: useDebouncedCommit.js provides exports: useDebouncedCommit.
+// Interacts with: imports: react.
+// Role: UI layer module within the broader app graph.
 import { useCallback, useEffect, useRef } from "react";
 
 export function useDebouncedCommit(fn, delayMs = 200) {

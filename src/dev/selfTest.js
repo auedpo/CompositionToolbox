@@ -1,3 +1,6 @@
+// Purpose: selfTest.js is a side-effect module.
+// Interacts with: imports: ../core/gridNormalization.js, ../core/invariants.js, ../core/laneRowRouting.js, ../core/model.js, ../lenses/lensRuntime.js... (+2 more).
+// Role: dev tooling module within the broader app graph.
 import { makeMaterialFromDraft, makeClipFromMaterial } from "../core/model.js";
 import {
   assertClip,

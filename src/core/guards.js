@@ -1,3 +1,6 @@
+// Purpose: guards.js provides exports: setGuardReporter, warnIfDraftHasId, warnIfDraftMissingId, warnIfInvalidMaterialId, warnIfMaterialMissingId.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 function isDev() {
   return typeof import.meta !== "undefined" && import.meta.env && import.meta.env.DEV;
 }

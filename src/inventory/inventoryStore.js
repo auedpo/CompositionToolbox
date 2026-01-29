@@ -1,3 +1,6 @@
+// Purpose: inventoryStore.js provides exports: createInventoryStore.
+// Interacts with: imports: ../core/invariants.js, ../core/model.js.
+// Role: inventory subsystem module within the broader app graph.
 import { makeMaterialFromDraft } from "../core/model.js";
 import { assertDraft, assertMaterial, assertNumericTree } from "../core/invariants.js";
 

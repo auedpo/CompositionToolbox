@@ -1,3 +1,6 @@
+// Purpose: persistence.js provides exports: loadDesk, loadInventory, loadProject, saveDesk, saveInventory... (+1 more).
+// Interacts with: imports: ../state.js, ./stores.js.
+// Role: core domain layer module within the broader app graph.
 import { storageKeys } from "../state.js";
 import { inventoryStore, deskStore } from "./stores.js";
 

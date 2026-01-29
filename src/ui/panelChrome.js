@@ -1,3 +1,6 @@
+// Purpose: panelChrome.js provides exports: createPanelChrome.
+// Interacts with: no imports.
+// Role: UI layer module within the broader app graph.
 export function createPanelChrome({
   title = "",
   subtitle = "",

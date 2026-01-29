@@ -1,3 +1,6 @@
+// Purpose: transformerPipeline.js provides exports: ensureDefaultSignalFlowSelections, INPUT_SOURCE_AUTO, INPUT_SOURCE_LANE, updateLivePortRef.
+// Interacts with: imports: ./core/laneRowRouting.js, ./lenses/inputResolution.js.
+// Role: module module within the broader app graph.
 import { isFreezeRef } from "./lenses/inputResolution.js";
 import {
   buildLaneRowIndex,

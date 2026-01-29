@@ -1,3 +1,6 @@
+// Purpose: state.js provides exports: els, state, storageKeys.
+// Interacts with: imports: ./core/defaultParams.js.
+// Role: module module within the broader app graph.
 import { defaultParams } from "./core/defaultParams.js";
 
 export const state = {

@@ -1,3 +1,6 @@
+// Purpose: index.js provides exports: getParamEditorForLens.
+// Interacts with: imports: ./InputListParamEditor.jsx.
+// Role: UI layer module within the broader app graph.
 import InputListParamEditor from "./InputListParamEditor.jsx";
 
 const paramEditorsById = new Map([

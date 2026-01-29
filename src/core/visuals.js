@@ -1,3 +1,6 @@
+// Purpose: visuals.js provides exports: hueForInterval, intervalColor, intervalLightness.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 export function hueForInterval(interval, edoSteps) {
   const N = Math.max(1, Math.round(edoSteps || 1));
   const d = Math.abs(interval) % N;

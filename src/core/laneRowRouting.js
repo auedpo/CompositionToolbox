@@ -1,3 +1,6 @@
+// Purpose: laneRowRouting.js provides exports: buildLaneRowIndex, describeResolvedUpstream, findNearestUpstreamLens, getLaneIdForLens, getRowForLens... (+1 more).
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 function getLensInstanceById(state, lensInstanceId) {
   if (!lensInstanceId) return null;
   if (state?.lensInstancesById instanceof Map) {

@@ -1,4 +1,7 @@
-import { updateSpecValue } from "../lenses/lensRuntime.js";
+// Purpose: lensLayout.js provides exports: bindLensInputHandlers, bindLensParamHandlers, initLensControls, renderLensDrafts, renderLensInputs... (+1 more).
+// Interacts with: imports: ../core/paramUtils.js.
+// Role: UI layer module within the broader app graph.
+import { updateSpecValue } from "../core/paramUtils.js";
 
 let openDraftsMenu = null;
 let draftsMenuListenerBound = false;

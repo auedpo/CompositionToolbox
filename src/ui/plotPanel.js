@@ -1,3 +1,6 @@
+// Purpose: plotPanel.js provides exports: drawPlotOnCanvas, renderCounts, renderIntervals, renderPlot, setHoverPitch... (+2 more).
+// Interacts with: imports: ../core/activePlacement.js, ../core/intervalMath.js, ../core/visuals.js, ../state.js, ./keyboardFretboard.js.
+// Role: UI layer module within the broader app graph.
 import { els, state } from "../state.js";
 import { dyadPenaltyDetails, pitchesFromEndpoints } from "../core/intervalMath.js";
 import { hueForInterval, intervalLightness, intervalColor } from "../core/visuals.js";

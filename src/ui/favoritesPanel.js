@@ -1,3 +1,6 @@
+// Purpose: favoritesPanel.js provides exports: applyFavoriteSnapshot, bindFavoritePromptButtons, captureCurrentSettingsSnapshot, captureFavoriteSnapshot, closeFavoritePrompt... (+9 more).
+// Interacts with: imports: ../core/placementLabels.js, ../state.js.
+// Role: UI layer module within the broader app graph.
 import { els, state, storageKeys } from "../state.js";
 import { engineLabelForId } from "../core/placementLabels.js";
 

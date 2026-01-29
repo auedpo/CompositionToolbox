@@ -1,3 +1,6 @@
+// Purpose: model.js provides exports: hashParams, makeClipFromMaterial, makeMaterialFromDraft.
+// Interacts with: imports: ./ids.js, ./invariants.js.
+// Role: core domain layer module within the broader app graph.
 import { newId } from "./ids.js";
 import { assertNumericTree } from "./invariants.js";
 

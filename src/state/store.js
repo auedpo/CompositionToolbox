@@ -1,3 +1,6 @@
+// Purpose: store.js provides exports: useStore.
+// Interacts with: imports: ./actions.js, ./derived.js, ./persistence.js, ./reducer.js, ./schema.js... (+2 more).
+// Role: state layer module within the broader app graph.
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -8,6 +11,7 @@ import { createActions } from "./actions.js";
 import { persistConfig } from "./persistence.js";
 
 const initialState = createInitialState();
+const DEBUG_STORE = false;
 
 function computeDerivedStamp(authoritative) {
   const text = JSON.stringify(authoritative);
@@ -24,13 +28,15 @@ export const useStore = create(
       set((state) => {
         const nextAuthoritative = reduceAuthoritative(state.authoritative, action);
         const nextDerived = recomputeDerived(nextAuthoritative);
-        console.log(
-          "[STORE DERIVED SET]",
-          {
-            drafts: Object.keys(nextDerived.drafts.draftsById).length,
-            active: nextDerived.drafts.activeDraftIdByLensInstanceId
-          }
-        );
+        if (DEBUG_STORE && import.meta.env && import.meta.env.DEV) {
+          console.log(
+            "[STORE DERIVED SET]",
+            {
+              drafts: Object.keys(nextDerived.drafts.draftsById).length,
+              active: nextDerived.drafts.activeDraftIdByLensInstanceId
+            }
+          );
+        }
         const derivedStamp = computeDerivedStamp(nextAuthoritative);
         return {
           ...state,

@@ -1,3 +1,6 @@
+// Purpose: selectors.js provides exports: selectActiveDraftForLensInstance, selectActiveDraftIdByLensInstanceId, selectAuthoritative, selectDerived, selectDraftOrderByLensInstanceId... (+17 more).
+// Interacts with: no imports.
+// Role: state layer module within the broader app graph.
 export const selectAuthoritative = (state) => state.authoritative;
 
 export const selectWorkspace = (state) => state.authoritative.workspace;

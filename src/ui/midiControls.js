@@ -1,3 +1,6 @@
+// Purpose: midiControls.js provides exports: playArpeggioSequence, playIntervalSequence, previewSelected, refreshMidiOutputs.
+// Interacts with: imports: ../core/activePlacement.js, ../core/pitchUtils.js, ../state.js.
+// Role: UI layer module within the broader app graph.
 import { els, state, storageKeys } from "../state.js";
 import { getBaseMidi } from "../core/pitchUtils.js";
 import { getFocusedIntervalPlacementRecord } from "../core/activePlacement.js";

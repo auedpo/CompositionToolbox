@@ -1,3 +1,6 @@
+// Purpose: materialTypes.js provides exports: MATERIAL_TYPES.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 /**
  * @typedef {"PitchList" | "Pattern"} MaterialType
  */

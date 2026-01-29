@@ -1,3 +1,6 @@
+// Purpose: persistence.js provides exports: migratePersistedState, persistConfig.
+// Interacts with: imports: ./reducer.js, ./schema.js, zustand/middleware.
+// Role: state layer module within the broader app graph.
 import { createJSONStorage } from "zustand/middleware";
 import { createEmptyAuthoritative, SCHEMA_VERSION } from "./schema.js";
 import { normalizeAuthoritativeState } from "./reducer.js";

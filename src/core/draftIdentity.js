@@ -1,3 +1,6 @@
+// Purpose: draftIdentity.js provides exports: buildDraftKey, stableStringifyPayload.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 function stableStringify(value) {
   if (value === null || typeof value !== "object") {
     return JSON.stringify(value);

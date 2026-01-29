@@ -1,3 +1,6 @@
+// Purpose: reducer.js provides exports: ACTION_TYPES, normalizeAuthoritativeState, reduceAuthoritative.
+// Interacts with: imports: ../lenses/lensRegistry.js, ./ids.js, ./schema.js.
+// Role: state layer module within the broader app graph.
 import { getLens } from "../lenses/lensRegistry.js";
 import { createEmptyAuthoritative, SCHEMA_VERSION } from "./schema.js";
 import { makeLensInstanceId, makeTrackId } from "./ids.js";

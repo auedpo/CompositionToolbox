@@ -1,3 +1,6 @@
+// Purpose: repulsionCentersEngine.js provides exports: createRepulsionCentersEngine.
+// Interacts with: no imports.
+// Role: placement engine module within the broader app graph.
 export function createRepulsionCentersEngine(deps) {
   const {
     clamp,

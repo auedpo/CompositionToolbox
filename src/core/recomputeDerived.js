@@ -1,33 +1,78 @@
-import { DraftInvariantError, isNumericTree, makeDraft } from "./invariants.js";
+// Purpose: recomputeDerived.js provides exports: recomputeDerived.
+// Interacts with: imports: ./draftProvenance.js, ./invariants.js, ./lensHost.js, ./resolveInput.js.
+// Role: core domain layer module within the broader app graph.
+import { DraftInvariantError, makeDraft } from "./invariants.js";
+import { buildInputRefs, buildParamsHash, buildStableDraftId } from "./draftProvenance.js";
 import { lensHost } from "./lensHost.js";
 import { resolveInput } from "./resolveInput.js";
 
-function normalizeLensDraft(raw, { lensId, lensInstanceId }) {
-  if (isNumericTree(raw)) {
-    return makeDraft({
-      lensId,
-      lensInstanceId,
-      type: lensId || "draft",
-      values: raw
-    });
-  }
-  if (!raw || typeof raw !== "object") {
+const DEBUG_RECOMPUTE = false;
+
+function debug(...args) {
+  if (!DEBUG_RECOMPUTE || !import.meta.env || !import.meta.env.DEV) return;
+  console.log(...args);
+}
+
+function normalizeLensDraft(raw, {
+  lensId,
+  lensInstanceId,
+  paramsHash,
+  inputRefs,
+  index
+}) {
+  let values = undefined;
+  let type = lensId || "draft";
+  let subtype = undefined;
+  let summary = undefined;
+  let rawMeta = null;
+
+  if (Array.isArray(raw) || typeof raw === "number") {
+    values = raw;
+  } else if (raw && typeof raw === "object") {
+    const payload = raw.payload;
+    if (!payload || typeof payload !== "object" || payload.kind !== "numericTree") {
+      throw new DraftInvariantError("Lens output payload must be numericTree.");
+    }
+    values = payload.values;
+    if (typeof raw.type === "string" && raw.type) type = raw.type;
+    if (typeof raw.subtype === "string" && raw.subtype) subtype = raw.subtype;
+    if (typeof raw.summary === "string") summary = raw.summary;
+    if (raw.meta && typeof raw.meta === "object") rawMeta = raw.meta;
+  } else {
     throw new DraftInvariantError("Lens output must be a draft or numeric tree.");
   }
-  const payload = raw.payload;
-  if (!payload || typeof payload !== "object" || payload.kind !== "numericTree") {
-    throw new DraftInvariantError("Lens output payload must be numericTree.");
-  }
-  const type = typeof raw.type === "string" && raw.type ? raw.type : lensId || "draft";
-  return makeDraft({
-    draftId: raw.draftId,
+
+  const provenance = {
+    lensType: lensId,
+    paramsHash,
+    inputRefs,
+    createdAt: 0
+  };
+  const nextMeta = rawMeta ? { ...rawMeta } : {};
+  const prevProv = nextMeta.provenance && typeof nextMeta.provenance === "object"
+    ? nextMeta.provenance
+    : {};
+  nextMeta.provenance = { ...prevProv, ...provenance };
+
+  const stableDraftId = buildStableDraftId({
     lensId,
     lensInstanceId,
     type,
-    subtype: raw.subtype,
-    summary: raw.summary,
-    values: payload.values,
-    meta: raw.meta
+    subtype,
+    index,
+    paramsHash,
+    inputRefs
+  });
+
+  return makeDraft({
+    draftId: stableDraftId,
+    lensId,
+    lensInstanceId,
+    type,
+    subtype,
+    summary,
+    values,
+    meta: nextMeta
   });
 }
 
@@ -52,7 +97,7 @@ export function recomputeDerived(authoritativeState) {
     ? authoritative.lenses.lensInstancesById
     : {};
 
-  console.log(
+  debug(
     "[RECOMPUTE] start",
     {
       trackCount: authoritative.workspace.trackOrder.length,
@@ -80,6 +125,11 @@ export function recomputeDerived(authoritativeState) {
       const inputDraft = resolveInput(lensInstanceId, authoritative, derivedSoFar);
       const lensId = instance.lensId;
       const params = instance.params && typeof instance.params === "object" ? instance.params : {};
+      const lensInput = instance.lensInput && typeof instance.lensInput === "object"
+        ? instance.lensInput
+        : {};
+      const paramsHash = buildParamsHash({ params, lensInput });
+      const inputRefs = buildInputRefs({ lensInstanceId, authoritative, derivedSoFar });
       const result = lensHost.apply({
         lensId,
         params,
@@ -91,19 +141,25 @@ export function recomputeDerived(authoritativeState) {
       const normalized = [];
       if (!error) {
         const rawDrafts = Array.isArray(result && result.drafts) ? result.drafts : [];
-        rawDrafts.forEach((raw) => {
+        rawDrafts.forEach((raw, index) => {
           try {
-            const draft = normalizeLensDraft(raw, { lensId, lensInstanceId });
+            const draft = normalizeLensDraft(raw, {
+              lensId,
+              lensInstanceId,
+              paramsHash,
+              inputRefs,
+              index
+            });
             normalized.push(draft);
           } catch (err) {
-            if (!error) {
-              error = errorMessage(err);
-            }
+            error = errorMessage(err);
           }
         });
       }
 
-      if (!error) {
+      if (error) {
+        normalized.length = 0;
+      } else {
         normalized.forEach((draft) => {
           draftsById[draft.draftId] = draft;
         });
@@ -117,7 +173,7 @@ export function recomputeDerived(authoritativeState) {
         activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
       }
 
-      console.log(
+      debug(
         "[DRAFT REGISTER]",
         lensInstanceId,
         {
@@ -128,7 +184,7 @@ export function recomputeDerived(authoritativeState) {
     });
   });
 
-  console.log(
+  debug(
     "[RECOMPUTE] done",
     {
       lensCount: Object.keys(draftOrderByLensInstanceId).length,

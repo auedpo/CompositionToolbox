@@ -1,3 +1,6 @@
+// Purpose: parseParenList.js provides exports: parseParenList.
+// Interacts with: no imports.
+// Role: UI layer module within the broader app graph.
 function errorResult(message) {
   return { ok: false, error: message || "Failed to parse list." };
 }

@@ -1,3 +1,6 @@
+// Purpose: actions.js provides exports: createActions.
+// Interacts with: imports: ./reducer.js.
+// Role: state layer module within the broader app graph.
 import { ACTION_TYPES } from "./reducer.js";
 
 export function createActions(dispatch) {

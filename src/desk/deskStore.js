@@ -1,3 +1,6 @@
+// Purpose: deskStore.js provides exports: createDeskStore.
+// Interacts with: imports: ../core/invariants.js, ../core/model.js, ./deskModel.js.
+// Role: desk subsystem module within the broader app graph.
 import { DESK_DEFAULT_DURATION } from "./deskModel.js";
 import { makeClipFromMaterial } from "../core/model.js";
 import { assertClip } from "../core/invariants.js";

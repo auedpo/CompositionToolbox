@@ -1,3 +1,6 @@
+// Purpose: resolveInput.js provides exports: resolveInput.
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 export function resolveInput(lensInstanceId, authoritative, derivedSoFar) {
   if (!lensInstanceId || !authoritative) return undefined;
   const lensInstancesById = authoritative.lenses && authoritative.lenses.lensInstancesById

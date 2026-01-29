@@ -1,3 +1,6 @@
+// Purpose: prefixDominanceEngine.js provides exports: computePrefixDominanceAnchors.
+// Interacts with: no imports.
+// Role: placement engine module within the broader app graph.
 export function computePrefixDominanceAnchors(L, perm, params) {
   const n = perm.length;
   const dominanceBeta = params.anchorBeta;

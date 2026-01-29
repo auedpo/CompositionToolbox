@@ -1,3 +1,6 @@
+// Purpose: parseUserList.js provides exports: parseUserList.
+// Interacts with: imports: ./parseParenList.js.
+// Role: UI layer module within the broader app graph.
 import { parseParenList } from "./parseParenList.js";
 
 function errorResult(message) {

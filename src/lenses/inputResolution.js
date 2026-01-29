@@ -1,3 +1,6 @@
+// Purpose: inputResolution.js provides exports: isFreezeRef, normalizeInputRef, resolveValuesForRole.
+// Interacts with: no imports.
+// Role: lens domain layer module within the broader app graph.
 function buildDraftIndex(draftCatalog) {
   const index = new Map();
   (draftCatalog || []).forEach((draft) => {

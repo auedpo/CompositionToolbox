@@ -1,3 +1,6 @@
+// Purpose: intervalMath.js provides exports: calibrateAlpha, computeReferenceG, dyadPenaltyDetails, inducedIntervals, intervalCounts... (+4 more).
+// Interacts with: no imports.
+// Role: core domain layer module within the broader app graph.
 const RATIO_TARGETS = [
   [1, 1],
   [9, 8], [16, 15],

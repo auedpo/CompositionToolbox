@@ -1,3 +1,6 @@
+// Purpose: euclideanPatternsLens.js provides exports: euclideanPatternsLens, evaluateEuclideanPatternsLens.
+// Interacts with: imports: ../core/displayHelpers.js, ../core/invariants.js.
+// Role: lens domain layer module within the broader app graph.
 import { formatNumericTree } from "../core/displayHelpers.js";
 import { makeDraft } from "../core/invariants.js";
 

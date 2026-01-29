@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "policy:check": "node scripts/policyCheck.js",
-    "test": "node scripts/policyCheck.js && node tests/prefixDominanceEngine.test.js && node tests/intervalPlacementLens.test.js && node tests/euclideanPatternsLens.test.js && node tests/inputListLens.test.js && node tests/transformerPipeline.test.js && node tests/basicMathTransformerLens.test.js && node tests/gridNormalization.test.js && node tests/workspace2Inspector.test.js && node tests/contracts/draftInvariants.test.js && node tests/contracts/lensRegistrySmoke.test.js && node tests/contracts/lifecycleSeparation.test.js"
+    "test": "node scripts/policyCheck.js && node tests/prefixDominanceEngine.test.js && node tests/intervalPlacementLens.test.js && node tests/euclideanPatternsLens.test.js && node tests/inputListLens.test.js && node tests/transformerPipeline.test.js && node tests/basicMathTransformerLens.test.js && node tests/gridNormalization.test.js && node tests/workspace2Inspector.test.js && node tests/contracts/draftInvariants.test.js && node tests/contracts/lensRegistrySmoke.test.js && node tests/contracts/lifecycleSeparation.test.js && node tests/recomputeDerived.stableDraftIds.test.js && node tests/recomputeDerived.provenance.test.js && node tests/recomputeDerived.invariants.test.js"
   },
   "devDependencies": {
     "vite": "^5.4.8"

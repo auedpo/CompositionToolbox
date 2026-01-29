@@ -1,3 +1,6 @@
+// Purpose: invariants.js provides exports: assertClip, assertDraft, assertDraftKeys, assertMaterial, assertNumericTree... (+6 more).
+// Interacts with: imports: ./ids.js.
+// Role: core domain layer module within the broader app graph.
 import { newId } from "./ids.js";
 
 export class DraftInvariantError extends Error {

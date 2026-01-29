@@ -1,3 +1,6 @@
+// Purpose: deskPanel.js provides exports: getDeskPlacementSettings, nextDeskStart, removeSelectedDeskItem, renderDesk, renderDeskDetails.
+// Interacts with: imports: ../core/displayHelpers.js, ../core/persistence.js, ../core/stores.js, ../state.js.
+// Role: UI layer module within the broader app graph.
 import { els, state, storageKeys } from "../state.js";
 import { deskStore, inventoryStore } from "../core/stores.js";
 import { saveDesk } from "../core/persistence.js";

@@ -1,3 +1,6 @@
+// Purpose: intervalPlacementLens.js provides exports: anchorsForPerm, evaluateIntervalPlacementLens, intervalPlacementLens, placementEngineLabel, quantizeInterval.
+// Interacts with: imports: ../core/defaultParams.js, ../core/displayHelpers.js, ../core/intervalMath.js, ../core/invariants.js, ../core/materialTypes.js... (+5 more).
+// Role: lens domain layer module within the broader app graph.
 import { computePrefixDominanceAnchors } from "../placementEngines/prefixDominanceEngine.js";
 import { createPrefixSlackEngine } from "../placementEngines/prefixSlackEngine.js";
 import { createRepulsionCentersEngine } from "../placementEngines/repulsionCentersEngine.js";

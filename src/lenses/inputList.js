@@ -1,3 +1,6 @@
+// Purpose: inputList.js provides exports: evaluateInputListLens, inputListLens.
+// Interacts with: imports: ../core/invariants.js, ./paramSchemaTypes.js.
+// Role: lens domain layer module within the broader app graph.
 import { makeDraft } from "../core/invariants.js";
 import { createParamSchema, typedListField } from "./paramSchemaTypes.js";
 
