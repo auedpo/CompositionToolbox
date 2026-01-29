@@ -62,6 +62,9 @@ export const lensHost = {
     } catch (error) {
       return { drafts: [], error: formatErrorMessage(error) };
     }
+    if (result && result.error) {
+      return { drafts: [], error: formatErrorMessage(result.error) };
+    }
     if (!result || result.ok === false) {
       const errors = Array.isArray(result && result.errors) ? result.errors.filter(Boolean) : [];
       if (errors.length) {

@@ -50,6 +50,40 @@ export function migratePersistedState(persistedState) {
       ...(incoming.persistence || {})
     }
   };
+  const lensInstancesById = { ...(merged.lenses.lensInstancesById || {}) };
+  Object.entries(lensInstancesById).forEach(([lensInstanceId, instance]) => {
+    if (!instance || typeof instance !== "object") return;
+    if (instance.lensId !== "inputList") return;
+    const params = instance.params && typeof instance.params === "object" ? { ...instance.params } : {};
+    let mutated = false;
+    if ((params.text === undefined || params.text === null) && params.values !== undefined) {
+      params.text = JSON.stringify(params.values);
+      mutated = true;
+    }
+    if (instance.input && typeof instance.input.text === "string") {
+      if (!params.text) {
+        params.text = instance.input.text;
+      }
+      const nextInput = { ...instance.input };
+      delete nextInput.text;
+      lensInstancesById[lensInstanceId] = {
+        ...instance,
+        params,
+        input: nextInput
+      };
+      mutated = true;
+    }
+    if (mutated && lensInstancesById[lensInstanceId] === instance) {
+      lensInstancesById[lensInstanceId] = {
+        ...instance,
+        params
+      };
+    }
+  });
+  merged.lenses = {
+    ...merged.lenses,
+    lensInstancesById
+  };
   const normalized = normalizeAuthoritativeState(merged);
   normalized.persistence.schemaVersion = SCHEMA_VERSION;
   return { authoritative: normalized };

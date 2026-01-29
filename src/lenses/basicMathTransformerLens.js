@@ -2,6 +2,7 @@ import { MATERIAL_TYPES } from "../core/materialTypes.js";
 import { formatNumericTree, flattenNumericTree } from "../core/displayHelpers.js";
 import { makeDraft } from "../core/invariants.js";
 import { resolveValuesForRole } from "./inputResolution.js";
+import { createParamSchema, booleanField, enumField, numberField, typedListField } from "./paramSchemaTypes.js";
 
 const LENS_ID = "basicMath";
 
@@ -29,12 +30,6 @@ function toFiniteNumber(value) {
 function toNumericArray(source) {
   if (Array.isArray(source)) {
     return source.map((value) => Number(value)).filter(Number.isFinite);
-  }
-  if (typeof source === "string") {
-    return source
-      .split(/[,\s]+/)
-      .map((value) => Number(value))
-      .filter(Number.isFinite);
   }
   return [];
 }
@@ -228,44 +223,43 @@ export const basicMathTransformerLens = {
     hasVisualizer: true,
     kind: "transformer"
   },
+  defaultParams: {
+    operation: "add",
+    operands: [],
+    operandsText: "",
+    modEnabled: false,
+    modValue: 12
+  },
+  paramSchema: createParamSchema([
+    enumField({
+      key: "operation",
+      label: "Operation",
+      options: OPERATION_OPTIONS.map((option) => option.value)
+    }),
+    typedListField({
+      label: "Operands",
+      sourceKey: "operandsText",
+      targetKey: "operands",
+      parserId: "userList",
+      commit: "debounce+blur",
+      debounceMs: 200
+    }),
+    booleanField({
+      key: "modEnabled",
+      label: "Modulo"
+    }),
+    numberField({
+      key: "modValue",
+      label: "Mod",
+      min: 1,
+      step: 1
+    })
+  ]),
   inputs: [
     {
       role: "input",
       required: true,
       help: "Select a draft that exposes a numeric list."
-    }
-  ],
-  params: [
-    {
-      key: "operation",
-      label: "Operation",
-      kind: "select",
-      default: "add",
-      options: OPERATION_OPTIONS,
-      help: "Choose the per-step math operation to apply."
-    },
-    {
-      key: "operands",
-      label: "Operand values",
-      kind: "list:number",
-      default: [],
-      help: "Comma- or space-separated numbers that cycle over the inputs. Used for binary operations and as the log base when available."
-    },
-    {
-      key: "modEnabled",
-      label: "Apply modulus",
-      kind: "bool",
-      default: false,
-      help: "When enabled, reduce results modulo the supplied value."
-    },
-    {
-      key: "modValue",
-      label: "Modulus value",
-      kind: "number",
-      default: 12,
-      min: 1,
-      step: 1,
-      help: "Positive integer modulus used if modular reduction is enabled."
     }
   ],
   evaluate: evaluateBasicMathTransformerLens

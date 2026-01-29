@@ -94,7 +94,6 @@ export function recomputeDerived(authoritativeState) {
         rawDrafts.forEach((raw) => {
           try {
             const draft = normalizeLensDraft(raw, { lensId, lensInstanceId });
-            draftsById[draft.draftId] = draft;
             normalized.push(draft);
           } catch (err) {
             if (!error) {
@@ -104,14 +103,18 @@ export function recomputeDerived(authoritativeState) {
         });
       }
 
-      const draftIds = normalized.map((draft) => draft.draftId);
+      if (!error) {
+        normalized.forEach((draft) => {
+          draftsById[draft.draftId] = draft;
+        });
+      }
+
+      const draftIds = error ? [] : normalized.map((draft) => draft.draftId);
       draftOrderByLensInstanceId[lensInstanceId] = draftIds;
       activeDraftIdByLensInstanceId[lensInstanceId] = draftIds.length ? draftIds[0] : undefined;
       if (error) {
         lastErrorByLensInstanceId[lensInstanceId] = error;
-        if (!draftIds.length) {
-          activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
-        }
+        activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
       }
 
       console.log(

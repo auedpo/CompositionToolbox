@@ -16,6 +16,10 @@ export function getLens(id) {
   return registry.get(id) || null;
 }
 
+export function getLensDef(id) {
+  return getLens(id);
+}
+
 export function listLenses() {
   return Array.from(registry.values());
 }

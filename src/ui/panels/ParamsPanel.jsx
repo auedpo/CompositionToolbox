@@ -1,53 +1,41 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { useStore } from "../../state/store.js";
 import {
+  selectSelectedLensError,
   selectSelectedLensInstanceId,
   selectSelectedLensInstanceLensId,
   selectSelectedLensInstanceParams
 } from "../../state/selectors.js";
 import { getLens } from "../../lenses/lensRegistry.js";
+import SchemaParamEditor from "../params/SchemaParamEditor.jsx";
+import AdvancedJsonEditor from "../params/AdvancedJsonEditor.jsx";
 
 export default function ParamsPanel() {
   const selectedLensInstanceId = useStore(selectSelectedLensInstanceId);
   const lensId = useStore(selectSelectedLensInstanceLensId);
   const lensParams = useStore(selectSelectedLensInstanceParams);
+  const lensError = useStore(selectSelectedLensError);
   const actions = useStore((state) => state.actions);
-  const [textValue, setTextValue] = useState("");
-  const [parseError, setParseError] = useState(null);
-  const lastLensInstanceIdRef = useRef(null);
-  const lensMeta = useMemo(() => (lensId ? getLens(lensId) : null), [lensId]);
-  const displayLabel = (lensMeta && lensMeta.meta ? lensMeta.meta.name : null) || lensId || "";
+  const lensDef = useMemo(() => (lensId ? getLens(lensId) : null), [lensId]);
+  const displayLabel = (lensDef && lensDef.meta ? lensDef.meta.name : null) || lensId || "";
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const replaceParams = (nextParams) => {
+    if (!selectedLensInstanceId) return;
+    actions.replaceLensParams(selectedLensInstanceId, nextParams);
+  };
+
+  const patchParams = (patch) => {
+    if (!selectedLensInstanceId) return;
+    actions.patchLensParams(selectedLensInstanceId, patch);
+  };
+
+  const schema = lensDef && lensDef.paramSchema ? lensDef.paramSchema : null;
 
   useEffect(() => {
-    if (selectedLensInstanceId === lastLensInstanceIdRef.current) {
-      return;
-    }
-    lastLensInstanceIdRef.current = selectedLensInstanceId;
-    if (!selectedLensInstanceId) {
-      setTextValue("");
-      setParseError(null);
-      return;
-    }
-    setTextValue(JSON.stringify(lensParams || {}, null, 2));
-    setParseError(null);
-  }, [selectedLensInstanceId, lensParams]);
-
-  const handleApply = () => {
-    if (!selectedLensInstanceId) return;
-    try {
-      const parsed = JSON.parse(textValue);
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        setParseError("Params must be a JSON object.");
-        return;
-      }
-      actions.replaceLensParams(selectedLensInstanceId, parsed);
-      setParseError(null);
-      setTextValue(JSON.stringify(parsed, null, 2));
-    } catch (error) {
-      setParseError(error && error.message ? error.message : "Invalid JSON.");
-    }
-  };
+    setShowAdvanced(false);
+  }, [selectedLensInstanceId]);
 
   return (
     <section className="workspace-panel workspace-params-panel">
@@ -60,25 +48,32 @@ export default function ParamsPanel() {
             <div>{displayLabel || "Lens"}</div>
             <div className="hint">{lensId || "Unknown lens"}</div>
             <div className="hint">{selectedLensInstanceId}</div>
-            <div className="hint">Lens Parameters (Authoritative)</div>
-            <textarea
-              className="component-field"
-              value={textValue}
-              onChange={(event) => {
-                setTextValue(event.target.value);
-                if (parseError) setParseError(null);
-              }}
-              rows={12}
-            />
-            <button
-              type="button"
-              className="component-button"
-              onClick={handleApply}
-            >
-              Apply
-            </button>
-            {parseError ? (
-              <div className="hint">{parseError}</div>
+            {schema ? (
+              <SchemaParamEditor
+                schema={schema}
+                params={lensParams}
+                onPatch={patchParams}
+                onReplace={replaceParams}
+              />
+            ) : (
+              <div className="hint">No schema editor yet.</div>
+            )}
+            <div>
+              <button
+                type="button"
+                className="component-button"
+                onClick={() => setShowAdvanced((prev) => !prev)}
+              >
+                {showAdvanced ? "Hide Advanced JSON" : "Advanced JSON"}
+              </button>
+            </div>
+            {showAdvanced ? (
+              <AdvancedJsonEditor
+                lensInstanceId={selectedLensInstanceId}
+                params={lensParams}
+                onReplace={replaceParams}
+                derivedError={lensError}
+              />
             ) : null}
           </div>
         )}
