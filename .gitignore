@@ -33,3 +33,5 @@ Thumbs.db
 .idea/
 .vscode/
 AGENTS_legacy.md
+src.zip
+.gitignore
