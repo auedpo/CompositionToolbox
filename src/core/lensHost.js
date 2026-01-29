@@ -8,13 +8,12 @@ function formatErrorMessage(error) {
 }
 
 export const lensHost = {
-  apply({ lensId, params, lensInput, inputDraft, context } = {}) {
+  apply({ lensId, params, inputDraft, context } = {}) {
     const lens = getLens(lensId);
     if (!lens || typeof lens.evaluate !== "function") {
       return { drafts: [], error: `Lens "${lensId}" missing evaluate().` };
     }
     const safeParams = params && typeof params === "object" ? params : {};
-    const safeLensInput = lensInput && typeof lensInput === "object" ? lensInput : {};
     const lensInstanceId = context && context.lensInstanceId
       ? context.lensInstanceId
       : `${lensId || "lens"}-instance`;
@@ -22,19 +21,10 @@ export const lensHost = {
       lens,
       lensInstanceId,
       paramsValues: safeParams,
-      lensInputValues: safeLensInput,
+      lensInputValues: {},
       selectedInputRefsByRole: {},
       _liveInputRefs: {}
     };
-    if (inputDraft && Array.isArray(lens.inputs) && lens.inputs.length) {
-      lens.inputs.forEach((spec) => {
-        if (!spec || !spec.role) return;
-        instance.selectedInputRefsByRole[spec.role] = {
-          mode: "freeze",
-          sourceDraftId: inputDraft.draftId
-        };
-      });
-    }
     const upstreamInstance = inputDraft
       ? { lensInstanceId: inputDraft.lensInstanceId, activeDraft: inputDraft }
       : null;
@@ -50,11 +40,25 @@ export const lensHost = {
     };
     let result = null;
     try {
+      console.log(
+        "[LENS APPLY]",
+        lensId,
+        {
+          params,
+          hasInput: !!inputDraft,
+          inputPreview: inputDraft?.numericTree ?? inputDraft?.values ?? null
+        }
+      );
       result = lens.evaluate({
         params: safeParams,
-        lensInput: safeLensInput,
+        lensInput: {},
         context: lensContext
       });
+      console.log(
+        "[LENS OUTPUT]",
+        lensId,
+        result
+      );
     } catch (error) {
       return { drafts: [], error: formatErrorMessage(error) };
     }
@@ -68,4 +72,3 @@ export const lensHost = {
     return { drafts: Array.isArray(result.drafts) ? result.drafts : [] };
   }
 };
-

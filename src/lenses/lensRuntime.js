@@ -276,4 +276,3 @@ export function scheduleLensEvaluation(instance, options) {
 export function collectDraftCatalog(instances) {
   return instances.flatMap((instance) => instance.currentDrafts || []);
 }
-

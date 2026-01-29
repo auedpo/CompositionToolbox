@@ -52,6 +52,14 @@ export function recomputeDerived(authoritativeState) {
     ? authoritative.lenses.lensInstancesById
     : {};
 
+  console.log(
+    "[RECOMPUTE] start",
+    {
+      trackCount: authoritative.workspace.trackOrder.length,
+      tracks: authoritative.workspace.trackOrder
+    }
+  );
+
   const derivedSoFar = {
     drafts: {
       draftsById,
@@ -105,8 +113,25 @@ export function recomputeDerived(authoritativeState) {
           activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
         }
       }
+
+      console.log(
+        "[DRAFT REGISTER]",
+        lensInstanceId,
+        {
+          draftIds: draftOrderByLensInstanceId[lensInstanceId] ?? [],
+          error: lastErrorByLensInstanceId[lensInstanceId] ?? null
+        }
+      );
     });
   });
+
+  console.log(
+    "[RECOMPUTE] done",
+    {
+      lensCount: Object.keys(draftOrderByLensInstanceId).length,
+      totalDrafts: Object.keys(draftsById).length
+    }
+  );
 
   return {
     drafts: {

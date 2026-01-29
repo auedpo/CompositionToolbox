@@ -24,6 +24,13 @@ export const useStore = create(
       set((state) => {
         const nextAuthoritative = reduceAuthoritative(state.authoritative, action);
         const nextDerived = recomputeDerived(nextAuthoritative);
+        console.log(
+          "[STORE DERIVED SET]",
+          {
+            drafts: Object.keys(nextDerived.drafts.draftsById).length,
+            active: nextDerived.drafts.activeDraftIdByLensInstanceId
+          }
+        );
         const derivedStamp = computeDerivedStamp(nextAuthoritative);
         return {
           ...state,
