@@ -2274,6 +2274,11 @@ html[data-layout="workspace"] body {
   height: 100%;
 }
 
+html[data-layout="workspace"] #root {
+  height: 100%;
+}
+
+html[data-layout="workspace"] .workspace-root,
 html[data-layout="workspace"] .workspace2-root {
   display: flex;
   flex-direction: column;
@@ -2282,6 +2287,7 @@ html[data-layout="workspace"] .workspace2-root {
   width: 100%;
 }
 
+html[data-layout="workspace"] .workspace-header,
 html[data-layout="workspace"] .ws2-header {
   border-bottom: 1px solid var(--color-border-soft);
   display: flex;
@@ -2291,12 +2297,14 @@ html[data-layout="workspace"] .ws2-header {
   flex: 0 0 auto;
 }
 
+html[data-layout="workspace"] .workspace-header-left,
 html[data-layout="workspace"] .ws2-header-left {
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
+html[data-layout="workspace"] .workspace-header-title,
 html[data-layout="workspace"] .ws2-header-title {
   font-size: var(--type-lg);
   letter-spacing: var(--ls-tight);
@@ -2304,6 +2312,7 @@ html[data-layout="workspace"] .ws2-header-title {
   text-transform: uppercase;
 }
 
+html[data-layout="workspace"] .workspace-body,
 html[data-layout="workspace"] .ws2-body {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr) 320px;
@@ -2314,6 +2323,9 @@ html[data-layout="workspace"] .ws2-body {
   overflow: hidden;
 }
 
+html[data-layout="workspace"] .workspace-column-left,
+html[data-layout="workspace"] .workspace-column-center,
+html[data-layout="workspace"] .workspace-column-right,
 html[data-layout="workspace"] .ws2-column-left,
 html[data-layout="workspace"] .ws2-column-center,
 html[data-layout="workspace"] .ws2-column-right {
@@ -2323,29 +2335,36 @@ html[data-layout="workspace"] .ws2-column-right {
   min-height: 0;
 }
 
+html[data-layout="workspace"] .workspace-column-left,
 html[data-layout="workspace"] .ws2-column-left {
   grid-column: 1;
 }
 
+html[data-layout="workspace"] .workspace-column-center,
 html[data-layout="workspace"] .ws2-column-center {
   grid-column: 2;
 }
 
+html[data-layout="workspace"] .workspace-column-right,
 html[data-layout="workspace"] .ws2-column-right {
   grid-column: 3;
 }
 
+html[data-layout="workspace"] .workspace-column-left > .workspace-panel,
+html[data-layout="workspace"] .workspace-column-center > .workspace-panel,
 html[data-layout="workspace"] .ws2-column-left > .ws2-panel,
 html[data-layout="workspace"] .ws2-column-center > .ws2-panel {
   flex: 1 1 0;
   min-height: 0;
 }
 
+html[data-layout="workspace"] .workspace-column-right > .workspace-panel-browser,
 html[data-layout="workspace"] .ws2-column-right > .ws2-panel-browser {
   flex: 1 1 0;
   min-height: 0;
 }
 
+html[data-layout="workspace"] .workspace-column-right > .workspace-panel-grid,
 html[data-layout="workspace"] .ws2-column-right > .ws2-panel-modular {
   flex: 3 1 0;
   min-height: 0;
@@ -2367,6 +2386,7 @@ html[data-layout="workspace"] .ws2-main {
   overflow: hidden;
 }
 
+html[data-layout="workspace"] .workspace-panel,
 html[data-layout="workspace"] .ws2-panel {
   background: var(--color-panel-bg);
   border: 1px solid var(--color-border-soft);
@@ -2376,6 +2396,7 @@ html[data-layout="workspace"] .ws2-panel {
   min-height: 0;
 }
 
+html[data-layout="workspace"] .workspace-panel-header,
 html[data-layout="workspace"] .ws2-panel-header {
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border-soft);
@@ -2383,6 +2404,7 @@ html[data-layout="workspace"] .ws2-panel-header {
   font-weight: 600;
 }
 
+html[data-layout="workspace"] .workspace-panel-body,
 html[data-layout="workspace"] .ws2-panel-body {
   padding: var(--space-3);
   overflow: auto;
@@ -2657,6 +2679,7 @@ html[data-layout="workspace"] .ws2-euclid-canvas {
 }
 
 /* phase 8 */
+html[data-layout="workspace"] .workspace-placeholder,
 html[data-layout="workspace"] .ws2-placeholder {
   color: var(--color-text);
   font-size: var(--type-sm);
@@ -2672,6 +2695,7 @@ html[data-layout="workspace"] .ws2-tracks-body {
   padding-top: var(--space-2);
 }
 
+html[data-layout="workspace"] .workspace-footer,
 html[data-layout="workspace"] .ws2-footer {
   border-top: 1px solid var(--color-border-soft);
   display: flex;
@@ -2684,6 +2708,8 @@ html[data-layout="workspace"] .ws2-footer {
   flex: 0 0 auto;
 }
 
+html[data-layout="workspace"] .workspace-view-switch,
+html[data-layout="workspace"] .workspace-help,
 html[data-layout="workspace"] .ws2-view-switch,
 html[data-layout="workspace"] .ws2-help {
   background: var(--panel-bg);
