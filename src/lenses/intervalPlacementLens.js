@@ -438,11 +438,11 @@ export function evaluateIntervalPlacementLens(input = {}) {
   const params = { ...defaultParams, ...(input.params || {}) };
   params.useDamping = params.useDamping !== false;
   params.roughAlpha = calibrateAlpha(params, 0.5);
-  const generatorInput = input.generatorInput || {};
-  const windowOctaves = Number.isFinite(generatorInput.windowOctaves)
-    ? generatorInput.windowOctaves
+  const lensInput = input.lensInput || {};
+  const windowOctaves = Number.isFinite(lensInput.windowOctaves)
+    ? lensInput.windowOctaves
     : 1;
-  const rawBias = Array.isArray(generatorInput.oddBias) ? generatorInput.oddBias : [];
+  const rawBias = Array.isArray(lensInput.oddBias) ? lensInput.oddBias : [];
   const biasFlags = rawBias.map((v) => (v === 1 ? "up" : "down"));
   const oddBias = normalizeOddBias(intervals, biasFlags);
   const start = typeof performance !== "undefined" ? performance.now() : Date.now();
@@ -475,7 +475,7 @@ export const intervalPlacementLens = {
     id: LENS_ID,
     name: "Interval Placement",
     hasVisualizer: true,
-    kind: "generator"
+    kind: "source"
   },
   inputs: [
     {
@@ -522,10 +522,11 @@ export const intervalPlacementLens = {
     { key: "repulseAlpha", label: "Repulse alpha", kind: "number", default: 1.0, min: 0, max: 1, step: 0.05 },
     { key: "fRefHz", label: "Reference Hz", kind: "number", default: 55.0, min: 1 }
   ],
-  generatorInputs: [
+  lensInputs: [
     { key: "intervals", label: "Intervals (steps)", kind: "list:int", default: [11, 7, 16], help: "Comma or space separated." },
     { key: "windowOctaves", label: "Window (octaves)", kind: "int", default: 3, min: 1 },
     { key: "oddBias", label: "Odd bias (0=down,1=up)", kind: "list:int", default: [] }
   ],
   evaluate: evaluateIntervalPlacementLens
 };
+

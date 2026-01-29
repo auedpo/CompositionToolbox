@@ -146,8 +146,8 @@ export function resolveValuesForRole({
     }
   }
 
-  if (fallbackLiteralKey && instance && instance.generatorInputValues) {
-    const literal = instance.generatorInputValues[fallbackLiteralKey];
+  if (fallbackLiteralKey && instance && instance.lensInputValues) {
+    const literal = instance.lensInputValues[fallbackLiteralKey];
     if (ensureNumericArray(literal)) {
       return {
         ok: true,
@@ -170,3 +170,4 @@ export function resolveValuesForRole({
     message: required ? buildMessage(role, "missing_draft") : buildMessage(role, "unresolved")
   };
 }
+

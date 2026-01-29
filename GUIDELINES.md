@@ -14,7 +14,7 @@ A modular “track + lenses” workspace where **lenses generate/transform numer
 ## 1) Vocabulary (use these words consistently)
 
 - **Lens**: a module that evaluates inputs + params to produce drafts. Two kinds:
-  - **Generator**: no upstream draft inputs; user-entered controls produce drafts.
+  - **Source**: no upstream draft inputs; user-entered controls produce drafts.
   - **Transformer**: consumes upstream drafts via explicit input refs; produces drafts.
 - **Draft** (ephemeral): a candidate result from a lens evaluation; selectable per lens instance.
 - **Material** (persistent): a captured draft stored in **Inventory** with a stable `materialId`.
@@ -106,7 +106,7 @@ move it to the correct module (`ui/`, `core/`, `lenses/`, `placement/`).
 
 ### 5.1 Lens meta
 Each lens must declare:
-- `meta.id`, `meta.name`, `meta.kind` in `{generator|transformer}`
+- `meta.id`, `meta.name`, `meta.kind` in `{source|transformer}`
 - `meta.hasVisualizer` if it provides a meaningful preview
 - Input/param schemas with stable `key`s and `role`s (for transformers)
 
@@ -140,7 +140,7 @@ Each lens must declare:
 ### 7.1 What is persisted
 Persist:
 - Tracks list (order + name)
-- Lens instances (lensId, trackId, lane, params, generator inputs)
+- Lens instances (lensId, trackId, lane, params, lens inputs)
 - Transformer `selectedInputRefsByRole`
 - Active draft selection (`activeDraftId` / `activeDraftIndex`) as a hint only
 
@@ -183,4 +183,5 @@ When changing a contract:
 2) Define meta + schemas (inputs/params).
 3) Implement pure evaluation returning drafts via `makeDraft`.
 4) Add minimal vizModel for preview if transformer or non-tabular output.
-5) Add tests: invariants + at least one integration scenario (generator → transformer).
+5) Add tests: invariants + at least one integration scenario (Source → transformer).
+

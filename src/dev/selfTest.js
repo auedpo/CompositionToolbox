@@ -81,14 +81,14 @@ numericFail.forEach((value) => {
   invariant(!isNumericTree(value), "isNumericTree should reject non-numeric trees.");
 });
 
-const fakeLens = { meta: { id: "selfTestLens", kind: "generator" } };
+const fakeLens = { meta: { id: "selfTestLens", kind: "source" } };
 const wrappedDrafts = materializeDrafts({
   lens: fakeLens,
   lensInstanceId: "lensWrapped",
   evaluateResult: { ok: true, drafts: [[0, 2, 4]] },
   inputs: [],
   params: {},
-  generatorInput: {},
+  lensInput: {},
   context: {}
 });
 invariant(wrappedDrafts.length === 1, "materializeDrafts should wrap value-only outputs.");
@@ -101,7 +101,7 @@ const baselineDraft = makeDraft({
   values: [1, 2, 3]
 });
 const invalidLens = {
-  meta: { id: "invalidLens", kind: "generator" },
+  meta: { id: "invalidLens", kind: "source" },
   evaluate: () => ({
     ok: true,
     drafts: [{
@@ -234,7 +234,7 @@ invariant(transformerResult.drafts[0].payload.kind === "numericTree", "Transform
     values: [2]
   });
   const laneA = createLensInstance(
-    { meta: { id: "generator", kind: "generator" }, evaluate: () => ({ ok: true, drafts: [] }) },
+    { meta: { id: "source", kind: "source" }, evaluate: () => ({ ok: true, drafts: [] }) },
     "laneA"
   );
   laneA.currentDrafts = [laneADraft];
@@ -243,7 +243,7 @@ invariant(transformerResult.drafts[0].payload.kind === "numericTree", "Transform
   laneA._updateToken = 1;
   laneA.row = 0;
   const laneB = createLensInstance(
-    { meta: { id: "generator", kind: "generator" }, evaluate: () => ({ ok: true, drafts: [] }) },
+    { meta: { id: "source", kind: "source" }, evaluate: () => ({ ok: true, drafts: [] }) },
     "laneB"
   );
   laneB.currentDrafts = [laneBDraft];
@@ -329,3 +329,4 @@ invariant(transformerResult.drafts[0].payload.kind === "numericTree", "Transform
 }
 
 console.log("selfTest ok");
+

@@ -36,8 +36,8 @@ export function evaluateInputListLens(ctx = {}) {
   if (!ctx.context || typeof ctx.context.lensId !== "string" || typeof ctx.context.lensInstanceId !== "string") {
     throw new Error("Lens context missing lensId/lensInstanceId.");
   }
-  const generatorInput = ctx.generatorInput || {};
-  const text = typeof generatorInput.text === "string" ? generatorInput.text : "";
+  const lensInput = ctx.lensInput || {};
+  const text = typeof lensInput.text === "string" ? lensInput.text : "";
   const values = parseTextInput(text);
   const count = Array.isArray(values) ? values.length : 0;
   const summary = count ? `Input list (${count} items)` : "Input list (empty)";
@@ -61,10 +61,10 @@ export const inputListLens = {
   meta: {
     id: LENS_ID,
     name: "Input List",
-    kind: "generator"
+    kind: "source"
   },
   params: [],
-  generatorInputs: [
+  lensInputs: [
     {
       key: "text",
       label: "List input",
@@ -75,3 +75,4 @@ export const inputListLens = {
   ],
   evaluate: evaluateInputListLens
 };
+

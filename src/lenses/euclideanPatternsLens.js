@@ -83,8 +83,8 @@ export function evaluateEuclideanPatternsLens(ctx = {}) {
   if (!ctx.context || typeof ctx.context.lensId !== "string" || typeof ctx.context.lensInstanceId !== "string") {
     throw new Error("Lens context missing lensId/lensInstanceId.");
   }
-  const { params = {}, generatorInput = {} } = ctx;
-  const merged = { ...params, ...generatorInput };
+  const { params = {}, lensInput = {} } = ctx;
+  const merged = { ...params, ...lensInput };
   const normalized = normalizeParams(merged);
   const base = bjorklund(normalized.steps, normalized.pulses);
   const rotated = rotateRight(base, normalized.rotationNorm);
@@ -124,7 +124,7 @@ export const euclideanPatternsLens = {
     id: LENS_ID,
     name: "Euclidean Patterns",
     hasVisualizer: true,
-    kind: "generator"
+    kind: "source"
   },
   params: [
     {
@@ -138,10 +138,11 @@ export const euclideanPatternsLens = {
       ]
     }
   ],
-  generatorInputs: [
+  lensInputs: [
     { key: "steps", label: "Steps (N)", kind: "int", default: 8, min: 1 },
     { key: "pulses", label: "Pulses (K)", kind: "int", default: 3, min: 0 },
     { key: "rotation", label: "Rotation (R)", kind: "int", default: 0 }
   ],
   evaluate: evaluateEuclideanPatternsLens
 };
+

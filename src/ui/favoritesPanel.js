@@ -31,11 +31,11 @@ export function captureFavoriteSnapshot(rec, capturePlacementParamValues) {
     ? capturePlacementParamValues()
     : {};
   const instance = getFocusedIntervalPlacementInstance();
-  const generatorInput = instance ? instance.generatorInputValues : {};
+  const lensInput = instance ? instance.lensInputValues : {};
   return {
-    intervals: Array.isArray(generatorInput.intervals) ? generatorInput.intervals.slice() : [],
-    windowOctaves: generatorInput.windowOctaves,
-    oddBias: Array.isArray(generatorInput.oddBias) ? generatorInput.oddBias.slice() : [],
+    intervals: Array.isArray(lensInput.intervals) ? lensInput.intervals.slice() : [],
+    windowOctaves: lensInput.windowOctaves,
+    oddBias: Array.isArray(lensInput.oddBias) ? lensInput.oddBias.slice() : [],
     O: state.activeO,
     perm: rec.perm,
     pitches: rec.pitches,
@@ -66,8 +66,8 @@ export function favoriteKeyFromSnapshot(snapshot) {
 export function favoriteKey(rec) {
   const O = state.activeO;
   const instance = getFocusedIntervalPlacementInstance();
-  const intervals = instance && Array.isArray(instance.generatorInputValues.intervals)
-    ? instance.generatorInputValues.intervals.join(",")
+  const intervals = instance && Array.isArray(instance.lensInputValues.intervals)
+    ? instance.lensInputValues.intervals.join(",")
     : "";
   return `${intervals}|O${O}|${rec.perm.join(",")}|${rec.pitches.join(",")}`;
 }
@@ -107,16 +107,16 @@ export function captureCurrentSettingsSnapshot(capturePlacementParamValues) {
     ? capturePlacementParamValues()
     : {};
   const instance = getFocusedIntervalPlacementInstance();
-  const generatorInput = instance ? instance.generatorInputValues : {};
+  const lensInput = instance ? instance.lensInputValues : {};
   return {
-    intervals: Array.isArray(generatorInput.intervals) ? generatorInput.intervals.slice() : [],
+    intervals: Array.isArray(lensInput.intervals) ? lensInput.intervals.slice() : [],
     O: state.activeO,
-    windowOctaves: generatorInput.windowOctaves,
+    windowOctaves: lensInput.windowOctaves,
     perm: null,
     pitches: null,
     placementMode: values.placementMode || "v2",
     placementParams: values,
-    oddBias: Array.isArray(generatorInput.oddBias) ? generatorInput.oddBias.slice() : [],
+    oddBias: Array.isArray(lensInput.oddBias) ? lensInput.oddBias.slice() : [],
     edo: values.edoSteps,
     baseNote: values.baseNote,
     baseOctave: values.baseOctave,
@@ -293,3 +293,4 @@ export function bindFavoritePromptButtons() {
     });
   }
 }
+

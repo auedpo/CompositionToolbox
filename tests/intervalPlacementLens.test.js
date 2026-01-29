@@ -29,14 +29,14 @@ const params = {
 };
 params.roughAlpha = calibrateAlpha(params, 0.5);
 
-const generatorInput = {
+const lensInput = {
   intervals: [11, 7, 16],
   oddBias: [0, 0, 0],
   windowOctaves: 3
 };
 
 const input = {
-  generatorInput,
+  lensInput,
   params,
   context: {
     lensId: "intervalPlacement",
@@ -45,7 +45,7 @@ const input = {
       lens: intervalPlacementLens,
       selectedInputRefsByRole: {},
       _liveInputRefs: {},
-      generatorInputValues: generatorInput
+      lensInputValues: lensInput
     },
     draftCatalog: [],
     getLensInstanceById: () => null,

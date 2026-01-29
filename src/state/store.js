@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 import { createInitialState } from "./schema.js";
 import { reduceAuthoritative, ACTION_TYPES } from "./reducer.js";
-import { recomputeStub } from "./derived.js";
+import { recomputeDerived } from "./derived.js";
 import { createActions } from "./actions.js";
 import { persistConfig } from "./persistence.js";
 
@@ -23,10 +23,7 @@ export const useStore = create(
     const dispatch = (action) => {
       set((state) => {
         const nextAuthoritative = reduceAuthoritative(state.authoritative, action);
-        const nextDerived = recomputeStub(
-          { authoritative: nextAuthoritative, derived: state.derived },
-          action
-        );
+        const nextDerived = recomputeDerived(nextAuthoritative);
         const derivedStamp = computeDerivedStamp(nextAuthoritative);
         return {
           ...state,

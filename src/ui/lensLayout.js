@@ -450,9 +450,10 @@ export function renderLensDrafts(container, instance, handlers) {
 }
 
 export function bindLensInputHandlers(instance, specs, key, value) {
-  updateSpecValue(instance.generatorInputValues, specs, key, value);
+  updateSpecValue(instance.lensInputValues, specs, key, value);
 }
 
 export function bindLensParamHandlers(instance, specs, key, value) {
   updateSpecValue(instance.paramsValues, specs, key, value);
 }
+

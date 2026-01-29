@@ -22,7 +22,7 @@ function makeContext(draft) {
       selectedInputRefsByRole: {
         input: { mode: "freeze", sourceDraftId: draft.draftId }
       },
-      generatorInputValues: {},
+      lensInputValues: {},
       _liveInputRefs: {}
     },
     draftCatalog: [draft],

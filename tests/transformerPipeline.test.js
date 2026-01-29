@@ -12,7 +12,7 @@ function buildDraft(id) {
   });
 }
 
-function buildGenerator(id, draft, token = 1) {
+function buildSource(id, draft, token = 1) {
   return {
     lensInstanceId: id,
     lens: { meta: { id: "source" } },
@@ -52,11 +52,11 @@ function buildTrack(lensIds) {
 
 {
   const firstDraft = buildDraft("draftA");
-  const generator = buildGenerator("gen", firstDraft, 1);
+  const source = buildSource("source", firstDraft, 1);
   const transformer = buildLensInstance("trans", [{ role: "input", required: true }]);
-  const tracks = [buildTrack([generator.lensInstanceId, transformer.lensInstanceId])];
+  const tracks = [buildTrack([source.lensInstanceId, transformer.lensInstanceId])];
   const lensInstances = new Map([
-    [generator.lensInstanceId, generator],
+    [source.lensInstanceId, source],
     [transformer.lensInstanceId, transformer]
   ]);
   const scheduleCalls = [];
@@ -65,31 +65,31 @@ function buildTrack(lensIds) {
   ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens);
   assert.deepStrictEqual(transformer.selectedInputRefsByRole.input, {
     mode: "active",
-    sourceLensInstanceId: generator.lensInstanceId
+    sourceLensInstanceId: source.lensInstanceId
   });
   assert.deepStrictEqual(transformer._liveInputRefs.input, {
     mode: "active",
-    sourceLensInstanceId: generator.lensInstanceId
+    sourceLensInstanceId: source.lensInstanceId
   });
   assert.deepStrictEqual(scheduleCalls, [transformer.lensInstanceId]);
 
   const secondDraft = buildDraft("draftB");
-  generator.currentDrafts = [secondDraft];
-  generator.activeDraft = secondDraft;
-  generator.activeDraftId = secondDraft.draftId;
-  generator._updateToken = 2;
+  source.currentDrafts = [secondDraft];
+  source.activeDraft = secondDraft;
+  source.activeDraftId = secondDraft.draftId;
+  source._updateToken = 2;
 
   ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens);
   assert.deepStrictEqual(scheduleCalls, [transformer.lensInstanceId, transformer.lensInstanceId]);
 }
 
 {
-  const generator = buildGenerator("gen2", buildDraft("draftSame"), 5);
+  const source = buildSource("source-2", buildDraft("draftSame"), 5);
   const transformer = buildLensInstance("trans2", [{ role: "input", required: true }]);
   transformer.selectedInputRefsByRole.input = { mode: "freeze", sourceDraftId: "legacy" };
-  const tracks = [buildTrack([generator.lensInstanceId, transformer.lensInstanceId])];
+  const tracks = [buildTrack([source.lensInstanceId, transformer.lensInstanceId])];
   const lensInstances = new Map([
-    [generator.lensInstanceId, generator],
+    [source.lensInstanceId, source],
     [transformer.lensInstanceId, transformer]
   ]);
   const scheduleCalls = [];
@@ -102,12 +102,12 @@ function buildTrack(lensIds) {
 
 {
   const firstDraft = buildDraft("draftA");
-  const generator = buildGenerator("gen-multi", firstDraft, 1);
+  const source = buildSource("source-multi", firstDraft, 1);
   const transformerA = buildLensInstance("transA", [{ role: "input", required: true }]);
   const transformerB = buildLensInstance("transB", [{ role: "input", required: true }]);
-  const tracks = [buildTrack([generator.lensInstanceId, transformerA.lensInstanceId, transformerB.lensInstanceId])];
+  const tracks = [buildTrack([source.lensInstanceId, transformerA.lensInstanceId, transformerB.lensInstanceId])];
   const lensInstances = new Map([
-    [generator.lensInstanceId, generator],
+    [source.lensInstanceId, source],
     [transformerA.lensInstanceId, transformerA],
     [transformerB.lensInstanceId, transformerB]
   ]);
@@ -120,7 +120,7 @@ function buildTrack(lensIds) {
   ensureDefaultSignalFlowSelections(tracks, lensInstances, scheduleLens);
   assert.deepStrictEqual(transformerA.selectedInputRefsByRole.input, {
     mode: "active",
-    sourceLensInstanceId: generator.lensInstanceId
+    sourceLensInstanceId: source.lensInstanceId
   });
   assert.deepStrictEqual(transformerB.selectedInputRefsByRole.input, {
     mode: "active",
@@ -132,8 +132,8 @@ function buildTrack(lensIds) {
 {
   const laneADraft = buildDraft("laneADraft");
   const laneBDraft = buildDraft("laneBDraft");
-  const laneA = buildGenerator("laneA-generator", laneADraft, 1);
-  const laneB = buildGenerator("laneB-generator", laneBDraft, 1);
+  const laneA = buildSource("laneA-source", laneADraft, 1);
+  const laneB = buildSource("laneB-source", laneBDraft, 1);
   const laneTransformer = buildLensInstance("laneTransform", [{ role: "primary", required: true }]);
   laneA.row = 0;
   laneB.row = 3;

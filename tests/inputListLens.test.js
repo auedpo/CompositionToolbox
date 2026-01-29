@@ -4,7 +4,7 @@ import { evaluateInputListLens } from "../src/lenses/inputList.js";
 
 function evalLens(text) {
   return evaluateInputListLens({
-    generatorInput: { text },
+    lensInput: { text },
     context: { lensId: "inputList", lensInstanceId: "input-list-test" }
   });
 }

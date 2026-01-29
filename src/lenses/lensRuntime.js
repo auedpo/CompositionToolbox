@@ -91,12 +91,12 @@ function handleMissingUpstream(instance, onUpdate) {
 
 export function createLensInstance(lens, lensInstanceId) {
   const paramsValues = buildDefaults(lens.params);
-  const generatorInputValues = buildDefaults(lens.generatorInputs);
+  const lensInputValues = buildDefaults(lens.lensInputs);
     return {
       lens,
       lensInstanceId,
       paramsValues,
-      generatorInputValues,
+      lensInputValues,
       _updateToken: 0,
       activeDraftIndex: null,
       activeDraft: null,
@@ -123,7 +123,7 @@ export function materializeDrafts({
   evaluateResult,
   inputs,
   params,
-  generatorInput,
+  lensInput,
   context
 }) {
   const drafts = (evaluateResult && Array.isArray(evaluateResult.drafts)) ? evaluateResult.drafts : [];
@@ -142,7 +142,7 @@ export function materializeDrafts({
     }));
     const provenance = {
       lensType: lens.meta.id,
-      paramsHash: hashParams({ params: params || {}, generatorInput: generatorInput || {} }),
+      paramsHash: hashParams({ params: params || {}, lensInput: lensInput || {} }),
       inputRefs,
       createdAt: now,
       ...(draft && draft.meta && typeof draft.meta === "object"
@@ -197,7 +197,7 @@ export function scheduleLensEvaluation(instance, options) {
     let result = null;
     try {
       result = instance.lens.evaluate({
-        generatorInput: instance.generatorInputValues,
+        lensInput: instance.lensInputValues,
         params: instance.paramsValues,
         context
       });
@@ -231,7 +231,7 @@ export function scheduleLensEvaluation(instance, options) {
           evaluateResult: instance.evaluateResult,
           inputs: resolvedInputs,
           params: instance.paramsValues,
-          generatorInput: instance.generatorInputValues,
+          lensInput: instance.lensInputValues,
           context
         });
         drafts.forEach((draft) => {
@@ -276,3 +276,4 @@ export function scheduleLensEvaluation(instance, options) {
 export function collectDraftCatalog(instances) {
   return instances.flatMap((instance) => instance.currentDrafts || []);
 }
+

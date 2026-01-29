@@ -2033,19 +2033,19 @@ function applyIntervalPlacementSnapshot(snapshot) {
 
   if (Array.isArray(snapshot.intervals)) {
 
-    instance.generatorInputValues.intervals = snapshot.intervals.slice();
+    instance.lensInputValues.intervals = snapshot.intervals.slice();
 
   }
 
   if (snapshot.windowOctaves !== undefined) {
 
-    instance.generatorInputValues.windowOctaves = snapshot.windowOctaves;
+    instance.lensInputValues.windowOctaves = snapshot.windowOctaves;
 
   }
 
   if (Array.isArray(snapshot.oddBias)) {
 
-    instance.generatorInputValues.oddBias = snapshot.oddBias.slice();
+    instance.lensInputValues.oddBias = snapshot.oddBias.slice();
 
   }
 
@@ -2057,11 +2057,11 @@ function applyIntervalPlacementSnapshot(snapshot) {
 
   });
 
-  (lens.generatorInputs || []).forEach((spec) => {
+  (lens.lensInputs || []).forEach((spec) => {
 
-    updateControlValue(spec.key, instance.generatorInputValues[spec.key]);
+    updateControlValue(spec.key, instance.lensInputValues[spec.key]);
 
-    storeLensSpecValue(lens.meta.id, "inputs", spec.key, instance.generatorInputValues[spec.key]);
+    storeLensSpecValue(lens.meta.id, "inputs", spec.key, instance.lensInputValues[spec.key]);
 
   });
 
@@ -2089,11 +2089,11 @@ function applyIntervalsOnly(snapshot) {
 
   if (!Array.isArray(snapshot.intervals)) return;
 
-  instance.generatorInputValues.intervals = snapshot.intervals.slice();
+  instance.lensInputValues.intervals = snapshot.intervals.slice();
 
-  updateControlValue("intervals", instance.generatorInputValues.intervals);
+  updateControlValue("intervals", instance.lensInputValues.intervals);
 
-  storeLensSpecValue("intervalPlacement", "inputs", "intervals", instance.generatorInputValues.intervals);
+  storeLensSpecValue("intervalPlacement", "inputs", "intervals", instance.lensInputValues.intervals);
 
   scheduleLens(instance);
 
@@ -2898,7 +2898,7 @@ function migrateTrackToLensPath(track) {
 
   const legacy = [];
 
-  if (track.generatorInstanceId) legacy.push(track.generatorInstanceId);
+  if (track.lensInstanceId) legacy.push(track.lensInstanceId);
 
   if (Array.isArray(track.transformerInstanceIds)) {
 
@@ -3426,9 +3426,9 @@ function createLensInstanceForTrack(lensId, trackId, insertIndex = null, options
 
   const instance = createInstanceForTrack(lens, track.id);
 
-  (lens.generatorInputs || []).forEach((spec) => {
+  (lens.lensInputs || []).forEach((spec) => {
 
-    instance.generatorInputValues[spec.key] = loadLensSpecValue(lens.meta.id, "inputs", spec);
+    instance.lensInputValues[spec.key] = loadLensSpecValue(lens.meta.id, "inputs", spec);
 
   });
 
@@ -3641,7 +3641,7 @@ function serializeWorkspace() {
 
         lensInstanceIds: path,
 
-        generatorInstanceId: path[0] || null,
+        lensInstanceId: path[0] || null,
 
         transformerInstanceIds: path.length > 1 ? path.slice(1) : []
 
@@ -3661,7 +3661,7 @@ function serializeWorkspace() {
 
         paramsValues: { ...(instance.paramsValues || {}) },
 
-        generatorInputValues: { ...(instance.generatorInputValues || {}) },
+        lensInputValues: { ...(instance.lensInputValues || {}) },
 
         selectedInputLaneByRole: { ...(instance.selectedInputLaneByRole || {}) },
 
@@ -3731,7 +3731,7 @@ function serializeWorkspace() {
 
     instance.paramsValues = { ...instance.paramsValues, ...(snapshot.paramsValues || {}) };
 
-    instance.generatorInputValues = { ...instance.generatorInputValues, ...(snapshot.generatorInputValues || {}) };
+    instance.lensInputValues = { ...instance.lensInputValues, ...(snapshot.lensInputValues || {}) };
 
   const legacySelected = snapshot.selectedInputDraftIdsByRole || {};
 
@@ -4672,11 +4672,11 @@ function bindLensInputsForInstance(instance, elements, options = {}) {
 
   } else if (!shouldSkipRender(elements.inputs)) {
 
-    initLensControls(elements.inputs, lens.generatorInputs, instance.generatorInputValues, (spec, value) => {
+    initLensControls(elements.inputs, lens.lensInputs, instance.lensInputValues, (spec, value) => {
 
-      bindLensInputHandlers(instance, lens.generatorInputs, spec.key, value);
+      bindLensInputHandlers(instance, lens.lensInputs, spec.key, value);
 
-      storeLensSpecValue(lens.meta.id, "inputs", spec.key, instance.generatorInputValues[spec.key]);
+      storeLensSpecValue(lens.meta.id, "inputs", spec.key, instance.lensInputValues[spec.key]);
 
       scheduleLens(instance);
 
@@ -4730,9 +4730,9 @@ function initDefaultTracks() {
 
     setFocusedLensInstanceGlobal(instance.lensInstanceId);
 
-    (intervalLens.generatorInputs || []).forEach((spec) => {
+    (intervalLens.lensInputs || []).forEach((spec) => {
 
-      instance.generatorInputValues[spec.key] = loadLensSpecValue(intervalLens.meta.id, "inputs", spec);
+      instance.lensInputValues[spec.key] = loadLensSpecValue(intervalLens.meta.id, "inputs", spec);
 
     });
 
@@ -6895,7 +6895,7 @@ function renderWorkspace2LensInspector() {
 
     clone.paramsValues = { ...(inst.paramsValues || {}) };
 
-    clone.generatorInputValues = { ...(inst.generatorInputValues || {}) };
+    clone.lensInputValues = { ...(inst.lensInputValues || {}) };
 
     const copyRefs = {};
 
@@ -7736,9 +7736,9 @@ function renderTrackWorkspace() {
 
           seedLensDefaults(instance);
 
-          (lens.generatorInputs || []).forEach((spec) => {
+          (lens.lensInputs || []).forEach((spec) => {
 
-            instance.generatorInputValues[spec.key] = loadLensSpecValue(lens.meta.id, "inputs", spec);
+            instance.lensInputValues[spec.key] = loadLensSpecValue(lens.meta.id, "inputs", spec);
 
           });
 
@@ -8002,7 +8002,7 @@ function renderEuclidInputs(container, instance, lens) {
 
   container.innerHTML = "";
 
-  const specs = lens.generatorInputs || [];
+  const specs = lens.lensInputs || [];
 
   const controls = new Map();
 
@@ -8072,7 +8072,7 @@ function renderEuclidInputs(container, instance, lens) {
 
     input.step = `${step}`;
 
-    input.value = `${instance.generatorInputValues[spec.key] ?? spec.default ?? min}`;
+    input.value = `${instance.lensInputValues[spec.key] ?? spec.default ?? min}`;
 
     const valueEl = document.createElement("div");
 
@@ -8132,7 +8132,7 @@ function renderEuclidInputs(container, instance, lens) {
 
           bindLensInputHandlers(instance, specs, "pulses", pulsesCtrl.input.value);
 
-          storeLensSpecValue(lens.meta.id, "inputs", "pulses", instance.generatorInputValues.pulses);
+          storeLensSpecValue(lens.meta.id, "inputs", "pulses", instance.lensInputValues.pulses);
 
         }
 
@@ -8154,7 +8154,7 @@ function renderEuclidInputs(container, instance, lens) {
 
         bindLensInputHandlers(instance, specs, "rotation", rotationCtrl.input.value);
 
-        storeLensSpecValue(lens.meta.id, "inputs", "rotation", instance.generatorInputValues.rotation);
+        storeLensSpecValue(lens.meta.id, "inputs", "rotation", instance.lensInputValues.rotation);
 
         updateKnobVisual(rotationCtrl);
 
@@ -8180,11 +8180,11 @@ function renderEuclidInputs(container, instance, lens) {
 
       bindLensInputHandlers(instance, specs, spec.key, input.value);
 
-      storeLensSpecValue(lens.meta.id, "inputs", spec.key, instance.generatorInputValues[spec.key]);
+      storeLensSpecValue(lens.meta.id, "inputs", spec.key, instance.lensInputValues[spec.key]);
 
       if (spec.key === "steps") {
 
-        updateStepDependent(Number(instance.generatorInputValues.steps));
+        updateStepDependent(Number(instance.lensInputValues.steps));
 
       }
 
@@ -8294,7 +8294,7 @@ function renderEuclidInputs(container, instance, lens) {
 
     if (spec.key === "pulses") {
 
-      const stepsValue = Number(instance.generatorInputValues.steps ?? 8);
+      const stepsValue = Number(instance.lensInputValues.steps ?? 8);
 
       buildKnob(spec, spec.min ?? 0, stepsValue, 1);
 
@@ -8304,7 +8304,7 @@ function renderEuclidInputs(container, instance, lens) {
 
     if (spec.key === "rotation") {
 
-      const stepsValue = Number(instance.generatorInputValues.steps ?? 8);
+      const stepsValue = Number(instance.lensInputValues.steps ?? 8);
 
       buildKnob(spec, -stepsValue, stepsValue, 1);
 
@@ -9751,4 +9751,5 @@ function buildPanelSection() {
   section.appendChild(card);
   return section;
 }
+
 

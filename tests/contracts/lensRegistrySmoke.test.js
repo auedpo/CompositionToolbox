@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { listLenses } from "../../src/lenses/lensRegistry.js";
-import { runLens } from "../../src/core/lensHost.js";
+import { lensHost } from "../../src/core/lensHost.js";
 import { assertDraft, makeDraft } from "../../src/core/invariants.js";
 
 const smokeInput = makeDraft({
@@ -13,13 +13,10 @@ const smokeInput = makeDraft({
 
 listLenses().forEach((lens) => {
   const lensId = lens.meta && lens.meta.id ? lens.meta.id : "unknown";
-  const lensInstanceId = `smoke-${lensId}`;
-  const result = runLens({
-    lens,
+  const result = lensHost.apply({
     lensId,
-    lensInstanceId,
     params: {},
-    generatorInput: {},
+    lensInput: {},
     inputDraft: smokeInput
   });
 
@@ -27,7 +24,7 @@ listLenses().forEach((lens) => {
     const requiresInput = Array.isArray(lens.inputs)
       && lens.inputs.some((spec) => !spec || spec.required !== false);
     assert.ok(requiresInput, `${lensId} failed without declared input requirement.`);
-    assert.ok(result.error.message, `${lensId} error should have a message.`);
+    assert.ok(result.error, `${lensId} error should have a message.`);
     return;
   }
 
