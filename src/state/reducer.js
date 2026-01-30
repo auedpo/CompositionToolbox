@@ -2,6 +2,7 @@
 // Interacts with: imports: ../lenses/lensRegistry.js, ./ids.js, ./schema.js.
 // Role: state layer module within the broader app graph.
 import { getLens } from "../lenses/lensRegistry.js";
+import { makeClipFromMaterial, makeMaterialFromDraft } from "../core/model.js";
 import { createEmptyAuthoritative, SCHEMA_VERSION } from "./schema.js";
 import { makeLensInstanceId, makeTrackId } from "./ids.js";
 
@@ -9,8 +10,9 @@ export const ACTION_TYPES = {
   NORMALIZE_SCHEMA: "NORMALIZE_SCHEMA",
   WORKSPACE_ADD_TRACK: "WORKSPACE_ADD_TRACK",
   WORKSPACE_RENAME_TRACK: "WORKSPACE_RENAME_TRACK",
-  WORKSPACE_REMOVE_TRACK: "WORKSPACE_REMOVE_TRACK",
+  WORKSPACE_REMOVE_LANE: "WORKSPACE_REMOVE_LANE",
   LENS_ADD_INSTANCE: "LENS_ADD_INSTANCE",
+  LENS_ADD_TO_TRACK: "LENS_ADD_TO_TRACK",
   LENS_REMOVE_INSTANCE: "LENS_REMOVE_INSTANCE",
   LENS_MOVE_INSTANCE: "LENS_MOVE_INSTANCE",
   LENS_SET_PARAM: "LENS_SET_PARAM",
@@ -18,6 +20,8 @@ export const ACTION_TYPES = {
   LENS_PATCH_PARAMS: "LENS_PATCH_PARAMS",
   LENS_SET_INPUT: "LENS_SET_INPUT",
   SELECTION_SET: "SELECTION_SET",
+  INVENTORY_ADD_FROM_DRAFT: "INVENTORY_ADD_FROM_DRAFT",
+  DESK_PLACE_DRAFT: "DESK_PLACE_DRAFT",
   PERSISTENCE_MARK_CLEAN: "PERSISTENCE_MARK_CLEAN"
 };
 
@@ -150,6 +154,28 @@ function setAtPath(source, path, value) {
   return next;
 }
 
+function pickNextLensIdAfterRemoval(lensIds, removedIndex) {
+  if (!Array.isArray(lensIds) || removedIndex < 0) return undefined;
+  if (removedIndex < lensIds.length) {
+    return lensIds[removedIndex];
+  }
+  if (removedIndex - 1 >= 0 && removedIndex - 1 < lensIds.length) {
+    return lensIds[removedIndex - 1];
+  }
+  return undefined;
+}
+
+function pickTrackIdAfterRemoval(order, removedIndex) {
+  if (!Array.isArray(order) || removedIndex < 0) return undefined;
+  if (removedIndex < order.length) {
+    return order[removedIndex];
+  }
+  if (removedIndex - 1 >= 0 && removedIndex - 1 < order.length) {
+    return order[removedIndex - 1];
+  }
+  return undefined;
+}
+
 export function reduceAuthoritative(authoritative, action) {
   const current = normalizeAuthoritativeState(authoritative);
   const type = action && action.type ? action.type : null;
@@ -203,7 +229,7 @@ export function reduceAuthoritative(authoritative, action) {
         }
       };
     }
-    case ACTION_TYPES.WORKSPACE_REMOVE_TRACK: {
+    case ACTION_TYPES.WORKSPACE_REMOVE_LANE: {
       const trackId = payload.trackId;
       if (!trackId || !current.workspace.tracksById[trackId]) return current;
       const { [trackId]: removedTrack, ...remainingTracks } = current.workspace.tracksById;
@@ -213,12 +239,24 @@ export function reduceAuthoritative(authoritative, action) {
       lensIdsToRemove.forEach((lensInstanceId) => {
         delete nextLensInstancesById[lensInstanceId];
       });
+      const removedIndex = current.workspace.trackOrder.indexOf(trackId);
+      const nextTrackId = pickTrackIdAfterRemoval(nextTrackOrder, removedIndex);
       const nextSelection = { ...current.selection };
       if (nextSelection.trackId === trackId) {
-        nextSelection.trackId = undefined;
-      }
-      if (nextSelection.lensInstanceId && !nextLensInstancesById[nextSelection.lensInstanceId]) {
+        nextSelection.trackId = nextTrackId;
+        nextSelection.draftId = undefined;
+        if (nextTrackId) {
+          const nextTrack = remainingTracks[nextTrackId];
+          const nextLensIds = Array.isArray(nextTrack && nextTrack.lensInstanceIds)
+            ? nextTrack.lensInstanceIds
+            : [];
+          nextSelection.lensInstanceId = nextLensIds.length ? nextLensIds[0] : undefined;
+        } else {
+          nextSelection.lensInstanceId = undefined;
+        }
+      } else if (nextSelection.lensInstanceId && !nextLensInstancesById[nextSelection.lensInstanceId]) {
         nextSelection.lensInstanceId = undefined;
+        nextSelection.draftId = undefined;
       }
       return {
         ...current,
@@ -279,17 +317,91 @@ export function reduceAuthoritative(authoritative, action) {
         }
       };
     }
+    case ACTION_TYPES.LENS_ADD_TO_TRACK: {
+      const lensId = payload.lensId;
+      if (typeof lensId !== "string") return current;
+      let trackId = payload.trackId;
+      let tracksById = current.workspace.tracksById;
+      let trackOrder = current.workspace.trackOrder;
+      if (!trackId || !tracksById[trackId]) {
+        trackId = makeTrackId();
+        const name = typeof payload.trackName === "string" && payload.trackName.trim()
+          ? payload.trackName.trim()
+          : `Lane ${trackOrder.length + 1}`;
+        const track = { trackId, name, lensInstanceIds: [] };
+        tracksById = {
+          ...tracksById,
+          [trackId]: track
+        };
+        trackOrder = [...trackOrder, trackId];
+      }
+      const track = tracksById[trackId];
+      if (!track) return current;
+      const lensInstanceId = makeLensInstanceId();
+      const params = cloneParamsForLens(lensId);
+      const instance = {
+        lensInstanceId,
+        lensId,
+        params,
+        input: { mode: "auto", pinned: false },
+        ui: {}
+      };
+      const nextLensInstancesById = {
+        ...current.lenses.lensInstancesById,
+        [lensInstanceId]: instance
+      };
+      const nextLensInstanceIds = insertAtIndex(track.lensInstanceIds || [], lensInstanceId, payload.atIndex);
+      return {
+        ...current,
+        workspace: {
+          ...current.workspace,
+          tracksById: {
+            ...tracksById,
+            [trackId]: {
+              ...track,
+              lensInstanceIds: nextLensInstanceIds
+            }
+          },
+          trackOrder
+        },
+        lenses: {
+          ...current.lenses,
+          lensInstancesById: nextLensInstancesById
+        },
+        selection: {
+          ...current.selection,
+          trackId,
+          lensInstanceId,
+          draftId: undefined
+        },
+        persistence: {
+          ...current.persistence,
+          dirty: true
+        }
+      };
+    }
     case ACTION_TYPES.LENS_REMOVE_INSTANCE: {
       const trackId = payload.trackId;
       const lensInstanceId = payload.lensInstanceId;
       const track = current.workspace.tracksById[trackId];
       if (!track || !lensInstanceId) return current;
-      const nextLensInstanceIds = removeFromList(track.lensInstanceIds || [], lensInstanceId);
+      const currentLensIds = Array.isArray(track.lensInstanceIds) ? track.lensInstanceIds : [];
+      const lensIndex = currentLensIds.indexOf(lensInstanceId);
+      if (lensIndex < 0) return current;
+      const nextLensInstanceIds = removeFromList(currentLensIds, lensInstanceId);
       const nextLensInstancesById = { ...current.lenses.lensInstancesById };
       delete nextLensInstancesById[lensInstanceId];
       const nextSelection = { ...current.selection };
       if (nextSelection.lensInstanceId === lensInstanceId) {
-        nextSelection.lensInstanceId = undefined;
+        nextSelection.draftId = undefined;
+        const nextLensId = pickNextLensIdAfterRemoval(nextLensInstanceIds, lensIndex);
+        if (nextLensId) {
+          nextSelection.trackId = trackId;
+          nextSelection.lensInstanceId = nextLensId;
+        } else {
+          nextSelection.trackId = trackId;
+          nextSelection.lensInstanceId = undefined;
+        }
       }
       return {
         ...current,
@@ -465,6 +577,55 @@ export function reduceAuthoritative(authoritative, action) {
       return {
         ...current,
         selection: nextSelection
+      };
+    }
+    case ACTION_TYPES.INVENTORY_ADD_FROM_DRAFT: {
+      const draft = payload.draft;
+      if (!draft) return current;
+      const material = makeMaterialFromDraft(draft, payload.options || {});
+      return {
+        ...current,
+        inventory: {
+          ...current.inventory,
+          itemsById: {
+            ...current.inventory.itemsById,
+            [material.materialId]: material
+          },
+          itemOrder: [...current.inventory.itemOrder, material.materialId]
+        },
+        persistence: {
+          ...current.persistence,
+          dirty: true
+        }
+      };
+    }
+    case ACTION_TYPES.DESK_PLACE_DRAFT: {
+      const draft = payload.draft;
+      if (!draft) return current;
+      const material = makeMaterialFromDraft(draft, payload.options || {});
+      const clip = makeClipFromMaterial(material.materialId, payload.position || {});
+      return {
+        ...current,
+        inventory: {
+          ...current.inventory,
+          itemsById: {
+            ...current.inventory.itemsById,
+            [material.materialId]: material
+          },
+          itemOrder: [...current.inventory.itemOrder, material.materialId]
+        },
+        desk: {
+          ...current.desk,
+          nodesById: {
+            ...current.desk.nodesById,
+            [clip.clipId]: clip
+          },
+          nodeOrder: [...current.desk.nodeOrder, clip.clipId]
+        },
+        persistence: {
+          ...current.persistence,
+          dirty: true
+        }
       };
     }
     case ACTION_TYPES.PERSISTENCE_MARK_CLEAN: {

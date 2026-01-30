@@ -7,10 +7,18 @@ import { lensHost } from "./lensHost.js";
 import { resolveInput } from "./resolveInput.js";
 
 const DEBUG_RECOMPUTE = false;
+export const MISSING_PINNED_INPUT_ERROR = "Pinned input reference missing.";
 
 function debug(...args) {
   if (!DEBUG_RECOMPUTE || !import.meta.env || !import.meta.env.DEV) return;
   console.log(...args);
+}
+
+function resolvePinnedDraftId(ref) {
+  if (!ref) return null;
+  if (typeof ref === "string") return ref;
+  if (typeof ref !== "object") return null;
+  return ref.draftId || ref.sourceDraftId || null;
 }
 
 function normalizeLensDraft(raw, {
@@ -121,6 +129,16 @@ export function recomputeDerived(authoritativeState) {
       activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
       lastErrorByLensInstanceId[lensInstanceId] = undefined;
       if (!instance || typeof instance !== "object") return;
+
+      const input = instance.input || { mode: "auto", pinned: false };
+      if (input.mode === "ref") {
+        const pinnedDraftId = resolvePinnedDraftId(input.ref);
+        if (pinnedDraftId && !Object.prototype.hasOwnProperty.call(draftsById, pinnedDraftId)) {
+          lastErrorByLensInstanceId[lensInstanceId] = MISSING_PINNED_INPUT_ERROR;
+          debug("[MISSING PINNED INPUT]", lensInstanceId, pinnedDraftId);
+          return;
+        }
+      }
 
       const inputDraft = resolveInput(lensInstanceId, authoritative, derivedSoFar);
       const lensId = instance.lensId;

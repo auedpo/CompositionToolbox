@@ -19,7 +19,7 @@ export default function TrackInspector() {
 
   return (
     <section className="workspace-panel workspace-panel-track">
-      <div className="workspace-panel-header">Track Inspector</div>
+      <div className="workspace-panel-header">Lane Inspector</div>
       <div className="workspace-panel-body">
         <div>
           <button type="button" className="component-pill" onClick={() => actions.addTrack()}>
@@ -30,7 +30,7 @@ export default function TrackInspector() {
           <div className="workspace-placeholder">No lanes yet.</div>
         ) : (
           <div>
-            <div>Tracks</div>
+            <div>Lanes</div>
             <ul>
               {trackOrder.map((trackId) => {
                 const track = tracksById[trackId];

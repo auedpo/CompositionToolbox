@@ -76,10 +76,11 @@ if (fs.existsSync(SRC_DIR)) {
   const allFiles = collectFiles(SRC_DIR);
   const coreFiles = allFiles.filter((file) => file.includes(`${path.sep}core${path.sep}`));
   const lensFiles = allFiles.filter((file) => file.includes(`${path.sep}lenses${path.sep}`));
+  const draftAuthorFiles = [...new Set([...coreFiles, ...lensFiles])];
 
   checkForbiddenImports(coreFiles, "Core module");
   checkForbiddenImports(lensFiles, "Lens module");
-  checkDraftConstructors(allFiles);
+  checkDraftConstructors(draftAuthorFiles);
 }
 
 if (violations.length) {

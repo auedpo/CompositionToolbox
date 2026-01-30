@@ -68,6 +68,7 @@
   --color-surface-3: #ffffff; /* lens panel bg */
   /* --color-surface-dark: #1dc907; unknown where this is used atm */
   --color-text: #1b1b1b;
+  --color-text-light: #fafafa;
   --color-text-muted: #5a5a5a; /* text that is not the main text in list and displays */
   --color-border-soft: var(--alpha-black-10);
   --color-border: var(--alpha-black-15);
@@ -131,7 +132,7 @@
   --control-border-hover: var(--color-border);
   --control-bg: var(--color-panel-bg);
   --control-bg-hover: var(--overlay-hover);
-  --control-text: var(--color-text);
+  --control-text: var(--color-text-light);
   --control-placeholder: var(--color-text-muted);
 
   /* Checkbox / radio */
@@ -176,7 +177,7 @@
   --radius-sm: 2px; /* Small-radius surfaces. */
   --radius-md: 4px; /* Medium radius, default controls. */
   --radius-lg: 10px; /* Larger rounded surfaces. */
-  --radius-control: 4px; /* Controls. */
+  --radius-control: var(--radius-md); /* Controls. */
   --radius-panel: var(--panel-radius); /* Panels/cards. */
   --radius-pill: var(--radius-control); /* Lens pills. */
   --radius-button: var(--radius-control); /* Buttons. */
@@ -799,7 +800,7 @@ button {
   padding: 0 var(--control-padding-x);
   border-radius: var(--radius-control);
   background-color: var(--button-accent);
-  color: var(--white);
+  color: var(--color-text-light);
   font-size: var(--type-sm);
   cursor: pointer;
   text-decoration: none;
@@ -2140,6 +2141,7 @@ html[data-layout="workspace"] .ws2-pill:active,
 html[data-layout="workspace"] .ws2-track-lens-row:active,
 html[data-layout="workspace"] .ws2-inspector-wiring-row:active {
   background-color: var(--interactive-pressed-bg);
+  color: var(--color-text);
 }
 
 .interactive-surface.is-selected,
@@ -2153,6 +2155,7 @@ html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
   border-color: var(--interactive-selected-border);
   background-color: var(--interactive-selected-bg);
   box-shadow: var(--interactive-selected-shadow);
+  color: var(--color-text);
 }
 
 .interactive-surface.is-selected:hover:not(.is-disabled):not(:disabled),
