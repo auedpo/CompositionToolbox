@@ -28,8 +28,7 @@ export default function ParamsPanel() {
 
   const patchParams = (patch) => {
     if (!selectedLensInstanceId) return;
-    const base = lensParams && typeof lensParams === "object" ? lensParams : {};
-    actions.replaceLensParams(selectedLensInstanceId, { ...base, ...(patch || {}) });
+    actions.patchLensParams(selectedLensInstanceId, patch);
   };
 
   const schema = lensDef && lensDef.paramSchema ? lensDef.paramSchema : null;

@@ -42,7 +42,19 @@ export function createActions(dispatch, get) {
       dispatch({ type: ACTION_TYPES.LENS_REPLACE_PARAMS, payload: { lensInstanceId, params } });
     },
     patchLensParams(lensInstanceId, patch) {
-      dispatch({ type: ACTION_TYPES.LENS_PATCH_PARAMS, payload: { lensInstanceId, patch } });
+      if (!lensInstanceId) return;
+      if (!patch || typeof patch !== "object") return;
+      const state = typeof get === "function" ? get() : null;
+      const instance = state && state.authoritative && state.authoritative.lenses
+        ? state.authoritative.lenses.lensInstancesById[lensInstanceId]
+        : null;
+      if (!instance) return;
+      const prevParams = instance.params && typeof instance.params === "object" ? instance.params : {};
+      const nextParams = { ...prevParams, ...(patch || {}) };
+      dispatch({
+        type: ACTION_TYPES.LENS_REPLACE_PARAMS,
+        payload: { lensInstanceId, params: nextParams }
+      });
     },
     setLensInput(lensInstanceId, input) {
       dispatch({ type: ACTION_TYPES.LENS_SET_INPUT, payload: { lensInstanceId, input } });

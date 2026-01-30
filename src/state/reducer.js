@@ -17,7 +17,6 @@ export const ACTION_TYPES = {
   LENS_MOVE_INSTANCE: "LENS_MOVE_INSTANCE",
   LENS_SET_PARAM: "LENS_SET_PARAM",
   LENS_REPLACE_PARAMS: "LENS_REPLACE_PARAMS",
-  LENS_PATCH_PARAMS: "LENS_PATCH_PARAMS",
   LENS_SET_INPUT: "LENS_SET_INPUT",
   SELECTION_SET: "SELECTION_SET",
   INVENTORY_ADD_FROM_DRAFT: "INVENTORY_ADD_FROM_DRAFT",
@@ -515,30 +514,6 @@ export function reduceAuthoritative(authoritative, action) {
             [lensInstanceId]: {
               ...instance,
               params: payload.params
-            }
-          }
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.LENS_PATCH_PARAMS: {
-      const lensInstanceId = payload.lensInstanceId;
-      if (!lensInstanceId || !current.lenses.lensInstancesById[lensInstanceId]) return current;
-      const instance = current.lenses.lensInstancesById[lensInstanceId];
-      const prevParams = instance.params && typeof instance.params === "object" ? instance.params : {};
-      const patch = payload.patch && typeof payload.patch === "object" ? payload.patch : {};
-      return {
-        ...current,
-        lenses: {
-          ...current.lenses,
-          lensInstancesById: {
-            ...current.lenses.lensInstancesById,
-            [lensInstanceId]: {
-              ...instance,
-              params: { ...prevParams, ...patch }
             }
           }
         },

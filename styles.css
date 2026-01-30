@@ -77,7 +77,8 @@
   --color-panel-bg: var(--color-surface-3);
   --color-list-item: var(--color-surface-2);
 
-  --color-accent: rgb(15, 76, 92);
+  --color-accent: #7d959b;
+    /* --color-accent: rgb(15, 76, 92); */
   --color-accent-muted: rgba(15, 76, 92, 0.2);
   --color-accent-warm: rgba(184, 125, 61, 0.918);
 
@@ -132,7 +133,7 @@
   --control-border-hover: var(--color-border);
   --control-bg: var(--color-panel-bg);
   --control-bg-hover: var(--overlay-hover);
-  --control-text: var(--color-text-light);
+  --control-text: var(--color-text);
   --control-placeholder: var(--color-text-muted);
 
   /* Checkbox / radio */
@@ -800,7 +801,7 @@ button {
   padding: 0 var(--control-padding-x);
   border-radius: var(--radius-control);
   background-color: var(--button-accent);
-  color: var(--color-text-light);
+  color: var(--color-text);
   font-size: var(--type-sm);
   cursor: pointer;
   text-decoration: none;

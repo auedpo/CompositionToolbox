@@ -5,13 +5,13 @@ import { FieldRenderer } from "./fieldRenderers.jsx";
 export default function SchemaParamEditor({ schema, params, onPatch, onReplace }) {
   const fields = schema && Array.isArray(schema.fields) ? schema.fields : [];
   const applyPatch = (patch) => {
+    if (typeof onPatch === "function") {
+      onPatch(patch);
+      return;
+    }
     if (typeof onReplace === "function") {
       const base = params && typeof params === "object" ? params : {};
       onReplace({ ...base, ...(patch || {}) });
-      return;
-    }
-    if (typeof onPatch === "function") {
-      onPatch(patch);
     }
   };
   if (!fields.length) {
