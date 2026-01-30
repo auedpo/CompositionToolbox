@@ -441,11 +441,12 @@ export function evaluateIntervalPlacementLens(input = {}) {
   const params = { ...defaultParams, ...(input.params || {}) };
   params.useDamping = params.useDamping !== false;
   params.roughAlpha = calibrateAlpha(params, 0.5);
-  const lensInput = input.lensInput || {};
-  const windowOctaves = Number.isFinite(lensInput.windowOctaves)
-    ? lensInput.windowOctaves
-    : 1;
-  const rawBias = Array.isArray(lensInput.oddBias) ? lensInput.oddBias : [];
+  const windowOctaves = Number.isFinite(params.windowOctaves)
+    ? params.windowOctaves
+    : 3;
+  const rawBias = Array.isArray(input.lensInput && input.lensInput.oddBias)
+    ? input.lensInput.oddBias
+    : []; 
   const biasFlags = rawBias.map((v) => (v === 1 ? "up" : "down"));
   const oddBias = normalizeOddBias(intervals, biasFlags);
   const start = typeof performance !== "undefined" ? performance.now() : Date.now();
@@ -479,6 +480,25 @@ export const intervalPlacementLens = {
     name: "Interval Placement",
     hasVisualizer: true,
     kind: "source"
+  },
+  defaultParams: {
+    placementMode: "v2",
+    edoSteps: 12,
+    baseNote: "0",
+    baseOctave: 4,
+    windowOctaves: 3,
+    xSpacing: 0.8,
+    useDamping: true,
+    anchorAlpha: 0.3,
+    anchorBeta: 1.0,
+    anchorRho: 0.5,
+    repulseGamma: 1.0,
+    repulseKappa: 0.4,
+    repulseLambda: 0.1,
+    repulseEta: 0.08,
+    repulseIterations: 60,
+    repulseAlpha: 1.0,
+    fRefHz: 55.0
   },
   inputs: [
     {
