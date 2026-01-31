@@ -2301,6 +2301,75 @@ html[data-layout="workspace"] .ws2-header {
   flex: 0 0 auto;
 }
 
+html[data-layout="workspace"] .workspace-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.workspace-persistence-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.workspace-persistence-btn {
+  font-size: var(--type-xs);
+  padding: var(--space-05) var(--space-2);
+  border-radius: 6px;
+}
+
+.workspace-persistence-status {
+  font-size: var(--type-xs);
+  letter-spacing: var(--ls-tight);
+  color: var(--alpha-white-90);
+  min-width: 0;
+}
+
+.workspace-persistence-dialog {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  z-index: 50;
+}
+
+.workspace-persistence-dialog-content {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-2);
+  width: min(620px, 100%);
+  max-height: 80%;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.workspace-persistence-dialog textarea {
+  width: 100%;
+  min-height: 200px;
+  border-radius: 8px;
+  border: 1px solid var(--control-border);
+  padding: var(--space-2);
+  font-family: "DM Mono", "Consolas", "Menlo", monospace;
+  font-size: var(--type-sm);
+  background: var(--alpha-white-95);
+  color: var(--black);
+  overflow: auto;
+  resize: vertical;
+}
+
+.workspace-persistence-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
 html[data-layout="workspace"] .workspace-header-left,
 html[data-layout="workspace"] .ws2-header-left {
   display: flex;

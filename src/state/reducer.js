@@ -21,7 +21,9 @@ export const ACTION_TYPES = {
   SELECTION_SET: "SELECTION_SET",
   INVENTORY_ADD_FROM_DRAFT: "INVENTORY_ADD_FROM_DRAFT",
   DESK_PLACE_DRAFT: "DESK_PLACE_DRAFT",
-  PERSISTENCE_MARK_CLEAN: "PERSISTENCE_MARK_CLEAN"
+  PERSISTENCE_MARK_CLEAN: "PERSISTENCE_MARK_CLEAN",
+  PERSISTENCE_SET_ERROR: "PERSISTENCE_SET_ERROR",
+  HYDRATE_AUTHORITATIVE: "HYDRATE_AUTHORITATIVE"
 };
 
 function ensureArray(value) {
@@ -612,7 +614,29 @@ export function reduceAuthoritative(authoritative, action) {
         }
       };
     }
-    default:
-      return current;
+    case ACTION_TYPES.PERSISTENCE_SET_ERROR: {
+      const nextError = payload && payload.error ? payload.error : undefined;
+      return {
+        ...current,
+        persistence: {
+          ...current.persistence,
+          lastError: nextError
+        }
+      };
+    }
+    case ACTION_TYPES.HYDRATE_AUTHORITATIVE: {
+      if (!payload || typeof payload !== "object") return current;
+      const normalized = normalizeAuthoritativeState(payload);
+      return {
+        ...normalized,
+        persistence: {
+          ...normalized.persistence,
+          dirty: false,
+          lastError: undefined
+        }
+      };
+    }
+  default:
+    return current;
   }
 }

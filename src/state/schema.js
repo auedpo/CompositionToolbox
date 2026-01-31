@@ -1,7 +1,7 @@
 // Purpose: schema.js provides exports: createEmptyAuthoritative, createEmptyDerived, createInitialState, SCHEMA_VERSION.
 // Interacts with: no imports.
 // Role: state layer module within the broader app graph.
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export function createEmptyAuthoritative() {
   return {

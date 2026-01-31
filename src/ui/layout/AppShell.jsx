@@ -1,6 +1,7 @@
 import React from "react";
 
 import Workspace from "./Workspace.jsx";
+import PersistenceControls from "../components/PersistenceControls.jsx";
 
 export default function AppShell() {
   return (
@@ -10,8 +11,9 @@ export default function AppShell() {
           <div className="workspace-header-title">Workspace</div>
         </div>
         <div className="workspace-header-right">
+          <PersistenceControls />
           <button type="button" className="ghost workspace-config-btn" disabled>
-            Config Menu >
+            Config Menu &gt;
           </button>
         </div>
       </header>

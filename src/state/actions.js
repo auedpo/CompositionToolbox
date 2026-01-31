@@ -89,6 +89,18 @@ export function createActions(dispatch, get) {
     },
     markClean() {
       dispatch({ type: ACTION_TYPES.PERSISTENCE_MARK_CLEAN, payload: {} });
+    },
+    setPersistenceError(error) {
+      dispatch({
+        type: ACTION_TYPES.PERSISTENCE_SET_ERROR,
+        payload: { error }
+      });
+    },
+    hydrateAuthoritative(authoritative) {
+      dispatch({
+        type: ACTION_TYPES.HYDRATE_AUTHORITATIVE,
+        payload: authoritative
+      });
     }
   };
 }
