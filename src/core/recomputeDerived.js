@@ -5,6 +5,7 @@ import { DraftInvariantError, makeDraft } from "./invariants.js";
 import { buildInputRefs, buildParamsHash, buildStableDraftId } from "./draftProvenance.js";
 import { lensHost } from "./lensHost.js";
 import { resolveInput } from "./resolveInput.js";
+import { makeCellKey } from "../state/schema.js";
 
 const DEBUG_RECOMPUTE = false;
 export const MISSING_PINNED_INPUT_ERROR = "Pinned input reference missing.";
@@ -99,8 +100,10 @@ export function recomputeDerived(authoritativeState) {
 
   const authoritative = authoritativeState || {};
   const workspace = authoritative.workspace || {};
-  const trackOrder = Array.isArray(workspace.trackOrder) ? workspace.trackOrder : [];
-  const tracksById = workspace.tracksById || {};
+  const laneOrder = Array.isArray(workspace.laneOrder) ? workspace.laneOrder : [];
+  const grid = workspace.grid || {};
+  const rows = Number.isFinite(grid.rows) ? grid.rows : 0;
+  const cells = grid.cells || {};
   const lensInstancesById = authoritative.lenses && authoritative.lenses.lensInstancesById
     ? authoritative.lenses.lensInstancesById
     : {};
@@ -108,8 +111,9 @@ export function recomputeDerived(authoritativeState) {
   debug(
     "[RECOMPUTE] start",
     {
-      trackCount: authoritative.workspace.trackOrder.length,
-      tracks: authoritative.workspace.trackOrder
+      laneCount: laneOrder.length,
+      rows,
+      lanes: laneOrder
     }
   );
 
@@ -120,15 +124,16 @@ export function recomputeDerived(authoritativeState) {
     }
   };
 
-  trackOrder.forEach((trackId) => {
-    const track = tracksById[trackId];
-    if (!track || !Array.isArray(track.lensInstanceIds)) return;
-    track.lensInstanceIds.forEach((lensInstanceId) => {
-      const instance = lensInstancesById[lensInstanceId];
+  laneOrder.forEach((laneId) => {
+    for (let row = 0; row < rows; row += 1) {
+      const cellKey = makeCellKey(laneId, row);
+      const lensInstanceId = cells[cellKey];
+      if (!lensInstanceId) continue;
       draftOrderByLensInstanceId[lensInstanceId] = [];
       activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
       lastErrorByLensInstanceId[lensInstanceId] = undefined;
-      if (!instance || typeof instance !== "object") return;
+      const instance = lensInstancesById[lensInstanceId];
+      if (!instance || typeof instance !== "object") continue;
 
       const input = instance.input || { mode: "auto", pinned: false };
       if (input.mode === "ref") {
@@ -136,7 +141,7 @@ export function recomputeDerived(authoritativeState) {
         if (pinnedDraftId && !Object.prototype.hasOwnProperty.call(draftsById, pinnedDraftId)) {
           lastErrorByLensInstanceId[lensInstanceId] = MISSING_PINNED_INPUT_ERROR;
           debug("[MISSING PINNED INPUT]", lensInstanceId, pinnedDraftId);
-          return;
+          continue;
         }
       }
 
@@ -152,7 +157,7 @@ export function recomputeDerived(authoritativeState) {
         lensId,
         params,
         inputDraft,
-        context: { lensInstanceId, trackId }
+        context: { lensInstanceId, laneId, row }
       });
 
       let error = result && result.error ? errorMessage(result.error) : null;
@@ -199,7 +204,7 @@ export function recomputeDerived(authoritativeState) {
           error: lastErrorByLensInstanceId[lensInstanceId] ?? null
         }
       );
-    });
+    }
   });
 
   debug(

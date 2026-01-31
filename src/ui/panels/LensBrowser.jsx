@@ -1,17 +1,20 @@
 import React, { useMemo, useState } from "react";
 
-import { useStore } from "../../state/store.js";
-import { useSelection } from "../hooks/useSelection.js";
 import { useLensRegistry } from "../hooks/useLensRegistry.js";
-import { useTrackOrder } from "../hooks/useWorkspaceSelectors.js";
+import { useLaneOrder, useLanesById } from "../hooks/useWorkspaceSelectors.js";
+import { useSelection } from "../hooks/useSelection.js";
+import { dispatchModularGridDrag } from "../dragEvents.js";
 
 export default function LensBrowser() {
-  const actions = useStore((state) => state.actions);
-  const trackOrder = useTrackOrder();
-  const { selection } = useSelection();
   const [filter, setFilter] = useState("");
+  const lanesById = useLanesById();
+  const laneOrder = useLaneOrder();
+  const { selection } = useSelection();
   const lenses = useLensRegistry();
-  const activeTrackId = selection.trackId || trackOrder[0] || null;
+
+  const currentLaneName = selection.laneId
+    ? (lanesById[selection.laneId]?.name || selection.laneId)
+    : (laneOrder[0] ? lanesById[laneOrder[0]]?.name : "Lane");
 
   const filtered = useMemo(() => {
     const query = filter.trim().toLowerCase();
@@ -21,8 +24,16 @@ export default function LensBrowser() {
     });
   }, [filter, lenses]);
 
-  const handleAdd = (lensId) => {
-    actions.addLensToTrack({ trackId: activeTrackId, lensId });
+  const handleDragStart = (lens) => (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    dispatchModularGridDrag({
+      type: "browser",
+      lensId: lens.lensId,
+      label: lens.name || lens.lensId,
+      clientX: event.clientX,
+      clientY: event.clientY
+    });
   };
 
   return (
@@ -36,26 +47,31 @@ export default function LensBrowser() {
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
         />
+        <div className="modular-grid-browser-hint">
+          Drag a lens into the grid to place it in <strong>{currentLaneName || "a lane"}</strong>.
+        </div>
         {filtered.length === 0 ? (
           <div className="workspace-placeholder">No lenses found.</div>
         ) : (
-          <ul>
+          <ul className="modular-grid-browser-list">
             {filtered.map((lens) => (
-              <li key={lens.lensId}>
+              <li key={lens.lensId} className="modular-grid-browser-item">
+                <div className="modular-grid-browser-info">
+                  <div className="modular-grid-browser-name">{lens.name}</div>
+                  <div className="modular-grid-browser-meta">{lens.lensId}</div>
+                </div>
                 <button
                   type="button"
-                  className="component-pill"
-                  onClick={() => handleAdd(lens.lensId)}
+                  className="modular-grid-browser-handle"
+                  title="Drag to grid"
+                  onPointerDown={handleDragStart(lens)}
                 >
-                  {lens.name}
+                  ⎘
                 </button>
               </li>
             ))}
           </ul>
         )}
-        {trackOrder.length === 0 ? (
-          <div className="workspace-placeholder">No lanes yet. Adding a lens will create one.</div>
-        ) : null}
       </div>
     </section>
   );

@@ -1,32 +1,28 @@
 import React, { useMemo } from "react";
 
-import { getLens } from "../../lenses/lensRegistry.js";
 import { useStore } from "../../state/store.js";
-import { selectSelectedLensInstanceId } from "../../state/selectors.js";
+import { getLens } from "../../lenses/lensRegistry.js";
 import { useDraftSelectors } from "../hooks/useDraftSelectors.js";
-import { useLensInstancesById, useTrackOrder, useTracksById } from "../hooks/useWorkspaceSelectors.js";
+import { useLensInstancesById, useLaneOrder, useLanesById } from "../hooks/useWorkspaceSelectors.js";
+import { useSelection } from "../hooks/useSelection.js";
+import {
+  selectGrid,
+  selectGridRows,
+  selectLensPlacementById
+} from "../../state/selectors.js";
 import AdvancedJsonEditor from "../params/AdvancedJsonEditor.jsx";
-
-function findTrackForLens(trackOrder, tracksById, lensInstanceId) {
-  for (let i = 0; i < trackOrder.length; i += 1) {
-    const trackId = trackOrder[i];
-    const track = tracksById[trackId];
-    if (!track || !Array.isArray(track.lensInstanceIds)) continue;
-    const index = track.lensInstanceIds.indexOf(lensInstanceId);
-    if (index >= 0) {
-      return { trackId, track, index };
-    }
-  }
-  return null;
-}
+import { makeCellKey } from "../../state/schema.js";
 
 export default function LensInspector() {
-  const selectedLensInstanceId = useStore(selectSelectedLensInstanceId);
+  const selectedLensInstanceId = useStore((state) => state.authoritative.selection.lensInstanceId);
   const lensInstancesById = useLensInstancesById();
-  const trackOrder = useTrackOrder();
-  const tracksById = useTracksById();
+  const laneOrder = useLaneOrder();
+  const lanesById = useLanesById();
+  const grid = useStore(selectGrid);
+  const lensPlacementById = useStore(selectLensPlacementById);
   const { activeDraftIdByLensInstanceId } = useDraftSelectors();
   const actions = useStore((state) => state.actions);
+  const { selectLens } = useSelection();
 
   const instance = selectedLensInstanceId ? lensInstancesById[selectedLensInstanceId] : null;
   const lensDef = useMemo(() => (instance ? getLens(instance.lensId) : null), [instance]);
@@ -35,15 +31,27 @@ export default function LensInspector() {
     : "";
   const input = instance && instance.input ? instance.input : { mode: "auto", pinned: false };
 
-  const trackInfo = useMemo(() => {
-    if (!selectedLensInstanceId) return null;
-    return findTrackForLens(trackOrder, tracksById, selectedLensInstanceId);
-  }, [selectedLensInstanceId, trackOrder, tracksById]);
+  const placement = selectedLensInstanceId
+    ? lensPlacementById[selectedLensInstanceId]
+    : null;
+  const laneId = placement ? placement.laneId : null;
+  const laneName = laneId ? (lanesById[laneId]?.name || laneId) : null;
+  const laneRow = placement ? placement.row : null;
 
   const upstreamLensInstanceIds = useMemo(() => {
-    if (!trackInfo) return [];
-    return trackInfo.track.lensInstanceIds.slice(0, trackInfo.index);
-  }, [trackInfo]);
+    if (!laneId || !Number.isFinite(laneRow)) return [];
+    const cells = grid.cells || {};
+    const rowCount = Number.isFinite(grid.rows) ? grid.rows : laneRow;
+    const ids = [];
+    for (let rowIndex = 0; rowIndex < Math.min(rowCount, laneRow); rowIndex += 1) {
+      const key = makeCellKey(laneId, rowIndex);
+      const lensInstanceId = cells[key];
+      if (lensInstanceId) {
+        ids.push(lensInstanceId);
+      }
+    }
+    return ids;
+  }, [grid, laneId, laneRow]);
 
   const pinnedDraftId = input && input.mode === "ref"
     ? (typeof input.ref === "string" ? input.ref : (input.ref && input.ref.draftId))
@@ -61,7 +69,7 @@ export default function LensInspector() {
       actions.setLensInput(selectedLensInstanceId, { mode: "auto", pinned: false });
       return;
     }
-    const fallbackLens = upstreamLensInstanceIds[0];
+    const fallbackLens = upstreamLensInstanceIds.at(-1);
     const draftId = fallbackLens ? activeDraftIdByLensInstanceId[fallbackLens] : undefined;
     actions.setLensInput(selectedLensInstanceId, {
       mode: "ref",
@@ -81,11 +89,10 @@ export default function LensInspector() {
     });
   };
 
-  const canRemoveLens = Boolean(selectedLensInstanceId && trackInfo);
-
+  const canRemoveLens = Boolean(selectedLensInstanceId && placement);
   const handleRemoveLens = () => {
     if (!canRemoveLens) return;
-    actions.removeLensInstance(trackInfo.trackId, selectedLensInstanceId);
+    actions.removeLens(selectedLensInstanceId);
   };
 
   return (
@@ -109,6 +116,12 @@ export default function LensInspector() {
             <div>{displayLabel || "Lens"}</div>
             <div className="hint">{instance.lensId || "Unknown lens"}</div>
             <div className="hint">{instance.lensInstanceId}</div>
+            <div className="hint">{laneName ? `Lane: ${laneName}` : "Lane: Unknown"}</div>
+            {upstreamLensInstanceIds.length ? (
+              <div className="hint">Auto upstream: {upstreamLensInstanceIds.join(", ")}</div>
+            ) : (
+              <div className="hint">No upstream lens. Row {laneRow ?? "-"}.</div>
+            )}
             <div className="hint">Input routing</div>
             <div>
               <label>

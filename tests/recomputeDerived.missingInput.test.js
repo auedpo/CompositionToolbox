@@ -5,13 +5,13 @@ import { ACTION_TYPES, reduceAuthoritative } from "../src/state/reducer.js";
 import { recomputeDerived, MISSING_PINNED_INPUT_ERROR } from "../src/state/derived.js";
 
 {
-  const base = createEmptyAuthoritative();
-  const seeded = reduceAuthoritative(base, {
-    type: ACTION_TYPES.LENS_ADD_TO_TRACK,
-    payload: { lensId: "inputList" }
-  });
-  const trackId = seeded.workspace.trackOrder[0];
-  const lensInstanceId = seeded.workspace.tracksById[trackId].lensInstanceIds[0];
+const base = createEmptyAuthoritative();
+const laneId = base.workspace.laneOrder[0];
+const seeded = reduceAuthoritative(base, {
+  type: ACTION_TYPES.LENS_ADD_TO_CELL,
+  payload: { lensId: "inputList", laneId, row: 0 }
+});
+const lensInstanceId = seeded.workspace.grid.cells[`${laneId}:0`];
   const withPinnedRef = reduceAuthoritative(seeded, {
     type: ACTION_TYPES.LENS_SET_INPUT,
     payload: {

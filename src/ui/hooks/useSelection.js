@@ -4,12 +4,12 @@ export function useSelection() {
   const selection = useStore((state) => state.authoritative.selection);
   const actions = useStore((state) => state.actions);
 
-  const selectTrack = (trackId) => {
-    actions.setSelection({ trackId, lensInstanceId: undefined, draftId: undefined });
+  const selectLane = (laneId) => {
+    actions.setSelection({ laneId, lensInstanceId: undefined, draftId: undefined });
   };
 
-  const selectLens = (lensInstanceId, trackId) => {
-    actions.setSelection({ lensInstanceId, trackId, draftId: undefined });
+  const selectLens = (lensInstanceId) => {
+    actions.setSelection({ lensInstanceId });
   };
 
   const selectDraft = (draftId) => {
@@ -18,7 +18,7 @@ export function useSelection() {
 
   return {
     selection,
-    selectTrack,
+    selectLane,
     selectLens,
     selectDraft
   };

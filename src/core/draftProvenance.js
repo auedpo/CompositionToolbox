@@ -3,6 +3,7 @@
 // Role: core domain layer module within the broader app graph.
 import { buildDraftKey } from "./draftIdentity.js";
 import { hashParams } from "./model.js";
+import { makeCellKey } from "../state/schema.js";
 
 function safeObject(value) {
   return value && typeof value === "object" ? value : {};
@@ -17,20 +18,22 @@ function resolveRefDraftId(ref) {
 
 function findUpstreamActiveDraftId({ lensInstanceId, authoritative, derivedSoFar }) {
   const workspace = authoritative && authoritative.workspace ? authoritative.workspace : {};
-  const trackOrder = Array.isArray(workspace.trackOrder) ? workspace.trackOrder : [];
-  const tracksById = workspace.tracksById || {};
+  const placement = workspace.lensPlacementById && workspace.lensPlacementById[lensInstanceId];
+  if (!placement) return null;
+  const grid = workspace.grid || {};
+  const rows = Number.isFinite(grid.rows) ? grid.rows : 0;
+  const cells = grid.cells || {};
   const activeByLens = derivedSoFar && derivedSoFar.drafts
     ? derivedSoFar.drafts.activeDraftIdByLensInstanceId || {}
     : {};
+  const { laneId, row } = placement;
+  if (typeof row !== "number" || row <= 0) return null;
 
-  for (let i = 0; i < trackOrder.length; i += 1) {
-    const trackId = trackOrder[i];
-    const track = tracksById[trackId];
-    if (!track || !Array.isArray(track.lensInstanceIds)) continue;
-    const index = track.lensInstanceIds.indexOf(lensInstanceId);
-    if (index <= 0) continue;
-    const prevLensId = track.lensInstanceIds[index - 1];
-    const activeDraftId = activeByLens ? activeByLens[prevLensId] : undefined;
+  for (let currentRow = row - 1; currentRow >= 0; currentRow -= 1) {
+    const cellKey = makeCellKey(laneId, currentRow);
+    const upstreamLensInstanceId = cells[cellKey];
+    if (!upstreamLensInstanceId) continue;
+    const activeDraftId = activeByLens ? activeByLens[upstreamLensInstanceId] : undefined;
     if (activeDraftId) return activeDraftId;
   }
 

@@ -26,12 +26,12 @@ registerLens({
 });
 
 const baseAuthoritative = createEmptyAuthoritative();
+const primaryLane = baseAuthoritative.workspace.laneOrder[0];
 const seeded = reduceAuthoritative(baseAuthoritative, {
-  type: ACTION_TYPES.LENS_ADD_TO_TRACK,
-  payload: { lensId: workflowLensId }
+  type: ACTION_TYPES.LENS_ADD_TO_CELL,
+  payload: { lensId: workflowLensId, laneId: primaryLane, row: 0 }
 });
-const [firstTrackId] = seeded.workspace.trackOrder;
-const firstLensInstanceId = seeded.workspace.tracksById[firstTrackId].lensInstanceIds[0];
+const firstLensInstanceId = seeded.workspace.grid.cells[`${primaryLane}:0`];
 
 const derivedInitial = recomputeDerived(seeded);
 const activeDraftIdInitial = derivedInitial.drafts.activeDraftIdByLensInstanceId[firstLensInstanceId];
@@ -70,11 +70,10 @@ registerLens({
 });
 
 const errorState = reduceAuthoritative(baseAuthoritative, {
-  type: ACTION_TYPES.LENS_ADD_TO_TRACK,
-  payload: { lensId: errorLensId }
+  type: ACTION_TYPES.LENS_ADD_TO_CELL,
+  payload: { lensId: errorLensId, laneId: primaryLane, row: 0 }
 });
-const errorTrackId = errorState.workspace.trackOrder[0];
-const errorInstanceId = errorState.workspace.tracksById[errorTrackId].lensInstanceIds[0];
+const errorInstanceId = errorState.workspace.grid.cells[`${primaryLane}:0`];
 const derivedError = recomputeDerived(errorState);
 const errorDraftIds = derivedError.drafts.draftOrderByLensInstanceId[errorInstanceId] || [];
 assert.deepStrictEqual(errorDraftIds, [], "Invalid drafts are not queued.");

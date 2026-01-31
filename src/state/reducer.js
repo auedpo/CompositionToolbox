@@ -3,18 +3,21 @@
 // Role: state layer module within the broader app graph.
 import { getLens } from "../lenses/lensRegistry.js";
 import { makeClipFromMaterial, makeMaterialFromDraft } from "../core/model.js";
-import { createEmptyAuthoritative, SCHEMA_VERSION } from "./schema.js";
-import { makeLensInstanceId, makeTrackId } from "./ids.js";
+import {
+  createEmptyAuthoritative,
+  makeCellKey,
+  parseCellKey,
+  DEFAULT_ROW_COUNT,
+  DEFAULT_LANE_COUNT,
+  SCHEMA_VERSION
+} from "./schema.js";
+import { makeLensInstanceId } from "./ids.js";
 
 export const ACTION_TYPES = {
   NORMALIZE_SCHEMA: "NORMALIZE_SCHEMA",
-  WORKSPACE_ADD_TRACK: "WORKSPACE_ADD_TRACK",
-  WORKSPACE_RENAME_TRACK: "WORKSPACE_RENAME_TRACK",
-  WORKSPACE_REMOVE_LANE: "WORKSPACE_REMOVE_LANE",
-  LENS_ADD_INSTANCE: "LENS_ADD_INSTANCE",
-  LENS_ADD_TO_TRACK: "LENS_ADD_TO_TRACK",
-  LENS_REMOVE_INSTANCE: "LENS_REMOVE_INSTANCE",
-  LENS_MOVE_INSTANCE: "LENS_MOVE_INSTANCE",
+  LENS_ADD_TO_CELL: "LENS_ADD_TO_CELL",
+  LENS_MOVE_TO_CELL: "LENS_MOVE_TO_CELL",
+  LENS_REMOVE: "LENS_REMOVE",
   LENS_SET_PARAM: "LENS_SET_PARAM",
   LENS_REPLACE_PARAMS: "LENS_REPLACE_PARAMS",
   LENS_SET_INPUT: "LENS_SET_INPUT",
@@ -23,11 +26,13 @@ export const ACTION_TYPES = {
   DESK_PLACE_DRAFT: "DESK_PLACE_DRAFT",
   PERSISTENCE_MARK_CLEAN: "PERSISTENCE_MARK_CLEAN",
   PERSISTENCE_SET_ERROR: "PERSISTENCE_SET_ERROR",
-  HYDRATE_AUTHORITATIVE: "HYDRATE_AUTHORITATIVE"
+  HYDRATE_AUTHORITATIVE: "HYDRATE_AUTHORITATIVE",
+  UNDO: "UNDO",
+  REDO: "REDO"
 };
 
-function ensureArray(value) {
-  return Array.isArray(value) ? value : [];
+function ensureObject(value) {
+  return value && typeof value === "object" ? value : {};
 }
 
 function normalizeLensInput(input) {
@@ -45,73 +50,6 @@ function normalizeLensInput(input) {
   return next;
 }
 
-export function normalizeAuthoritativeState(authoritative) {
-  const base = createEmptyAuthoritative();
-  const incoming = authoritative || {};
-  const workspace = { ...base.workspace, ...(incoming.workspace || {}) };
-  const lenses = { ...base.lenses, ...(incoming.lenses || {}) };
-  const inventory = { ...base.inventory, ...(incoming.inventory || {}) };
-  const desk = { ...base.desk, ...(incoming.desk || {}) };
-  const selection = { ...base.selection, ...(incoming.selection || {}) };
-  const persistence = { ...base.persistence, ...(incoming.persistence || {}) };
-
-  const lensInstancesById = { ...(lenses.lensInstancesById || {}) };
-  const tracksById = { ...(workspace.tracksById || {}) };
-  const trackOrder = ensureArray(workspace.trackOrder).filter((trackId) => tracksById[trackId]);
-
-  Object.entries(lensInstancesById).forEach(([lensInstanceId, instance]) => {
-    if (!instance || typeof instance !== "object") {
-      delete lensInstancesById[lensInstanceId];
-      return;
-    }
-    lensInstancesById[lensInstanceId] = {
-      ...instance,
-      lensInstanceId,
-      input: normalizeLensInput(instance.input)
-    };
-  });
-
-  Object.entries(tracksById).forEach(([trackId, track]) => {
-    if (!track || typeof track !== "object") {
-      delete tracksById[trackId];
-      return;
-    }
-    const nextLensIds = ensureArray(track.lensInstanceIds)
-      .filter((lensInstanceId) => Boolean(lensInstancesById[lensInstanceId]));
-    tracksById[trackId] = {
-      ...track,
-      trackId,
-      lensInstanceIds: nextLensIds
-    };
-  });
-
-  if (selection.trackId && !trackOrder.includes(selection.trackId)) {
-    selection.trackId = undefined;
-  }
-  if (selection.lensInstanceId && !lensInstancesById[selection.lensInstanceId]) {
-    selection.lensInstanceId = undefined;
-  }
-
-  return {
-    workspace: {
-      ...workspace,
-      tracksById,
-      trackOrder
-    },
-    lenses: {
-      ...lenses,
-      lensInstancesById
-    },
-    inventory,
-    desk,
-    selection,
-    persistence: {
-      ...persistence,
-      schemaVersion: SCHEMA_VERSION
-    }
-  };
-}
-
 function cloneParamsForLens(lensId) {
   const lens = getLens(lensId);
   if (lens && lens.defaultParams && typeof lens.defaultParams === "object") {
@@ -126,18 +64,352 @@ function cloneParamsForLens(lensId) {
   }, {});
 }
 
-function insertAtIndex(list, item, index) {
-  const next = list.slice();
-  if (typeof index !== "number" || index < 0 || index > next.length) {
-    next.push(item);
-  } else {
-    next.splice(index, 0, item);
-  }
-  return next;
+function normalizeLensInstances(instances = {}) {
+  const normalized = {};
+  Object.entries(instances).forEach(([lensInstanceId, instance]) => {
+    if (!instance || typeof instance !== "object") return;
+    normalized[lensInstanceId] = {
+      ...instance,
+      lensInstanceId,
+      input: normalizeLensInput(instance.input)
+    };
+  });
+  return normalized;
 }
 
-function removeFromList(list, item) {
-  return list.filter((entry) => entry !== item);
+function buildNormalizedLanes(incomingLanesById = {}, incomingLaneOrder = []) {
+  const baseWorkspace = createEmptyAuthoritative().workspace;
+  const lanesById = {};
+  const laneOrder = [];
+  const seen = new Set();
+
+  (Array.isArray(incomingLaneOrder) ? incomingLaneOrder : []).forEach((laneId) => {
+    if (!laneId || seen.has(laneId)) return;
+    const lane = incomingLanesById[laneId];
+    if (!lane) return;
+    seen.add(laneId);
+    laneOrder.push(laneId);
+    lanesById[laneId] = {
+      laneId,
+      name: typeof lane.name === "string" && lane.name.trim() ? lane.name.trim() : laneId,
+      columnIndex: 0
+    };
+  });
+
+  Object.keys(incomingLanesById).forEach((laneId) => {
+    if (seen.has(laneId)) return;
+    seen.add(laneId);
+    laneOrder.push(laneId);
+    const lane = incomingLanesById[laneId];
+    lanesById[laneId] = {
+      laneId,
+      name: typeof lane.name === "string" && lane.name.trim() ? lane.name.trim() : laneId,
+      columnIndex: 0
+    };
+  });
+
+  baseWorkspace.laneOrder.forEach((laneId) => {
+    if (laneOrder.length >= DEFAULT_LANE_COUNT) return;
+    if (seen.has(laneId)) return;
+    seen.add(laneId);
+    laneOrder.push(laneId);
+    lanesById[laneId] = {
+      laneId,
+      name: `Lane ${laneOrder.length}`,
+      columnIndex: 0
+    };
+  });
+
+  while (laneOrder.length < DEFAULT_LANE_COUNT) {
+    const laneId = `lane-${laneOrder.length + 1}`;
+    if (seen.has(laneId)) {
+      laneOrder.push(laneId);
+      continue;
+    }
+    seen.add(laneId);
+    laneOrder.push(laneId);
+    lanesById[laneId] = {
+      laneId,
+      name: `Lane ${laneOrder.length}`,
+      columnIndex: 0
+    };
+  }
+
+  const trimmed = laneOrder.slice(0, DEFAULT_LANE_COUNT);
+  trimmed.forEach((laneId, index) => {
+    const lane = lanesById[laneId] || {};
+    lanesById[laneId] = {
+      laneId,
+      name: typeof lane.name === "string" && lane.name.trim() ? lane.name : `Lane ${index + 1}`,
+      columnIndex: index
+    };
+  });
+
+  return {
+    lanesById,
+    laneOrder: trimmed
+  };
+}
+
+function normalizeGridCells(grid = {}, laneOrder = []) {
+  const rows = DEFAULT_ROW_COUNT;
+  const incomingCells = ensureObject(grid.cells);
+  const cells = {};
+  laneOrder.forEach((laneId) => {
+    for (let row = 0; row < rows; row += 1) {
+      const cellKey = makeCellKey(laneId, row);
+      const value = Object.prototype.hasOwnProperty.call(incomingCells, cellKey)
+        ? incomingCells[cellKey]
+        : null;
+      cells[cellKey] = value || null;
+    }
+  });
+  return cells;
+}
+
+function normalizeWorkspace(workspace = {}, lensInstancesById = {}) {
+  const baseWorkspace = createEmptyAuthoritative().workspace;
+  const incoming = ensureObject(workspace);
+  const normalizedLanes = buildNormalizedLanes(incoming.lanesById, incoming.laneOrder);
+  const normalizedCells = normalizeGridCells(incoming.grid, normalizedLanes.laneOrder);
+  const filteredCells = { ...normalizedCells };
+
+  Object.entries(filteredCells).forEach(([cellKey, lensInstanceId]) => {
+    if (!lensInstanceId) return;
+    if (!Object.prototype.hasOwnProperty.call(lensInstancesById, lensInstanceId)) {
+      filteredCells[cellKey] = null;
+    }
+  });
+
+  const lensPlacementById = {};
+  Object.entries(filteredCells).forEach(([cellKey, lensInstanceId]) => {
+    if (!lensInstanceId) return;
+    const coords = parseCellKey(cellKey);
+    if (!coords) return;
+    lensPlacementById[lensInstanceId] = coords;
+  });
+
+  return {
+    ...normalizedLanes,
+    grid: {
+      rows: DEFAULT_ROW_COUNT,
+      cols: normalizedLanes.laneOrder.length,
+      cells: filteredCells
+    },
+    lensPlacementById
+  };
+}
+
+function normalizeSelection(selection = {}, laneOrder = [], lensInstancesById = {}) {
+  const baseSelection = createEmptyAuthoritative().selection;
+  const incoming = ensureObject(selection);
+  const candidateLane = incoming.laneId;
+  const resolvedLane = laneOrder.includes(candidateLane) ? candidateLane : laneOrder[0];
+  const candidateLensId = incoming.lensInstanceId;
+  const resolvedLensId = candidateLensId && lensInstancesById[candidateLensId]
+    ? candidateLensId
+    : undefined;
+  const draftId = resolvedLensId ? incoming.draftId : undefined;
+  return {
+    ...baseSelection,
+    ...incoming,
+    laneId: resolvedLane,
+    lensInstanceId: resolvedLensId,
+    draftId
+  };
+}
+
+export function normalizeAuthoritativeState(authoritative) {
+  const base = createEmptyAuthoritative();
+  const incoming = authoritative || {};
+  const lensesSection = ensureObject(incoming.lenses);
+  const normalizedLensInstances = normalizeLensInstances(lensesSection.lensInstancesById || {});
+  const workspace = normalizeWorkspace(incoming.workspace, normalizedLensInstances);
+  const selection = normalizeSelection(incoming.selection, workspace.laneOrder, normalizedLensInstances);
+  const inventory = ensureObject(incoming.inventory);
+  const desk = ensureObject(incoming.desk);
+  const persistence = ensureObject(incoming.persistence);
+
+  return {
+    workspace,
+    lenses: {
+      ...base.lenses,
+      lensInstancesById: normalizedLensInstances
+    },
+    inventory: {
+      ...base.inventory,
+      itemsById: ensureObject(inventory.itemsById),
+      itemOrder: Array.isArray(inventory.itemOrder) ? inventory.itemOrder.slice() : base.inventory.itemOrder.slice()
+    },
+    desk: {
+      ...base.desk,
+      nodesById: ensureObject(desk.nodesById),
+      nodeOrder: Array.isArray(desk.nodeOrder) ? desk.nodeOrder.slice() : base.desk.nodeOrder.slice()
+    },
+    selection,
+    persistence: {
+      ...base.persistence,
+      ...persistence,
+      schemaVersion: SCHEMA_VERSION
+    }
+  };
+}
+
+function createLensInstance(lensId) {
+  const lensInstanceId = makeLensInstanceId();
+  const params = cloneParamsForLens(lensId);
+  return {
+    lensInstanceId,
+    lensId,
+    params,
+    input: { mode: "auto", pinned: false },
+    ui: {}
+  };
+}
+
+function markDirty(state) {
+  return {
+    ...state,
+    persistence: {
+      ...state.persistence,
+      dirty: true
+    }
+  };
+}
+
+function handleAddLens(current, payload) {
+  if (!payload) return current;
+  const { laneId, row, lensId } = payload;
+  if (!laneId || !lensId || typeof row !== "number") return current;
+  const { workspace, lenses } = current;
+  const lane = workspace.lanesById[laneId];
+  if (!lane) return current;
+  if (row < 0 || row >= workspace.grid.rows) return current;
+  const cellKey = makeCellKey(laneId, row);
+  if (workspace.grid.cells[cellKey]) return current;
+  const instance = createLensInstance(lensId);
+  const nextCells = { ...workspace.grid.cells, [cellKey]: instance.lensInstanceId };
+  const nextPlacement = {
+    ...workspace.lensPlacementById,
+    [instance.lensInstanceId]: { laneId, row }
+  };
+  const nextWorkspace = {
+    ...workspace,
+    grid: { ...workspace.grid, cells: nextCells },
+    lensPlacementById: nextPlacement
+  };
+  return {
+    ...markDirty(current),
+    workspace: nextWorkspace,
+    lenses: {
+      ...lenses,
+      lensInstancesById: {
+        ...lenses.lensInstancesById,
+        [instance.lensInstanceId]: instance
+      }
+    },
+    selection: {
+      ...current.selection,
+      laneId,
+      lensInstanceId: instance.lensInstanceId,
+      draftId: undefined
+    }
+  };
+}
+
+function handleMoveLens(current, payload) {
+  if (!payload) return current;
+  const { lensInstanceId, laneId, row } = payload;
+  if (!lensInstanceId || !laneId || typeof row !== "number") return current;
+  const { workspace } = current;
+  const placement = workspace.lensPlacementById[lensInstanceId];
+  if (!placement) return current;
+  if (placement.laneId === laneId && placement.row === row) return current;
+  if (row < 0 || row >= workspace.grid.rows) return current;
+  if (!workspace.lanesById[laneId]) return current;
+  const destinationKey = makeCellKey(laneId, row);
+  if (workspace.grid.cells[destinationKey]) return current;
+  const sourceKey = makeCellKey(placement.laneId, placement.row);
+  const nextCells = {
+    ...workspace.grid.cells,
+    [sourceKey]: null,
+    [destinationKey]: lensInstanceId
+  };
+  const nextPlacement = {
+    ...workspace.lensPlacementById,
+    [lensInstanceId]: { laneId, row }
+  };
+  return {
+    ...markDirty(current),
+    workspace: {
+      ...workspace,
+      grid: { ...workspace.grid, cells: nextCells },
+      lensPlacementById: nextPlacement
+    },
+    selection: {
+      ...current.selection,
+      laneId,
+      lensInstanceId,
+      draftId: undefined
+    }
+  };
+}
+
+function handleRemoveLens(current, payload) {
+  if (!payload) return current;
+  const { lensInstanceId } = payload;
+  if (!lensInstanceId) return current;
+  const { workspace, lenses } = current;
+  const placement = workspace.lensPlacementById[lensInstanceId];
+  if (!placement) return current;
+  const cellKey = makeCellKey(placement.laneId, placement.row);
+  const nextCells = { ...workspace.grid.cells, [cellKey]: null };
+  const nextPlacement = { ...workspace.lensPlacementById };
+  delete nextPlacement[lensInstanceId];
+  const nextLensInstances = { ...lenses.lensInstancesById };
+  delete nextLensInstances[lensInstanceId];
+  const nextSelection = { ...current.selection };
+  if (nextSelection.lensInstanceId === lensInstanceId) {
+    nextSelection.lensInstanceId = undefined;
+    nextSelection.draftId = undefined;
+  }
+  return {
+    ...markDirty(current),
+    workspace: {
+      ...workspace,
+      grid: { ...workspace.grid, cells: nextCells },
+      lensPlacementById: nextPlacement
+    },
+    lenses: {
+      ...lenses,
+      lensInstancesById: nextLensInstances
+    },
+    selection: nextSelection
+  };
+}
+
+function updateLensParams(current, payload, replace = false) {
+  if (!payload) return current;
+  const { lensInstanceId } = payload;
+  if (!lensInstanceId) return current;
+  const instance = current.lenses.lensInstancesById[lensInstanceId];
+  if (!instance) return current;
+  const nextParams = replace
+    ? payload.params
+    : setAtPath(instance.params || {}, payload.path, payload.value);
+  return {
+    ...markDirty(current),
+    lenses: {
+      ...current.lenses,
+      lensInstancesById: {
+        ...current.lenses.lensInstancesById,
+        [lensInstanceId]: {
+          ...instance,
+          params: nextParams
+        }
+      }
+    }
+  };
 }
 
 function setAtPath(source, path, value) {
@@ -155,26 +427,51 @@ function setAtPath(source, path, value) {
   return next;
 }
 
-function pickNextLensIdAfterRemoval(lensIds, removedIndex) {
-  if (!Array.isArray(lensIds) || removedIndex < 0) return undefined;
-  if (removedIndex < lensIds.length) {
-    return lensIds[removedIndex];
-  }
-  if (removedIndex - 1 >= 0 && removedIndex - 1 < lensIds.length) {
-    return lensIds[removedIndex - 1];
-  }
-  return undefined;
+function handleSetLensInput(current, payload) {
+  if (!payload) return current;
+  const { lensInstanceId, input } = payload;
+  if (!lensInstanceId || !input) return current;
+  const instance = current.lenses.lensInstancesById[lensInstanceId];
+  if (!instance) return current;
+  const nextInput = normalizeLensInput(input);
+  return {
+    ...markDirty(current),
+    lenses: {
+      ...current.lenses,
+      lensInstancesById: {
+        ...current.lenses.lensInstancesById,
+        [lensInstanceId]: {
+          ...instance,
+          input: nextInput
+        }
+      }
+    }
+  };
 }
 
-function pickTrackIdAfterRemoval(order, removedIndex) {
-  if (!Array.isArray(order) || removedIndex < 0) return undefined;
-  if (removedIndex < order.length) {
-    return order[removedIndex];
-  }
-  if (removedIndex - 1 >= 0 && removedIndex - 1 < order.length) {
-    return order[removedIndex - 1];
-  }
-  return undefined;
+function handleSelectionSet(current, payload) {
+  if (!payload) return current;
+  const laneOrder = current.workspace.laneOrder;
+  const nextSelection = {
+    ...current.selection,
+    ...payload
+  };
+  const lensInstanceId = nextSelection.lensInstanceId;
+  const placement = lensInstanceId ? current.workspace.lensPlacementById[lensInstanceId] : undefined;
+  const laneCandidate = placement ? placement.laneId : nextSelection.laneId;
+  const resolvedLane = laneOrder.includes(laneCandidate) ? laneCandidate : laneOrder[0];
+  const resolvedLensInstanceId = lensInstanceId && current.lenses.lensInstancesById[lensInstanceId]
+    ? lensInstanceId
+    : undefined;
+  return {
+    ...current,
+    selection: {
+      ...nextSelection,
+      laneId: resolvedLane,
+      lensInstanceId: resolvedLensInstanceId,
+      draftId: resolvedLensInstanceId ? nextSelection.draftId : undefined
+    }
+  };
 }
 
 export function reduceAuthoritative(authoritative, action) {
@@ -183,385 +480,28 @@ export function reduceAuthoritative(authoritative, action) {
   const payload = action && action.payload ? action.payload : {};
 
   switch (type) {
-    case ACTION_TYPES.NORMALIZE_SCHEMA: {
+    case ACTION_TYPES.NORMALIZE_SCHEMA:
       return current;
-    }
-    case ACTION_TYPES.WORKSPACE_ADD_TRACK: {
-      const trackId = makeTrackId();
-      const name = typeof payload.name === "string" && payload.name.trim()
-        ? payload.name.trim()
-        : `Lane ${current.workspace.trackOrder.length + 1}`;
-      const track = { trackId, name, lensInstanceIds: [] };
-      return {
-        ...current,
-        workspace: {
-          ...current.workspace,
-          tracksById: {
-            ...current.workspace.tracksById,
-            [trackId]: track
-          },
-          trackOrder: [...current.workspace.trackOrder, trackId]
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.WORKSPACE_RENAME_TRACK: {
-      const trackId = payload.trackId;
-      if (!trackId || !current.workspace.tracksById[trackId]) return current;
-      const name = typeof payload.name === "string" ? payload.name : "";
-      return {
-        ...current,
-        workspace: {
-          ...current.workspace,
-          tracksById: {
-            ...current.workspace.tracksById,
-            [trackId]: {
-              ...current.workspace.tracksById[trackId],
-              name
-            }
-          }
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.WORKSPACE_REMOVE_LANE: {
-      const trackId = payload.trackId;
-      if (!trackId || !current.workspace.tracksById[trackId]) return current;
-      const { [trackId]: removedTrack, ...remainingTracks } = current.workspace.tracksById;
-      const nextTrackOrder = current.workspace.trackOrder.filter((id) => id !== trackId);
-      const lensIdsToRemove = ensureArray(removedTrack && removedTrack.lensInstanceIds);
-      const nextLensInstancesById = { ...current.lenses.lensInstancesById };
-      lensIdsToRemove.forEach((lensInstanceId) => {
-        delete nextLensInstancesById[lensInstanceId];
-      });
-      const removedIndex = current.workspace.trackOrder.indexOf(trackId);
-      const nextTrackId = pickTrackIdAfterRemoval(nextTrackOrder, removedIndex);
-      const nextSelection = { ...current.selection };
-      if (nextSelection.trackId === trackId) {
-        nextSelection.trackId = nextTrackId;
-        nextSelection.draftId = undefined;
-        if (nextTrackId) {
-          const nextTrack = remainingTracks[nextTrackId];
-          const nextLensIds = Array.isArray(nextTrack && nextTrack.lensInstanceIds)
-            ? nextTrack.lensInstanceIds
-            : [];
-          nextSelection.lensInstanceId = nextLensIds.length ? nextLensIds[0] : undefined;
-        } else {
-          nextSelection.lensInstanceId = undefined;
-        }
-      } else if (nextSelection.lensInstanceId && !nextLensInstancesById[nextSelection.lensInstanceId]) {
-        nextSelection.lensInstanceId = undefined;
-        nextSelection.draftId = undefined;
-      }
-      return {
-        ...current,
-        workspace: {
-          ...current.workspace,
-          tracksById: remainingTracks,
-          trackOrder: nextTrackOrder
-        },
-        lenses: {
-          ...current.lenses,
-          lensInstancesById: nextLensInstancesById
-        },
-        selection: nextSelection,
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.LENS_ADD_INSTANCE: {
-      const trackId = payload.trackId;
-      const lensId = payload.lensId;
-      const track = current.workspace.tracksById[trackId];
-      if (!track || typeof lensId !== "string") return current;
-      const lensInstanceId = makeLensInstanceId();
-      const params = cloneParamsForLens(lensId);
-      const instance = {
-        lensInstanceId,
-        lensId,
-        params,
-        input: { mode: "auto", pinned: false },
-        ui: {}
-      };
-      const nextLensInstancesById = {
-        ...current.lenses.lensInstancesById,
-        [lensInstanceId]: instance
-      };
-      const nextLensInstanceIds = insertAtIndex(track.lensInstanceIds || [], lensInstanceId, payload.atIndex);
-      return {
-        ...current,
-        workspace: {
-          ...current.workspace,
-          tracksById: {
-            ...current.workspace.tracksById,
-            [trackId]: {
-              ...track,
-              lensInstanceIds: nextLensInstanceIds
-            }
-          }
-        },
-        lenses: {
-          ...current.lenses,
-          lensInstancesById: nextLensInstancesById
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.LENS_ADD_TO_TRACK: {
-      const lensId = payload.lensId;
-      if (typeof lensId !== "string") return current;
-      let trackId = payload.trackId;
-      let tracksById = current.workspace.tracksById;
-      let trackOrder = current.workspace.trackOrder;
-      if (!trackId || !tracksById[trackId]) {
-        trackId = makeTrackId();
-        const name = typeof payload.trackName === "string" && payload.trackName.trim()
-          ? payload.trackName.trim()
-          : `Lane ${trackOrder.length + 1}`;
-        const track = { trackId, name, lensInstanceIds: [] };
-        tracksById = {
-          ...tracksById,
-          [trackId]: track
-        };
-        trackOrder = [...trackOrder, trackId];
-      }
-      const track = tracksById[trackId];
-      if (!track) return current;
-      const lensInstanceId = makeLensInstanceId();
-      const params = cloneParamsForLens(lensId);
-      const instance = {
-        lensInstanceId,
-        lensId,
-        params,
-        input: { mode: "auto", pinned: false },
-        ui: {}
-      };
-      const nextLensInstancesById = {
-        ...current.lenses.lensInstancesById,
-        [lensInstanceId]: instance
-      };
-      const nextLensInstanceIds = insertAtIndex(track.lensInstanceIds || [], lensInstanceId, payload.atIndex);
-      return {
-        ...current,
-        workspace: {
-          ...current.workspace,
-          tracksById: {
-            ...tracksById,
-            [trackId]: {
-              ...track,
-              lensInstanceIds: nextLensInstanceIds
-            }
-          },
-          trackOrder
-        },
-        lenses: {
-          ...current.lenses,
-          lensInstancesById: nextLensInstancesById
-        },
-        selection: {
-          ...current.selection,
-          trackId,
-          lensInstanceId,
-          draftId: undefined
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.LENS_REMOVE_INSTANCE: {
-      const trackId = payload.trackId;
-      const lensInstanceId = payload.lensInstanceId;
-      const track = current.workspace.tracksById[trackId];
-      if (!track || !lensInstanceId) return current;
-      const currentLensIds = Array.isArray(track.lensInstanceIds) ? track.lensInstanceIds : [];
-      const lensIndex = currentLensIds.indexOf(lensInstanceId);
-      if (lensIndex < 0) return current;
-      const nextLensInstanceIds = removeFromList(currentLensIds, lensInstanceId);
-      const nextLensInstancesById = { ...current.lenses.lensInstancesById };
-      delete nextLensInstancesById[lensInstanceId];
-      const nextSelection = { ...current.selection };
-      if (nextSelection.lensInstanceId === lensInstanceId) {
-        nextSelection.draftId = undefined;
-        const nextLensId = pickNextLensIdAfterRemoval(nextLensInstanceIds, lensIndex);
-        if (nextLensId) {
-          nextSelection.trackId = trackId;
-          nextSelection.lensInstanceId = nextLensId;
-        } else {
-          nextSelection.trackId = trackId;
-          nextSelection.lensInstanceId = undefined;
-        }
-      }
-      return {
-        ...current,
-        workspace: {
-          ...current.workspace,
-          tracksById: {
-            ...current.workspace.tracksById,
-            [trackId]: {
-              ...track,
-              lensInstanceIds: nextLensInstanceIds
-            }
-          }
-        },
-        lenses: {
-          ...current.lenses,
-          lensInstancesById: nextLensInstancesById
-        },
-        selection: nextSelection,
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.LENS_MOVE_INSTANCE: {
-      const { fromTrackId, toTrackId, lensInstanceId, toIndex } = payload;
-      const fromTrack = current.workspace.tracksById[fromTrackId];
-      const toTrack = current.workspace.tracksById[toTrackId];
-      if (!fromTrack || !toTrack || !lensInstanceId) return current;
-      if (!current.lenses.lensInstancesById[lensInstanceId]) return current;
-      if (fromTrackId === toTrackId) {
-        const stripped = removeFromList(fromTrack.lensInstanceIds || [], lensInstanceId);
-        const reordered = insertAtIndex(stripped, lensInstanceId, toIndex);
-        return {
-          ...current,
-          workspace: {
-            ...current.workspace,
-            tracksById: {
-              ...current.workspace.tracksById,
-              [fromTrackId]: {
-                ...fromTrack,
-                lensInstanceIds: reordered
-              }
-            }
-          },
-          persistence: {
-            ...current.persistence,
-            dirty: true
-          }
-        };
-      }
-      const nextFromIds = removeFromList(fromTrack.lensInstanceIds || [], lensInstanceId);
-      const nextToIds = insertAtIndex(toTrack.lensInstanceIds || [], lensInstanceId, toIndex);
-      return {
-        ...current,
-        workspace: {
-          ...current.workspace,
-          tracksById: {
-            ...current.workspace.tracksById,
-            [fromTrackId]: {
-              ...fromTrack,
-              lensInstanceIds: nextFromIds
-            },
-            [toTrackId]: {
-              ...toTrack,
-              lensInstanceIds: nextToIds
-            }
-          }
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.LENS_SET_PARAM: {
-      const lensInstanceId = payload.lensInstanceId;
-      const path = payload.path;
-      if (!lensInstanceId || !current.lenses.lensInstancesById[lensInstanceId]) return current;
-      if (!Array.isArray(path)) return current;
-      const instance = current.lenses.lensInstancesById[lensInstanceId];
-      const nextParams = setAtPath(instance.params || {}, path, payload.value);
-      return {
-        ...current,
-        lenses: {
-          ...current.lenses,
-          lensInstancesById: {
-            ...current.lenses.lensInstancesById,
-            [lensInstanceId]: {
-              ...instance,
-              params: nextParams
-            }
-          }
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.LENS_REPLACE_PARAMS: {
-      const lensInstanceId = payload.lensInstanceId;
-      if (!lensInstanceId || !current.lenses.lensInstancesById[lensInstanceId]) return current;
-      const instance = current.lenses.lensInstancesById[lensInstanceId];
-      return {
-        ...current,
-        lenses: {
-          ...current.lenses,
-          lensInstancesById: {
-            ...current.lenses.lensInstancesById,
-            [lensInstanceId]: {
-              ...instance,
-              params: payload.params
-            }
-          }
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.LENS_SET_INPUT: {
-      const lensInstanceId = payload.lensInstanceId;
-      const input = payload.input;
-      const instance = current.lenses.lensInstancesById[lensInstanceId];
-      if (!instance || !input) return current;
-      const nextInput = normalizeLensInput(input);
-      return {
-        ...current,
-        lenses: {
-          ...current.lenses,
-          lensInstancesById: {
-            ...current.lenses.lensInstancesById,
-            [lensInstanceId]: {
-              ...instance,
-              input: nextInput
-            }
-          }
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
-        }
-      };
-    }
-    case ACTION_TYPES.SELECTION_SET: {
-      const nextSelection = { ...current.selection, ...payload };
-      return {
-        ...current,
-        selection: nextSelection
-      };
-    }
+    case ACTION_TYPES.LENS_ADD_TO_CELL:
+      return handleAddLens(current, payload);
+    case ACTION_TYPES.LENS_MOVE_TO_CELL:
+      return handleMoveLens(current, payload);
+    case ACTION_TYPES.LENS_REMOVE:
+      return handleRemoveLens(current, payload);
+    case ACTION_TYPES.LENS_SET_PARAM:
+      return updateLensParams(current, payload, false);
+    case ACTION_TYPES.LENS_REPLACE_PARAMS:
+      return updateLensParams(current, payload, true);
+    case ACTION_TYPES.LENS_SET_INPUT:
+      return handleSetLensInput(current, payload);
+    case ACTION_TYPES.SELECTION_SET:
+      return handleSelectionSet(current, payload);
     case ACTION_TYPES.INVENTORY_ADD_FROM_DRAFT: {
       const draft = payload.draft;
       if (!draft) return current;
       const material = makeMaterialFromDraft(draft, payload.options || {});
       return {
-        ...current,
+        ...markDirty(current),
         inventory: {
           ...current.inventory,
           itemsById: {
@@ -569,10 +509,6 @@ export function reduceAuthoritative(authoritative, action) {
             [material.materialId]: material
           },
           itemOrder: [...current.inventory.itemOrder, material.materialId]
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
         }
       };
     }
@@ -582,7 +518,7 @@ export function reduceAuthoritative(authoritative, action) {
       const material = makeMaterialFromDraft(draft, payload.options || {});
       const clip = makeClipFromMaterial(material.materialId, payload.position || {});
       return {
-        ...current,
+        ...markDirty(current),
         inventory: {
           ...current.inventory,
           itemsById: {
@@ -598,14 +534,10 @@ export function reduceAuthoritative(authoritative, action) {
             [clip.clipId]: clip
           },
           nodeOrder: [...current.desk.nodeOrder, clip.clipId]
-        },
-        persistence: {
-          ...current.persistence,
-          dirty: true
         }
       };
     }
-    case ACTION_TYPES.PERSISTENCE_MARK_CLEAN: {
+    case ACTION_TYPES.PERSISTENCE_MARK_CLEAN:
       return {
         ...current,
         persistence: {
@@ -613,7 +545,6 @@ export function reduceAuthoritative(authoritative, action) {
           dirty: false
         }
       };
-    }
     case ACTION_TYPES.PERSISTENCE_SET_ERROR: {
       const nextError = payload && payload.error ? payload.error : undefined;
       return {
@@ -636,7 +567,7 @@ export function reduceAuthoritative(authoritative, action) {
         }
       };
     }
-  default:
-    return current;
+    default:
+      return current;
   }
 }

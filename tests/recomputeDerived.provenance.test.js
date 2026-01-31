@@ -3,14 +3,20 @@ import { recomputeDerived } from "../src/core/recomputeDerived.js";
 
 const authoritative = {
   workspace: {
-    tracksById: {
-      "track-1": {
-        trackId: "track-1",
-        name: "Track 1",
-        lensInstanceIds: ["lens-1"]
+    laneOrder: ["lane-1"],
+    lanesById: {
+      "lane-1": { laneId: "lane-1", name: "Lane 1", columnIndex: 0 }
+    },
+    grid: {
+      rows: 10,
+      cols: 1,
+      cells: {
+        "lane-1:0": "lens-1"
       }
     },
-    trackOrder: ["track-1"]
+    lensPlacementById: {
+      "lens-1": { laneId: "lane-1", row: 0 }
+    }
   },
   lenses: {
     lensInstancesById: {

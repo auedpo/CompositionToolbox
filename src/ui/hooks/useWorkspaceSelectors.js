@@ -1,12 +1,12 @@
 import { useStore } from "../../state/store.js";
-import { selectLensInstancesById, selectTrackOrder, selectTracksById } from "../../state/selectors.js";
+import { selectLaneOrder, selectLanesById, selectLensInstancesById } from "../../state/selectors.js";
 
-export function useTrackOrder() {
-  return useStore(selectTrackOrder);
+export function useLaneOrder() {
+  return useStore(selectLaneOrder);
 }
 
-export function useTracksById() {
-  return useStore(selectTracksById);
+export function useLanesById() {
+  return useStore(selectLanesById);
 }
 
 export function useLensInstancesById() {

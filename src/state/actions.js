@@ -1,5 +1,5 @@
 // Purpose: actions.js provides exports: createActions.
-// Interacts with: imports: ./reducer.js.
+// Interacts with: imports: ./reducer.js, ./selectors.js?
 // Role: state layer module within the broader app graph.
 import { ACTION_TYPES } from "./reducer.js";
 
@@ -8,32 +8,14 @@ export function createActions(dispatch, get) {
     normalizeSchema() {
       dispatch({ type: ACTION_TYPES.NORMALIZE_SCHEMA });
     },
-    addTrack(name) {
-      dispatch({ type: ACTION_TYPES.WORKSPACE_ADD_TRACK, payload: { name } });
+    addLensToCell({ lensId, laneId, row }) {
+      dispatch({ type: ACTION_TYPES.LENS_ADD_TO_CELL, payload: { lensId, laneId, row } });
     },
-    renameTrack(trackId, name) {
-      dispatch({ type: ACTION_TYPES.WORKSPACE_RENAME_TRACK, payload: { trackId, name } });
+    moveLensToCell({ lensInstanceId, laneId, row }) {
+      dispatch({ type: ACTION_TYPES.LENS_MOVE_TO_CELL, payload: { lensInstanceId, laneId, row } });
     },
-    removeLane(trackId) {
-      dispatch({ type: ACTION_TYPES.WORKSPACE_REMOVE_LANE, payload: { trackId } });
-    },
-    addLensInstance(trackId, lensId, atIndex) {
-      dispatch({ type: ACTION_TYPES.LENS_ADD_INSTANCE, payload: { trackId, lensId, atIndex } });
-    },
-    addLensToTrack({ trackId, lensId, atIndex, trackName } = {}) {
-      dispatch({
-        type: ACTION_TYPES.LENS_ADD_TO_TRACK,
-        payload: { trackId, lensId, atIndex, trackName }
-      });
-    },
-    removeLensInstance(trackId, lensInstanceId) {
-      dispatch({ type: ACTION_TYPES.LENS_REMOVE_INSTANCE, payload: { trackId, lensInstanceId } });
-    },
-    moveLensInstance(fromTrackId, toTrackId, lensInstanceId, toIndex) {
-      dispatch({
-        type: ACTION_TYPES.LENS_MOVE_INSTANCE,
-        payload: { fromTrackId, toTrackId, lensInstanceId, toIndex }
-      });
+    removeLens(lensInstanceId) {
+      dispatch({ type: ACTION_TYPES.LENS_REMOVE, payload: { lensInstanceId } });
     },
     setLensParam(lensInstanceId, path, value) {
       dispatch({ type: ACTION_TYPES.LENS_SET_PARAM, payload: { lensInstanceId, path, value } });
@@ -61,6 +43,18 @@ export function createActions(dispatch, get) {
     },
     setSelection(selectionPatch) {
       dispatch({ type: ACTION_TYPES.SELECTION_SET, payload: selectionPatch });
+    },
+    selectLane(laneId) {
+      dispatch({
+        type: ACTION_TYPES.SELECTION_SET,
+        payload: { laneId, lensInstanceId: undefined, draftId: undefined }
+      });
+    },
+    selectLens(lensInstanceId) {
+      dispatch({
+        type: ACTION_TYPES.SELECTION_SET,
+        payload: { lensInstanceId }
+      });
     },
     selectDraft(draftId) {
       dispatch({ type: ACTION_TYPES.SELECTION_SET, payload: { draftId } });
@@ -101,6 +95,12 @@ export function createActions(dispatch, get) {
         type: ACTION_TYPES.HYDRATE_AUTHORITATIVE,
         payload: authoritative
       });
+    },
+    undo() {
+      dispatch({ type: ACTION_TYPES.UNDO });
+    },
+    redo() {
+      dispatch({ type: ACTION_TYPES.REDO });
     }
   };
 }

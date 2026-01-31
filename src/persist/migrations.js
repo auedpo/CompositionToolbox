@@ -1,6 +1,6 @@
 import { createEmptyAuthoritative } from "../state/schema.js";
 
-const MIGRATION_TARGET_VERSION = 2;
+const MIGRATION_TARGET_VERSION = 3;
 
 function ensureObject(value) {
   return value && typeof value === "object" ? value : {};
@@ -51,9 +51,68 @@ function migrateV1ToV2(snapshot) {
   };
 }
 
+function migrateV2ToV3(snapshot) {
+  const legacyWorkspace = snapshot.workspace || {};
+  const base = createEmptyAuthoritative();
+  const laneOrder = base.workspace.laneOrder;
+  const lanesById = {};
+  laneOrder.forEach((laneId, index) => {
+    const trackId = Array.isArray(legacyWorkspace.trackOrder) ? legacyWorkspace.trackOrder[index] : undefined;
+    const track = (legacyWorkspace.tracksById || {})[trackId];
+    lanesById[laneId] = {
+      laneId,
+      name: track && typeof track.name === "string" && track.name.trim()
+        ? track.name
+        : `Lane ${index + 1}`,
+      columnIndex: index
+    };
+  });
+  const rows = base.workspace.grid.rows;
+  const cells = {};
+  laneOrder.forEach((laneId) => {
+    for (let row = 0; row < rows; row += 1) {
+      cells[`${laneId}:${row}`] = null;
+    }
+  });
+  const lensPlacementById = {};
+  const tracksById = legacyWorkspace.tracksById || {};
+  const sourceOrder = Array.isArray(legacyWorkspace.trackOrder) ? legacyWorkspace.trackOrder : [];
+  sourceOrder.forEach((trackId, trackIndex) => {
+    const laneId = laneOrder[trackIndex % laneOrder.length] || laneOrder[0];
+    const track = tracksById[trackId];
+    if (!track || !Array.isArray(track.lensInstanceIds)) return;
+    let row = 0;
+    track.lensInstanceIds.forEach((lensInstanceId) => {
+      if (row >= rows) return;
+      const cellKey = `${laneId}:${row}`;
+      cells[cellKey] = lensInstanceId;
+      lensPlacementById[lensInstanceId] = { laneId, row };
+      row += 1;
+    });
+  });
+  return {
+    ...snapshot,
+    workspace: {
+      ...snapshot.workspace,
+      lanesById,
+      laneOrder,
+      grid: {
+        rows,
+        cols: laneOrder.length,
+        cells
+      },
+      lensPlacementById,
+      tracksById: undefined,
+      trackOrder: undefined
+    },
+    schemaVersion: 3
+  };
+}
+
 const MIGRATIONS = {
   0: migrateV0ToV1,
-  1: migrateV1ToV2
+  1: migrateV1ToV2,
+  2: migrateV2ToV3
 };
 
 export function migrateSnapshotToCurrent(snapshot, targetVersion = MIGRATION_TARGET_VERSION) {

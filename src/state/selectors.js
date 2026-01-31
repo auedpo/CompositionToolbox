@@ -1,30 +1,58 @@
-// Purpose: selectors.js provides exports: selectActiveDraftForLensInstance, selectActiveDraftIdByLensInstanceId, selectAuthoritative, selectDerived, selectDraftOrderByLensInstanceId... (+17 more).
-// Interacts with: no imports.
-// Role: state layer module within the broader app graph.
+import { makeCellKey } from "./schema.js";
+
 export const selectAuthoritative = (state) => state.authoritative;
 
 export const selectWorkspace = (state) => state.authoritative.workspace;
 
-export const selectTrackOrder = (state) => state.authoritative.workspace.trackOrder;
-
-export const selectTracksById = (state) => state.authoritative.workspace.tracksById;
-
-export const selectTracks = (state) => {
-  const order = selectTrackOrder(state);
-  const tracksById = selectTracksById(state);
-  return order.map((trackId) => tracksById[trackId]).filter(Boolean);
+export const selectLaneOrder = (state) => {
+  const workspace = selectWorkspace(state);
+  return Array.isArray(workspace.laneOrder) ? workspace.laneOrder : [];
 };
 
-export const selectSelectedTrackId = (state) => state.authoritative.selection.trackId;
+export const selectLanesById = (state) => {
+  const workspace = selectWorkspace(state);
+  return workspace.lanesById || {};
+};
+
+export const selectGrid = (state) => {
+  const workspace = selectWorkspace(state);
+  return workspace.grid || { rows: 0, cols: 0, cells: {} };
+};
+
+export const selectGridCells = (state) => {
+  const grid = selectGrid(state);
+  return grid.cells || {};
+};
+
+export const selectLensPlacementById = (state) => {
+  const workspace = selectWorkspace(state);
+  return workspace.lensPlacementById || {};
+};
+
+export const selectGridRows = (state) => {
+  const grid = selectGrid(state);
+  return Number.isFinite(grid.rows) ? grid.rows : 0;
+};
+
+export const selectSelectedLaneId = (state) => state.authoritative.selection.laneId;
 
 export const selectSelectedLensInstanceId = (state) => state.authoritative.selection.lensInstanceId;
 
 export const selectLensInstancesById = (state) => state.authoritative.lenses.lensInstancesById;
 
-export const selectLensInstanceIdsForTrack = (state, trackId) => {
-  if (!trackId) return [];
-  const track = selectTracksById(state)[trackId];
-  return Array.isArray(track && track.lensInstanceIds) ? track.lensInstanceIds : [];
+export const selectLensInstanceIdsForLane = (state, laneId) => {
+  if (!laneId) return [];
+  const rows = selectGridRows(state);
+  const cells = selectGridCells(state);
+  const lensIds = [];
+  for (let row = 0; row < rows; row += 1) {
+    const cellKey = makeCellKey(laneId, row);
+    const lensInstanceId = cells[cellKey];
+    if (lensInstanceId) {
+      lensIds.push(lensInstanceId);
+    }
+  }
+  return lensIds;
 };
 
 export const selectSelectedLensInstance = (state) => {
@@ -35,26 +63,17 @@ export const selectSelectedLensInstance = (state) => {
 };
 
 export const selectSelectedLensInstanceParams = (state) => {
-  const lensInstanceId = selectSelectedLensInstanceId(state);
-  if (!lensInstanceId) return null;
-  const lensInstancesById = selectLensInstancesById(state);
-  const instance = lensInstancesById[lensInstanceId];
+  const instance = selectSelectedLensInstance(state);
   return instance ? instance.params : null;
 };
 
 export const selectSelectedLensInstanceLensId = (state) => {
-  const lensInstanceId = selectSelectedLensInstanceId(state);
-  if (!lensInstanceId) return null;
-  const lensInstancesById = selectLensInstancesById(state);
-  const instance = lensInstancesById[lensInstanceId];
+  const instance = selectSelectedLensInstance(state);
   return instance ? instance.lensId : null;
 };
 
 export const selectSelectedLensInstanceLabel = (state) => {
-  const lensInstanceId = selectSelectedLensInstanceId(state);
-  if (!lensInstanceId) return null;
-  const lensInstancesById = selectLensInstancesById(state);
-  const instance = lensInstancesById[lensInstanceId];
+  const instance = selectSelectedLensInstance(state);
   return instance && instance.ui ? instance.ui.label : null;
 };
 
