@@ -2,6 +2,7 @@ import React from "react";
 
 import Workspace from "./Workspace.jsx";
 import PersistenceControls from "../components/PersistenceControls.jsx";
+import ThemeToggle from "../components/ThemeToggle.jsx";
 
 export default function AppShell() {
   return (
@@ -12,6 +13,7 @@ export default function AppShell() {
         </div>
         <div className="workspace-header-right">
           <PersistenceControls />
+          <ThemeToggle />
           <button type="button" className="ghost workspace-config-btn" disabled>
             Config Menu &gt;
           </button>

@@ -1,6 +1,8 @@
 // Purpose: main.js is a side-effect module.
 // Interacts with: no imports.
 // Role: module module within the broader app graph.
+import { applyTheme, getPreferredTheme } from "./ui/theme.js";
+
 const LEGACY_STORAGE_KEY = "useLegacyUI";
 
 function shouldUseLegacyUI() {
@@ -28,6 +30,7 @@ function setLegacyRootVisibility(showLegacy) {
 
 const useLegacyUI = shouldUseLegacyUI();
 setLegacyRootVisibility(useLegacyUI);
+applyTheme(getPreferredTheme());
 
 if (useLegacyUI) {
   import("./legacy/legacyMain.js");
