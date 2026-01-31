@@ -52,7 +52,7 @@
 
   /* Semantic surfaces (dark). */
   --surface-app: radial-gradient(circle at 30% -25%, #27352f 0%, #1c2421 45%, #181a19 100%);
-  --surface-panel: #121615;
+  --surface-panel: #191b1a;
   --surface-panel-header: var(--surface-panel);
   --surface-panel-elevated: #192926;
   --surface-field: #131d1a;
@@ -73,12 +73,12 @@
   --panel-header-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
 
   /* Accents & highlights. */
-  --accent-1: #66888d;
+  --accent-1: #c5e2d0;
   --accent-1-soft: rgba(92, 151, 219, 0.2);
-  --accent-1-border: rgba(91, 167, 255, 0.65);
+  --accent-1-border: rgba(146, 204, 196, 0.65);
   --accent-1-on: #07122c;
 
-  --accent-2: #9a8dff;
+  --accent-2: #ff8d8d;
   --accent-2-soft: rgba(154, 141, 255, 0.22);
   --accent-2-border: rgba(154, 141, 255, 0.65);
   --accent-2-on: #1d1037;
@@ -696,23 +696,23 @@ details.panel.subpanel > div {
 }
 
 .odd-toggle {
-  border: 1px solid var(--accent-1);
-  background: var(--white);
-  color: var(--text-1);
-  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-none);
   font-size: var(--type-sm);
-  cursor: pointer;
+  padding-inline: var(--space-2);
+  --i-border: var(--accent-1);
+  --i-bg: transparent;
+  --i-fg: var(--text-1);
+  --i-bg-hover: var(--state-hover-wash);
+  --i-bg-active: var(--state-active-wash);
+  --i-border-hover: var(--accent-1);
+  --i-border-active: var(--accent-1);
 }
 
 .odd-toggle.active {
-  background: var(--surface-panel);
-}
-
-.odd-toggle.disabled {
-  opacity: var(--disabled-opacity);
-  filter: saturate(var(--disabled-saturation));
-  cursor: not-allowed;
+  --i-selected-border: var(--accent-1);
+  --i-selected-bg: var(--state-selected-wash);
+  --i-selected-hover-bg: var(--state-selected-hover-wash);
+  --i-bg: var(--state-selected-wash);
 }
 
 .field-row {
@@ -858,69 +858,112 @@ input[type="range"] {
   gap: var(--space-3);
 }
 
-/* Buttons! */
-.component-button,
-button {
+/* Interactive control contract */
+:where(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .fav-btn, .odd-toggle) {
   font: inherit;
-  border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  height: var(--interactive-height);
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-control);
-  background-color: var(--accent-1);
-  color: var(--text-1);
+  min-height: var(--interactive-height);
+  padding-block: var(--interactive-padding-block);
+  padding-inline: var(--interactive-padding-inline);
+  border-radius: var(--interactive-radius, var(--radius-control));
+  border: 1px solid var(--i-border);
+  background-color: var(--i-bg);
+  color: var(--i-fg);
   font-size: var(--type-sm);
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
   outline: none;
+  appearance: none;
+  --i-border: var(--accent-1-border);
+  --i-bg: var(--accent-1);
+  --i-fg: var(--accent-1-on);
+  --i-bg-hover: var(--accent-1-soft);
+  --i-bg-active: var(--state-active-wash);
+  --i-border-hover: var(--accent-1-border);
+  --i-border-active: var(--accent-1-border);
+  --i-selected-bg: var(--state-selected-wash);
+  --i-selected-hover-bg: var(--state-selected-hover-wash);
+  --i-selected-border: var(--state-selected-border);
+  --i-selected-ring: 0 0 0 1px var(--state-selected-border);
+  --i-ring: 0 0 0 var(--focus-ring-width) var(--focus-ring-color), 0 0 0 calc(var(--focus-ring-width) + var(--focus-ring-offset)) var(--surface-panel);
 }
 
-.component-button:focus-visible,
-button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
-  border-color: var(--focus-ring-color);
+.interactive.is-primary,
+button.is-primary,
+.component-button.is-primary {
+  --i-bg: var(--accent-1);
+  --i-fg: var(--accent-1-on);
+  --i-border: var(--accent-1-border);
+  --i-bg-hover: var(--accent-1-soft);
+  --i-bg-active: var(--state-active-wash);
+  --i-border-hover: var(--accent-1-border);
+  --i-border-active: var(--accent-1-border);
 }
 
-.component-button:not(.is-ghost):hover:not(:disabled),
-button:not(.ghost):hover:not(:disabled) {
-  background-color: color-mix(in srgb, var(--accent-1) 58%, var(--white));
+.interactive.is-secondary,
+button.is-secondary,
+.component-button.is-secondary {
+  --i-bg: var(--accent-2);
+  --i-fg: var(--accent-2-on);
+  --i-border: var(--accent-2-border);
+  --i-bg-hover: var(--accent-2-soft);
+  --i-bg-active: color-mix(in srgb, var(--accent-2) 60%, var(--surface-panel) 40%);
+  --i-border-hover: var(--accent-2-border);
+  --i-border-active: var(--accent-2-border);
 }
 
-.component-button:not(.is-ghost):active:not(:disabled),
-button:not(.ghost):active:not(:disabled) {
-  background-color: color-mix(in srgb, var(--accent-1) 55%, var(--state-active-wash));
+:where(.interactive.is-ghost, button.ghost, .component-button.ghost, .component-button.is-ghost, .icon-btn.ghost, .ghost) {
+  --i-bg: transparent;
+  --i-border: var(--accent-1-border);
+  --i-fg: color-mix(in srgb, var(--accent-1) 65%, var(--text-2) 35%);
+  --i-bg-hover: var(--accent-1-soft);
+  --i-bg-active: var(--state-active-wash);
+  --i-border-hover: var(--accent-1-border);
+  --i-border-active: var(--accent-1-border);
+  --i-selected-bg: var(--state-selected-hover-wash);
+  --i-selected-border: var(--accent-1-border);
+  --i-selected-ring: 0 0 0 1px var(--accent-1-border);
 }
 
-.component-button.is-ghost,
-button.ghost {
-  background-color: transparent;
-  color: color-mix(in srgb, var(--text-1) 80%, var(--accent-1) 50%);
-  border: 1px solid transparent;
+.interactive.is-warning,
+button.is-warning,
+.component-button.is-warning {
+  --i-bg: var(--status-warning);
+  --i-fg: var(--status-warning-on);
+  --i-border: var(--status-warning-border);
+  --i-bg-hover: var(--status-warning-soft);
+  --i-bg-active: color-mix(in srgb, var(--status-warning) 65%, var(--surface-panel) 35%);
+  --i-border-hover: var(--status-warning-border);
+  --i-border-active: var(--status-warning-border);
 }
 
-.component-button.is-ghost:hover:not(:disabled),
-button.ghost:hover:not(:disabled) {
-  background-color: var(--accent-1-soft);
-  border-color: var(--accent-1-border);
+.interactive.is-danger,
+button.is-danger,
+.component-button.is-danger {
+  --i-bg: var(--status-danger);
+  --i-fg: var(--status-danger-on);
+  --i-border: var(--status-danger-border);
+  --i-bg-hover: var(--status-danger-soft);
+  --i-bg-active: color-mix(in srgb, var(--status-danger) 65%, var(--surface-panel) 35%);
+  --i-border-hover: var(--status-danger-border);
+  --i-border-active: var(--status-danger-border);
 }
 
-.component-button.is-ghost:active:not(:disabled),
-button.ghost:active:not(:disabled) {
-  background-color: var(--state-active-wash);
-  border-color: var(--accent-1-border);
-}
-
-.component-button:disabled,
-button:disabled {
-  opacity: var(--disabled-opacity);
-  filter: saturate(var(--disabled-saturation));
-  cursor: not-allowed;
+.fav-btn {
+  --i-bg: transparent;
+  --i-border: var(--border-1);
+  --i-fg: var(--text-1);
+  --i-bg-hover: var(--state-hover-wash);
+  --i-bg-active: var(--state-active-wash);
+  --i-border-hover: var(--border-1);
+  --i-border-active: var(--border-1);
+  height: var(--table-row-height);
+  padding-inline: var(--space-2);
+  font-size: var(--type-sm);
 }
 
 .component-button.is-icon,
@@ -928,12 +971,9 @@ button:disabled {
   width: var(--interactive-height);
   height: var(--interactive-height);
   padding: 0;
-  border-radius: var(--radius-control);
   font-size: var(--type-xs);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 0;
+  --interactive-radius: var(--radius-control);
 }
 
 .icon {
@@ -999,16 +1039,21 @@ button:disabled {
   height: var(--interactive-height);
   padding: 0 var(--space-2);
   border-radius: var(--radius-button);
-  border: 1px solid var(--border-1);
-  background: transparent;
   font-size: var(--type-sm);
-  cursor: pointer;
-  color: var(--text-1);
+  --i-bg: transparent;
+  --i-border: var(--border-1);
+  --i-fg: color-mix(in srgb, var(--accent-1) 70%, var(--text-2) 30%);
+  --i-bg-hover: var(--accent-1-soft);
+  --i-bg-active: var(--state-active-wash);
+  --i-border-hover: var(--border-1);
+  --i-border-active: var(--border-1);
+  --i-selected-bg: var(--state-selected-wash);
+  --i-selected-border: var(--accent-1);
 }
 
 .tab.active {
-  background: var(--surface-panel);
-  color: var(--text-1);
+  --i-selected-border: var(--accent-1);
+  --i-selected-bg: var(--state-selected-wash);
 }
 
 .plot-stack {
@@ -1570,8 +1615,8 @@ details.meta-card[open] summary::after {
 }
 
 .drafts-menu-item {
-  --interactive-hover-bg: color-mix(in srgb, var(--accent-1) 58%, var(--white));
-  --interactive-pressed-bg: color-mix(in srgb, var(--accent-1) 55%, var(--state-active-wash));
+  --i-bg-hover: color-mix(in srgb, var(--accent-1) 58%, var(--white));
+  --i-bg-active: color-mix(in srgb, var(--accent-1) 55%, var(--state-active-wash));
 }
 
 .drafts-add:disabled {
@@ -1596,22 +1641,10 @@ details.meta-card[open] summary::after {
   justify-content: space-between;
   padding: var(--space-1) var(--space-1);
   border-radius: var(--radius-none);
-  border: 1px solid var(--border-1);
-  background-color: var(--surface-panel-elevated);
   cursor: pointer;
-}
-
-.draft-item:hover {
-  background-color: var(--state-hover-wash);
-}
-
-.draft-item.active {
-  border-color: var(--accent-1);
-  background-color: var(--state-selected-wash);
-}
-
-.draft-item.active:hover {
-  background-color: var(--state-selected-hover-wash);
+  --i-border: transparent;
+  --i-bg: transparent;
+  --i-fg: var(--text-1);
 }
 
 .draft-left {
@@ -1644,22 +1677,10 @@ details.meta-card[open] summary::after {
   gap: var(--space-0);
   padding: var(--space-1) var(--space-1);
   border-radius: var(--radius-none);
-  border: 1px solid var(--border-1);
-  background-color: var(--surface-panel-elevated);
   cursor: pointer;
-}
-
-.inventory-item:hover {
-  background-color: var(--state-hover-wash);
-}
-
-.inventory-item.selected {
-  border-color: var(--accent-1);
-  background-color: var(--state-selected-wash);
-}
-
-.inventory-item.selected:hover {
-  background-color: var(--state-selected-hover-wash);
+  --i-border: transparent;
+  --i-bg: transparent;
+  --i-fg: var(--text-1);
 }
 
 .inventory-title {
@@ -1732,19 +1753,16 @@ details.meta-card[open] summary::after {
   padding: 0 var(--space-2);
   border-radius: var(--radius-none);
   font-size: var(--type-xs);
-  background: var(--surface-panel);
-  border: 1px solid var(--accent-1);
+  background-color: var(--surface-panel);
   color: var(--text-1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: grab;
   touch-action: none;
-  --interactive-hover-border: var(--accent-1);
-}
-
-.desk-item.selected {
-  background-color: var(--state-selected-wash);
+  --i-border: var(--accent-1);
+  --i-bg: var(--surface-panel);
+  --i-fg: var(--text-1);
 }
 
 .desk-item::before,
@@ -1814,21 +1832,10 @@ td.fav-cell {
 }
 
 .fav-btn {
-  border: 1px solid var(--border-1);
-  background-color: var(--white);
   border-radius: var(--radius-button);
   height: var(--table-row-height);
-  padding: 0 6px;
-  cursor: pointer;
+  padding-inline: calc(var(--space-1) + var(--space-05));
   font-size: var(--type-sm);
-}
-
-.fav-btn:hover {
-  background-color: var(--state-hover-wash);
-}
-
-.fav-btn.active {
-  background-color: var(--accent-1);
 }
 
 .fav-item {
@@ -1837,27 +1844,17 @@ td.fav-cell {
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-none);
-  background-color: transparent;
-  transition: background-color 0.15s ease;
-}
-
-.fav-item:hover {
-  background-color: var(--state-hover-wash);
+  border: 1px solid transparent;
+  --i-border: transparent;
+  --i-bg: transparent;
+  background-color: var(--i-bg);
 }
 
 .fav-item button {
-  border: none;
-  background-color: var(--state-selected-wash);
   border-radius: var(--radius-button);
   height: var(--table-row-height);
-  padding: 0 6px;
-  cursor: pointer;
+  padding-inline: calc(var(--space-1) + var(--space-05));
   font-size: var(--type-xs);
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.fav-item button:hover {
-  background-color: var(--state-hover-wash);
 }
 
 .fav-item .ghost {
@@ -1879,11 +1876,6 @@ td.fav-cell {
   vertical-align: middle;
 }
 
-.favorites-table tbody tr:hover,
-.favorites-table tbody tr td button:hover {
-  background-color: var(--state-hover-wash);
-}
-
 .favorites-table td:last-child,
 .favorites-table td:nth-last-child(2) {
   width: 72px;
@@ -1892,22 +1884,24 @@ td.fav-cell {
 .favorites-table button {
   width: 100%;
   height: var(--table-row-height);
-  padding: 0 6px;
+  padding-inline: calc(var(--space-1) + var(--space-05));
 }
 
 /* Ranked Results Table */
-tr:hover {
-  background-color: var(--state-hover-wash);
+#resultsTable tbody tr,
+.favorites-table tbody tr {
+  --i-border: transparent;
+  --i-bg: transparent;
+  --i-fg: var(--text-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-none);
+  background-color: var(--i-bg);
   cursor: pointer;
 }
 
-tr.selected {
-  background-color: var(--state-selected-wash);
+#resultsTable tbody tr.selected,
+.favorites-table tbody tr.selected {
   font-weight: 600;
-}
-
-tr.selected:hover {
-  background-color: var(--state-selected-hover-wash);
 }
 
 .modal {
@@ -2134,99 +2128,79 @@ tr.selected:hover {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  height: var(--interactive-height);
   padding: 0 var(--space-2);
   border-radius: var(--radius-pill);
-  border: 1px solid var(--interactive-border);
-  background-color: var(--interactive-bg);
-  color: var(--interactive-text);
-  cursor: pointer;
   white-space: nowrap;
   max-width: 420px;
-  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  --i-bg: var(--surface-panel-elevated);
+  --i-border: var(--interactive-border);
+  --i-fg: var(--text-1);
+  --i-bg-hover: var(--state-hover-wash);
+  --i-border-hover: var(--interactive-border);
+  --i-bg-active: var(--state-active-wash);
+  --i-border-active: var(--interactive-border);
+  --i-selected-bg: var(--state-selected-wash);
+  --i-selected-border: var(--accent-1);
+  --i-selected-hover-bg: var(--state-selected-hover-wash);
+  --i-selected-ring: var(--interactive-selected-shadow);
 }
 
 /* Unified interactive surfaces */
-/* WS2 hover flicker fix: keep hover styling centralized here to avoid duplicate hover rules. */
-.interactive-surface,
-.component-row,
-.draft-item,
-.inventory-item,
-.component-pill,
-.drafts-menu-item,
-.fav-item,
-.fav-btn,
-.desk-item,
-html[data-layout="workspace"] .ws2-browser-item,
-html[data-layout="workspace"] .ws2-pill,
-html[data-layout="workspace"] .ws2-track-lens-row,
-html[data-layout="workspace"] .ws2-inspector-wiring-row {
-  --interactive-hover-bg: var(--state-hover-wash);
-  --interactive-selected-bg: var(--state-selected-wash);
-  --interactive-selected-hover-bg: var(--state-selected-hover-wash);
-  --interactive-pressed-bg: var(--state-active-wash);
-  --interactive-hover-border: var(--interactive-border-active);
-  --interactive-selected-border: var(--accent-1);
-  --interactive-selected-shadow: 0 0 0 1px var(--accent-1);
-  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, outline-color 0.15s ease;
+:where(.interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr) {
+  --i-border: var(--interactive-border);
+  --i-bg: var(--interactive-bg);
+  --i-fg: var(--interactive-text);
+  --i-bg-hover: var(--state-hover-wash);
+  --i-border-hover: var(--interactive-hover-border);
+  --i-bg-active: var(--interactive-pressed-bg);
+  --i-border-active: var(--interactive-hover-border);
+  --i-selected-bg: var(--interactive-selected-bg);
+  --i-selected-hover-bg: var(--interactive-selected-hover-wash);
+  --i-selected-border: var(--interactive-selected-border);
+  --i-selected-ring: var(--interactive-selected-shadow);
+  --i-ring: 0 0 0 var(--focus-ring-width) var(--focus-ring-color), 0 0 0 calc(var(--focus-ring-width) + var(--focus-ring-offset)) var(--surface-panel);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--i-border);
+  background-color: var(--i-bg);
+  color: var(--i-fg);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
   outline: 1px solid transparent;
   outline-offset: 1px;
+  cursor: pointer;
 }
 
-.interactive-surface:hover:not(.is-disabled):not(:disabled),
-.component-row:hover,
-.draft-item:hover,
-.inventory-item:hover,
-.component-pill:hover,
-.drafts-menu-item:hover:not(:disabled),
-.fav-item:hover,
-.fav-btn:hover,
-.desk-item:hover,
-html[data-layout="workspace"] .ws2-browser-item:hover,
-html[data-layout="workspace"] .ws2-pill:hover,
-html[data-layout="workspace"] .ws2-track-lens-row:hover,
-html[data-layout="workspace"] .ws2-inspector-wiring-row:hover {
-  background-color: var(--interactive-hover-bg);
-  border-color: var(--interactive-hover-border);
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr):hover:not(.is-disabled):not(:disabled) {
+  background-color: var(--i-bg-hover);
+  border-color: var(--i-border-hover);
 }
 
-.interactive-surface.is-hovered {
-  background-color: var(--interactive-hover-bg);
-  border-color: var(--interactive-hover-border);
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr).is-hovered {
+  background-color: var(--i-bg-hover);
+  border-color: var(--i-border-hover);
 }
 
-.interactive-surface:active:not(.is-disabled):not(:disabled),
-.component-row:active,
-.draft-item:active,
-.inventory-item:active,
-.component-pill:active,
-.drafts-menu-item:active:not(:disabled),
-.fav-item:active,
-.fav-btn:active,
-.desk-item:active,
-html[data-layout="workspace"] .ws2-browser-item:active,
-html[data-layout="workspace"] .ws2-pill:active,
-html[data-layout="workspace"] .ws2-track-lens-row:active,
-html[data-layout="workspace"] .ws2-inspector-wiring-row:active {
-  background-color: var(--interactive-pressed-bg);
-  color: var(--text-1);
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr):active:not(.is-disabled):not(:disabled) {
+  background-color: var(--i-bg-active);
+  border-color: var(--i-border-active);
 }
 
-.interactive-surface.is-selected,
-.component-row.is-selected,
+.tab.active,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr).is-selected,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr)[aria-selected="true"],
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr)[data-selected="true"],
 .draft-item.active,
 .inventory-item.selected,
 .desk-item.selected,
 .component-pill.is-focused,
 html[data-layout="workspace"] .ws2-pill.is-focused,
 html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
-  border-color: var(--interactive-selected-border);
-  background-color: var(--interactive-selected-bg);
-  box-shadow: var(--interactive-selected-shadow);
-  color: var(--text-1);
+  border-color: var(--i-selected-border);
+  background-color: var(--i-selected-bg);
+  box-shadow: var(--i-selected-ring);
 }
 
-.interactive-surface.is-selected:hover:not(.is-disabled):not(:disabled),
+.tab.active:hover,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr).is-selected:hover:not(.is-disabled):not(:disabled),
 .component-row.is-selected:hover,
 .component-row.is-selected:focus-visible,
 .draft-item.active:hover,
@@ -2235,7 +2209,7 @@ html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
 .component-pill.is-focused:hover,
 html[data-layout="workspace"] .ws2-pill.is-focused:hover,
 html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
-  background-color: var(--interactive-selected-hover-bg);
+  background-color: var(--i-selected-hover-bg);
 }
 
 .interactive-surface.is-drop-target {
@@ -2250,51 +2224,35 @@ html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
   box-shadow: inset 0 0 0 1px var(--accent-1);
 }
 
-.interactive-surface:focus-visible,
-.component-row:focus-visible,
-.draft-item:focus-visible,
-.inventory-item:focus-visible,
-.component-pill:focus-visible,
-.drafts-menu-item:focus-visible,
-.fav-btn:focus-visible,
-.desk-item:focus-visible,
-html[data-layout="workspace"] .ws2-browser-item:focus-visible,
-html[data-layout="workspace"] .ws2-pill:focus-visible,
-html[data-layout="workspace"] .ws2-track-lens-row:focus-visible,
-html[data-layout="workspace"] .ws2-inspector-wiring-row:focus-visible {
-  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr):focus-visible {
+  box-shadow: var(--i-ring);
+  outline: none;
   outline-offset: var(--focus-ring-offset);
 }
 
-.interactive-surface.is-disabled,
-.interactive-surface:disabled,
-.component-row:disabled,
-.draft-item:disabled,
-.inventory-item:disabled,
-.component-pill:disabled,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr):disabled,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr).is-disabled,
 .drafts-menu-item:disabled,
 .fav-btn:disabled,
-.desk-item:disabled,
-html[data-layout="workspace"] .ws2-pill:disabled {
+.desk-item:disabled {
   opacity: var(--disabled-opacity);
   filter: saturate(var(--disabled-saturation));
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 .component-row {
+  display: grid;
   border-radius: var(--radius-control);
-  border: 1px solid var(--interactive-border);
   background-color: var(--surface-panel-elevated);
-  color: var(--interactive-text);
+  --i-bg: var(--surface-panel-elevated);
 }
 
 .component-divider {
-    border: 0;
-    height: 1px;
-    background: var(--border-1);
-    opacity: 0.7;
-    margin: var(--space-2) 0;
+  border: 0;
+  height: 1px;
+  background-color: var(--border-1);
+  opacity: 0.7;
+  margin: var(--space-2) 0;
 }
 }
 
@@ -2725,17 +2683,21 @@ html[data-layout="workspace"] .ws2-browser-list {
 }
 
 html[data-layout="workspace"] .ws2-browser-item {
-  border: 1px solid var(--border-1);
   border-radius: var(--radius-button);
   padding: var(--space-2);
   cursor: grab;
   user-select: none;
-  background-color: var(--surface-panel);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  transition: border-color 0.2s, background-color 0.2s;
-  --interactive-hover-border: var(--accent-1);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  --i-border: var(--border-1);
+  --i-bg: transparent;
+  --i-bg-hover: var(--state-hover-wash);
+  --i-bg-active: var(--state-active-wash);
+  --i-fg: var(--text-1);
+  --i-border-hover: var(--accent-1);
+  --i-border-active: var(--border-1);
 }
 
 html[data-layout="workspace"] .ws2-browser-item:active {
@@ -3025,13 +2987,16 @@ html[data-layout="workspace"] .ws2-pill {
   height: var(--interactive-height);
   padding: 0 var(--space-2);
   border-radius: var(--radius-pill);
-  border: 1px solid var(--interactive-border);
-  background-color: var(--interactive-bg);
-  color: var(--interactive-text);
-  cursor: pointer;
   white-space: nowrap;
   max-width: 420px;
   transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  --i-bg: var(--surface-panel-elevated);
+  --i-border: var(--interactive-border);
+  --i-fg: var(--text-1);
+  --i-bg-hover: var(--state-hover-wash);
+  --i-border-hover: var(--interactive-border);
+  --i-bg-active: var(--state-active-wash);
+  --i-border-active: var(--interactive-border);
 }
 
 html[data-layout="workspace"] .ws2-pill-label {
@@ -3216,9 +3181,12 @@ html[data-layout="workspace"] .ws2-inspector-wiring-row {
     gap: var(--space-2);
     padding: var(--space-1) var(--space-2);
     border-radius: var(--radius-button);
-    border: 1px solid transparent;
-    background: var(--surface-panel);
-    --interactive-hover-border: var(--border-1);
+    background-color: var(--surface-panel);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    --i-border: transparent;
+    --i-bg: var(--surface-panel);
+    --i-fg: var(--text-1);
+    --i-border-hover: var(--border-1);
 }
 
 html[data-layout="workspace"] .ws2-inspector-wiring-role {
@@ -3273,6 +3241,15 @@ html[data-layout="workspace"] .ws2-browser-item {
 @layer utilities {
 .is-hidden {
   display: none !important;
+}
+.hover-highlight {
+  transition: background-color 0.2s ease;
+}
+.hover-highlight:hover {
+  background-color: var(--accent-3-soft);
+}
+.outline-highlight {
+  border-color: var(--accent-3-border);
 }
 }
 
