@@ -242,8 +242,7 @@ html[data-theme="light"] {
 
 html,
 body,
-#root,
-#legacyRoot {
+#root {
   height: 100%;
 }
 
@@ -434,6 +433,7 @@ body.visualizer-popout-open {
     align-items: stretch;
   }
 }
+
 }
 
 @layer components {
@@ -1051,15 +1051,13 @@ button.is-danger,
   --i-selected-border: var(--accent-1);
 }
 
-.tab.active {
-  --i-selected-border: var(--accent-1);
-  --i-selected-bg: var(--state-selected-wash);
-}
-
-.plot-stack {
-  display: grid;
-  gap: var(--space-3);
-}
+.tab.active,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr).is-selected,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr)[aria-selected="true"],
+.draft-item.active,
+.inventory-item.selected,
+.desk-item.selected,
+.component-pill.is-focused {
 
 .plot-wrap {
   background: var(--surface-panel);
@@ -2146,7 +2144,7 @@ td.fav-cell {
 }
 
 /* Unified interactive surfaces */
-:where(.interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr) {
+:where(.interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr) {
   --i-border: var(--interactive-border);
   --i-bg: var(--interactive-bg);
   --i-fg: var(--interactive-text);
@@ -2169,46 +2167,41 @@ td.fav-cell {
   cursor: pointer;
 }
 
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr):hover:not(.is-disabled):not(:disabled) {
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr):hover:not(.is-disabled):not(:disabled) {
   background-color: var(--i-bg-hover);
   border-color: var(--i-border-hover);
 }
 
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr).is-hovered {
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr).is-hovered {
   background-color: var(--i-bg-hover);
   border-color: var(--i-border-hover);
 }
 
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr):active:not(.is-disabled):not(:disabled) {
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr):active:not(.is-disabled):not(:disabled) {
   background-color: var(--i-bg-active);
   border-color: var(--i-border-active);
 }
 
 .tab.active,
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr).is-selected,
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr)[aria-selected="true"],
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr)[data-selected="true"],
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr).is-selected,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr)[aria-selected="true"],
 .draft-item.active,
 .inventory-item.selected,
 .desk-item.selected,
-.component-pill.is-focused,
-html[data-layout="workspace"] .ws2-pill.is-focused,
-html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
+.component-pill.is-focused {
   border-color: var(--i-selected-border);
   background-color: var(--i-selected-bg);
   box-shadow: var(--i-selected-ring);
 }
 
 .tab.active:hover,
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr).is-selected:hover:not(.is-disabled):not(:disabled),
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr).is-selected:hover:not(.is-disabled):not(:disabled),
 .component-row.is-selected:hover,
 .component-row.is-selected:focus-visible,
 .draft-item.active:hover,
 .inventory-item.selected:hover,
 .desk-item.selected:hover,
-.component-pill.is-focused:hover,
-html[data-layout="workspace"] .ws2-pill.is-focused:hover,
-html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
+.component-pill.is-focused:hover {
   background-color: var(--i-selected-hover-bg);
 }
 
@@ -2224,14 +2217,14 @@ html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
   box-shadow: inset 0 0 0 1px var(--accent-1);
 }
 
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr):focus-visible {
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr):focus-visible {
   box-shadow: var(--i-ring);
   outline: none;
   outline-offset: var(--focus-ring-offset);
 }
 
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr):disabled,
-:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, html[data-layout="workspace"] .ws2-browser-item, html[data-layout="workspace"] .ws2-pill, html[data-layout="workspace"] .ws2-track-lens-row, html[data-layout="workspace"] .ws2-inspector-wiring-row, #resultsTable tbody tr, .favorites-table tbody tr).is-disabled,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr):disabled,
+:is(.interactive, button, .component-button, .icon-btn, .component-pill, .tab, .tabs button, .tab-controls button, .interactive-surface, .component-row, .draft-item, .inventory-item, .drafts-menu-item, .fav-item, .fav-btn, .desk-item, #resultsTable tbody tr, .favorites-table tbody tr).is-disabled,
 .drafts-menu-item:disabled,
 .fav-btn:disabled,
 .desk-item:disabled {
@@ -2254,6 +2247,8 @@ html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
   opacity: 0.7;
   margin: var(--space-2) 0;
 }
+}
+
 }
 
 @layer workspace {
@@ -2316,8 +2311,7 @@ html[data-layout="workspace"] .workspace2-root {
   width: 100%;
 }
 
-html[data-layout="workspace"] .workspace-header,
-html[data-layout="workspace"] .ws2-header {
+html[data-layout="workspace"] .workspace-header {
   border-bottom: 1px solid var(--border-1);
   display: flex;
   align-items: center;
@@ -2395,23 +2389,20 @@ html[data-layout="workspace"] .workspace-header-right {
   gap: var(--space-2);
 }
 
-html[data-layout="workspace"] .workspace-header-left,
-html[data-layout="workspace"] .ws2-header-left {
+html[data-layout="workspace"] .workspace-header-left {
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-html[data-layout="workspace"] .workspace-header-title,
-html[data-layout="workspace"] .ws2-header-title {
+html[data-layout="workspace"] .workspace-header-title {
   font-size: var(--type-lg);
   letter-spacing: var(--ls-tight);
   font-weight: 600;
   text-transform: uppercase;
 }
 
-html[data-layout="workspace"] .workspace-body,
-html[data-layout="workspace"] .ws2-body {
+html[data-layout="workspace"] .workspace-body {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr) 320px;
   gap: var(--space-3);
@@ -2423,28 +2414,22 @@ html[data-layout="workspace"] .ws2-body {
 
 html[data-layout="workspace"] .workspace-column-left,
 html[data-layout="workspace"] .workspace-column-center,
-html[data-layout="workspace"] .workspace-column-right,
-html[data-layout="workspace"] .ws2-column-left,
-html[data-layout="workspace"] .ws2-column-center,
-html[data-layout="workspace"] .ws2-column-right {
+html[data-layout="workspace"] .workspace-column-right {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   min-height: 0;
 }
 
-html[data-layout="workspace"] .workspace-column-left,
-html[data-layout="workspace"] .ws2-column-left {
+html[data-layout="workspace"] .workspace-column-left {
   grid-column: 1;
 }
 
-html[data-layout="workspace"] .workspace-column-center,
-html[data-layout="workspace"] .ws2-column-center {
+html[data-layout="workspace"] .workspace-column-center {
   grid-column: 2;
 }
 
-html[data-layout="workspace"] .workspace-column-right,
-html[data-layout="workspace"] .ws2-column-right {
+html[data-layout="workspace"] .workspace-column-right {
   grid-column: 3;
 }
 
@@ -2465,43 +2450,22 @@ html[data-layout="workspace"] .workspace-center-top-split > .workspace-panel .wo
 }
 
 html[data-layout="workspace"] .workspace-column-left > .workspace-panel,
-html[data-layout="workspace"] .workspace-column-center > .workspace-panel,
-html[data-layout="workspace"] .ws2-column-left > .ws2-panel,
-html[data-layout="workspace"] .ws2-column-center > .ws2-panel {
+html[data-layout="workspace"] .workspace-column-center > .workspace-panel {
   flex: 1 1 0;
   min-height: 0;
 }
 
-html[data-layout="workspace"] .workspace-column-right > .workspace-panel-browser,
-html[data-layout="workspace"] .ws2-column-right > .ws2-panel-browser {
+html[data-layout="workspace"] .workspace-column-right > .workspace-panel-browser {
   flex: 1 1 0;
   min-height: 0;
 }
 
-html[data-layout="workspace"] .workspace-column-right > .workspace-panel-grid,
-html[data-layout="workspace"] .ws2-column-right > .ws2-panel-modular {
+html[data-layout="workspace"] .workspace-column-right > .workspace-panel-grid {
   flex: 3 1 0;
   min-height: 0;
 }
 
-html[data-layout="workspace"] .ws2-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  min-height: 0;
-  overflow: hidden;
-}
-
-html[data-layout="workspace"] .ws2-main {
-  display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: var(--space-3);
-  min-height: 0;
-  overflow: hidden;
-}
-
-html[data-layout="workspace"] .workspace-panel,
-html[data-layout="workspace"] .ws2-panel {
+html[data-layout="workspace"] .workspace-panel {
   background: var(--surface-panel);
   border: 1px solid var(--border-1);
   border-radius: var(--radius-button);
@@ -2510,311 +2474,20 @@ html[data-layout="workspace"] .ws2-panel {
   min-height: 0;
 }
 
-html[data-layout="workspace"] .workspace-panel-header,
-html[data-layout="workspace"] .ws2-panel-header {
+html[data-layout="workspace"] .workspace-panel-header {
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--border-1);
   font-size: var(--type-sm);
   font-weight: 600;
 }
 
-html[data-layout="workspace"] .workspace-panel-body,
-html[data-layout="workspace"] .ws2-panel-body {
+html[data-layout="workspace"] .workspace-panel-body {
   padding: var(--space-3);
   overflow: auto;
   min-height: 0;
 }
 
-html[data-layout="workspace"] .ws2-modular-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-height: 0;
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-hint {
-  font-size: var(--type-xs);
-  color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-header {
-  display: grid;
-  grid-template-columns: repeat(var(--ws2-lane-count, 1), minmax(160px, 1fr));
-  gap: var(--space-2);
-  font-size: var(--type-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--ls-tight);
-  color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-header-cell {
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-button);
-  background: color-mix(in srgb, var(--surface-panel) 70%, transparent);
-  border: 1px solid var(--border-1);
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lanes {
-  display: grid;
-  grid-template-columns: repeat(var(--ws2-lane-count, 1), minmax(160px, 1fr));
-  gap: var(--space-2);
-  min-height: 0;
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lane {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-height: 0;
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lane-header {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-button);
-  background: var(--surface-panel);
-  border: 1px solid var(--border-1);
-  font-size: var(--type-xs);
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lane-title {
-  font-weight: 600;
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lane-count {
-  color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lane-body {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(var(--ws2-row-count, 16), 44px);
-  gap: var(--space-1);
-  min-height: calc(44px * var(--ws2-row-count, 16));
-  padding: var(--space-1);
-  border-radius: var(--radius-button);
-  background: color-mix(in srgb, var(--surface-panel) 70%, transparent);
-  border: 1px dashed var(--border-1);
-}
-
-html[data-layout="workspace"] .ws2-grid-cell {
-  position: relative;
-  border-radius: var(--radius-button);
-  border: 1px solid color-mix(in srgb, var(--border-1) 80%, transparent);
-  background-color: color-mix(in srgb, var(--surface-panel) 85%, transparent);
-  min-height: 44px;
-  display: flex;
-  align-items: stretch;
-  justify-content: stretch;
-  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
-}
-
-html[data-layout="workspace"] .ws2-grid-cell.is-empty {
-  background-image: repeating-linear-gradient(
-    45deg,
-    color-mix(in srgb, var(--border-1) 25%, transparent) 0,
-    color-mix(in srgb, var(--border-1) 25%, transparent) 6px,
-    transparent 6px,
-    transparent 12px
-  );
-}
-
-html[data-layout="workspace"] .ws2-grid-cell.is-occupied {
-  border-color: var(--border-2);
-  background-color: var(--surface-panel);
-}
-
-html[data-layout="workspace"] .ws2-grid-cell.is-valid-drop {
-  border-color: var(--accent-1);
-  box-shadow: 0 0 0 1px var(--accent-1);
-  background-color: color-mix(in srgb, var(--state-selected-wash) 45%, var(--surface-panel));
-}
-
-html[data-layout="workspace"] .ws2-grid-cell.is-invalid-drop {
-  border-color: var(--status-danger);
-  box-shadow: 0 0 0 1px var(--status-danger);
-  background-color: color-mix(in srgb, var(--status-danger) 12%, var(--surface-panel));
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lane--drop-target .ws2-modular-grid-lane-body {
-  border-color: var(--accent-1);
-  box-shadow: 0 0 0 1px var(--accent-1);
-  background-color: color-mix(in srgb, var(--state-selected-wash) 20%, var(--surface-panel));
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lane--full-warning .ws2-modular-grid-lane-body {
-  border-color: var(--status-danger);
-  box-shadow: 0 0 0 1px var(--status-danger);
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-lane--full .ws2-modular-grid-lane-header {
-  border-color: var(--status-warning);
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-node {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-1) var(--space-2);
-  border-radius: calc(var(--radius-button) - 2px);
-  background: var(--state-selected-wash);
-  border: 1px solid var(--accent-1);
-  width: 100%;
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-node-label {
-  font-size: var(--type-xs);
-  font-weight: 600;
-}
-
-html[data-layout="workspace"] .ws2-modular-grid-node-meta {
-  font-size: var(--type-xxs);
-  color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-browser-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  max-height: 100%;
-  overflow-y: auto;
-}
-
-html[data-layout="workspace"] .ws2-browser-item {
-  border-radius: var(--radius-button);
-  padding: var(--space-2);
-  cursor: grab;
-  user-select: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-  --i-border: var(--border-1);
-  --i-bg: transparent;
-  --i-bg-hover: var(--state-hover-wash);
-  --i-bg-active: var(--state-active-wash);
-  --i-fg: var(--text-1);
-  --i-border-hover: var(--accent-1);
-  --i-border-active: var(--border-1);
-}
-
-html[data-layout="workspace"] .ws2-browser-item:active {
-  cursor: grabbing;
-}
-
-html[data-layout="workspace"] .ws2-browser-item:hover {
-  cursor: grabbing;
-}
-
-html[data-layout="workspace"] .ws2-browser-name {
-  font-weight: 600;
-}
-
-html[data-layout="workspace"] .ws2-browser-desc {
-  opacity: 0.8;
-  font-size: var(--type-xs);
-  color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-lensui {
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: var(--space-3);
-  min-height: 0;
-}
-
-html[data-layout="workspace"] .ws2-lensui-left {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  min-height: 0;
-}
-
-html[data-layout="workspace"] .ws2-lensui-right {
-  min-height: 0;
-  overflow: auto;
-}
-
-html[data-layout="workspace"] .ws2-draftsui {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-height: 0;
-}
-
-html[data-layout="workspace"] .ws2-lensui-section {
-  padding: var(--space-2);
-  background: var(--surface-panel);
-  border-radius: var(--radius-button);
-}
-
-html[data-layout="workspace"] .ws2-lensui-title {
-  font-weight: 600;
-  color: var(--text-1);
-}
-
-html[data-layout="workspace"] .ws2-lens-notices,
-html[data-layout="workspace"] .ws2-lens-drafts {
-  display: flex;
-  flex-direction: column;
-}
-
-html[data-layout="workspace"] .ws2-lens-viz-placeholder {
-  padding: var(--space-2);
-  color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-interval-viz {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-html[data-layout="workspace"] .ws2-interval-canvas {
-  width: 100%;
-  height: 320px;
-  border-radius: var(--radius-button);
-  background: var(--surface-panel);
-}
-
-html[data-layout="workspace"] .ws2-interval-meta > div {
-  font-size: 0.85rem;
-  color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-euclid-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-html[data-layout="workspace"] .ws2-euclid-canvas {
-  width: 100%;
-  border-radius: var(--radius-button);
-  background: var(--surface-panel);
-}
-
-/* phase 8 */
-html[data-layout="workspace"] .workspace-placeholder,
-html[data-layout="workspace"] .ws2-placeholder {
-  color: var(--text-1);
-  font-size: var(--type-sm);
-}
-
-html[data-layout="workspace"] .ws2-tracks {
-  background: var(--surface-panel);
-  border-top: 1px solid var(--border-1);
-  padding: var(--space-2) var(--space-3);
-}
-
-html[data-layout="workspace"] .ws2-tracks-body {
-  padding-top: var(--space-2);
-}
-
-html[data-layout="workspace"] .workspace-footer,
-html[data-layout="workspace"] .ws2-footer {
+html[data-layout="workspace"] .workspace-footer {
   border-top: 1px solid var(--border-1);
   display: flex;
   align-items: center;
@@ -2827,415 +2500,13 @@ html[data-layout="workspace"] .ws2-footer {
 }
 
 html[data-layout="workspace"] .workspace-view-switch,
-html[data-layout="workspace"] .workspace-help,
-html[data-layout="workspace"] .ws2-view-switch,
-html[data-layout="workspace"] .ws2-help {
+html[data-layout="workspace"] .workspace-help {
   background: var(--surface-panel);
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-html[data-layout="workspace"] .ws2-views {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-html[data-layout="workspace"] .ws2-view {
-  min-height: 0;
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-html[data-layout="workspace"] .ws2-view[hidden] {
-  display: none;
-}
-
-html[data-layout="workspace"] .ws2-view-workspace {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-html[data-layout="workspace"] .ws2-view-library {
-  padding: var(--space-3);
-  min-height: 0;
-  flex: 1;
-  display: flex;
-}
-
-html[data-layout="workspace"] .ws2-library-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-  min-height: 0;
-  width: 100%;
-}
-
-html[data-layout="workspace"] #ws2InventoryMount,
-html[data-layout="workspace"] #ws2DeskMount {
-  min-height: 0;
-  overflow: auto;
-}
-
-html[data-layout="workspace"] .ws2-lane {
-  display: grid;
-  grid-template-columns: 220px 1fr auto;
-  gap: var(--space-3);
-  align-items: center;
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--border-1);
-}
-
-html[data-layout="workspace"] .ws2-lane-header {
-  font-weight: 500;
-  cursor: pointer;
-  user-select: none;
-}
-
-html[data-layout="workspace"] .ws2-lane.is-selected .ws2-lane-header {
-  font-weight: 600;
-}
-
-html[data-layout="workspace"] .ws2-lane-pills {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding: var(--space-1) 0;
-  align-items: center;
-}
-
-html[data-layout="workspace"] .ws2-lane-empty {
-  font-size: var(--type-xs);
-  color: var(--text-2);
-  padding: 0 var(--space-2);
-}
-
-html[data-layout="workspace"] .ws2-drop-slot {
-  width: 14px;
-  flex: 0 0 14px;
-  height: var(--interactive-height);
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  background: var(--surface-panel);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
-
-/* the slot shown when dragging a lens from browser */
-html[data-layout="workspace"] .ws2-drop-caret {
-  width: 100%;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--surface-panel) 20%, var(--accent-1) 40%);
-  height: 100%;
-  position: relative;
-}
-
-html[data-layout="workspace"] .ws2-drop-slot.is-over .ws2-drop-caret {
-  background: var(--state-selected-hover-wash);
-}
-
-html[data-layout="workspace"] .ws2-drop-slot.is-over .ws2-drop-caret::after {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 2px;
-  bottom: 2px;
-  width: 2px;
-  background: var(--accent-1);
-  border-radius: 2px;
-}
-
-html[data-layout="workspace"].ws2-dragging .ws2-drop-slot {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-html[data-layout="workspace"] .ws2-lane.is-drop-target {
-  outline: 1px dashed var(--accent-1);
-  outline-offset: 2px;
-}
-
-html[data-layout="workspace"] .ws2-drop-placeholder {
-  font-size: var(--type-xs);
-  color: var(--text-2);
-  padding: 0 var(--space-2);
-  text-align: center;
-  border-radius: var(--radius-button);
-  border: 1px dashed var(--accent-1);
-  background-color: color-mix(in srgb, var(--state-selected-wash) 25%, transparent);
-}
-
-html[data-layout="workspace"] .ws2-signal-out {
-  display: flex;
-  justify-content: flex-end;
-}
-
-html[data-layout="workspace"] .ws2-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  height: var(--interactive-height);
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-pill);
-  white-space: nowrap;
-  max-width: 420px;
-  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-  --i-bg: var(--surface-panel-elevated);
-  --i-border: var(--interactive-border);
-  --i-fg: var(--text-1);
-  --i-bg-hover: var(--state-hover-wash);
-  --i-border-hover: var(--interactive-border);
-  --i-bg-active: var(--state-active-wash);
-  --i-border-active: var(--interactive-border);
-}
-
-html[data-layout="workspace"] .ws2-pill-label {
-  font-size: var(--type-xs);
-  opacity: 0.8;
-}
-
-html[data-layout="workspace"] .ws2-pill-name {
-  font-size: var(--type-sm);
-}
-
-html[data-layout="workspace"] .ws2-pill-summary {
-  font-size: var(--type-xs);
-  opacity: 0.85;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
-
-html[data-layout="workspace"] .ws2-pill.is-focused {
-  border-color: var(--accent-1);
-  background-color: var(--state-selected-wash);
-  box-shadow: 0 0 0 1px var(--accent-1);
-}
-
-html[data-layout="workspace"] .ws2-pill:disabled {
-  opacity: var(--disabled-opacity);
-  filter: saturate(var(--disabled-saturation));
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.component-pill.ws2-pill-out,
-html[data-layout="workspace"] .ws2-pill.ws2-pill-out {
-  border-style: dashed;
-}
-
-html[data-layout="workspace"] .ws2-inspector-section {
-    background: var(--surface-panel);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-button);
-    padding: var(--space-2);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-html[data-layout="workspace"] .ws2-inspector-section-header {
-    font-size: var(--type-xs);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: var(--ls-tight);
-    color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-inspector-meta {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-html[data-layout="workspace"] .ws2-inspector-meta-line {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-2);
-    font-size: var(--type-xs);
-    color: var(--text-1);
-}
-
-html[data-layout="workspace"] .ws2-inspector-meta-label {
-    opacity: 0.7;
-}
-
-html[data-layout="workspace"] .ws2-inspector-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-}
-
-html[data-layout="workspace"] .ws2-inspector-header-label {
-    font-size: var(--type-sm);
-    font-weight: 600;
-}
-
-html[data-layout="workspace"] .ws2-inspector-header-name {
-    font-size: var(--type-md);
-    font-weight: 500;
-    color: var(--text-1);
-}
-
-html[data-layout="workspace"] .ws2-inspector-header-meta {
-    font-size: var(--type-xs);
-    color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-inspector-focus-badge {
-    border-radius: var(--radius-pill);
-    padding: 0 var(--space-2);
-    border: 1px solid var(--accent-1);
-    background: var(--state-selected-wash);
-    font-size: var(--type-xxs);
-}
-
-html[data-layout="workspace"] .ws2-inspector-output-summary {
-    min-height: 36px;
-    font-size: var(--type-sm);
-    color: var(--text-1);
-    word-break: break-word;
-}
-
-html[data-layout="workspace"] .ws2-track-lens-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-html[data-layout="workspace"] .ws2-track-lens-row {
-    border-radius: var(--radius-control);
-    border: 1px solid var(--interactive-border);
-    background-color: var(--surface-panel-elevated);
-    color: var(--interactive-text);
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
-    border-color: var(--accent-1);
-    background-color: var(--state-selected-wash);
-    box-shadow: 0 0 0 1px var(--accent-1);
-}
-
-html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
-    background-color: var(--state-selected-hover-wash);
-}
-
-html[data-layout="workspace"] .ws2-track-lens-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-1) var(--space-2);
-    cursor: pointer;
-}
-
-html[data-layout="workspace"] .ws2-track-lens-row.is-focused {
-    border-color: var(--accent-1);
-    background-color: var(--state-selected-wash);
-}
-
-html[data-layout="workspace"] .ws2-track-lens-row.is-focused:hover {
-    background-color: var(--state-selected-hover-wash);
-}
-
-html[data-layout="workspace"] .ws2-track-lens-label {
-    font-size: var(--type-xs);
-    opacity: 0.75;
-}
-
-html[data-layout="workspace"] .ws2-track-lens-name {
-    font-size: var(--type-sm);
-    font-weight: 500;
-    flex: 1;
-}
-
-html[data-layout="workspace"] .ws2-track-lens-summary {
-    font-size: var(--type-xs);
-    opacity: 0.7;
-    min-width: 120px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-html[data-layout="workspace"] .ws2-inspector-wiring-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-html[data-layout="workspace"] .ws2-inspector-wiring-row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: var(--space-2);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-button);
-    background-color: var(--surface-panel);
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    --i-border: transparent;
-    --i-bg: var(--surface-panel);
-    --i-fg: var(--text-1);
-    --i-border-hover: var(--border-1);
-}
-
-html[data-layout="workspace"] .ws2-inspector-wiring-role {
-    font-size: var(--type-xs);
-    font-weight: 600;
-    color: var(--text-1);
-}
-
-html[data-layout="workspace"] .ws2-inspector-wiring-status {
-    font-size: var(--type-xxs);
-    text-transform: uppercase;
-    color: var(--text-2);
-}
-
-html[data-layout="workspace"] .ws2-inspector-wiring-target {
-    font-size: var(--type-xs);
-    color: var(--text-1);
-}
-
-html[data-layout="workspace"] .ws2-inspector-actions {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-}
-
-html[data-layout="workspace"] .ws2-inspector-action {
-    min-height: var(--interactive-height);
-    padding: 0 var(--space-2);
-}
-
-html[data-layout="workspace"] .ws2-track-name-display {
-    font-weight: 600;
-    cursor: pointer;
-}
-
-html[data-layout="workspace"] .ws2-track-name-input {
-    width: 100%;
-    border-radius: var(--radius-button);
-    border: 1px solid var(--border-2);
-    background: var(--surface-panel);
-    color: var(--text-1);
-    padding: var(--space-1);
-}
-
-html[data-layout="workspace"] .ws2-pill,
-html[data-layout="workspace"] .ws2-browser-item {
-  outline: 1px solid transparent;
-  outline-offset: 1px;
-}
 }
 
 @layer utilities {
@@ -3469,8 +2740,8 @@ body.is-debug .draft-item:hover,
 body.is-debug .inventory-item:hover,
 body.is-debug .component-row:hover,
 body.is-debug .component-pill:hover,
-html[data-layout="workspace"] body.is-debug .ws2-pill:hover,
-html[data-layout="workspace"] body.is-debug .ws2-browser-item:hover {
+html[data-layout="workspace"] body.is-debug .workspace-placeholder:hover,
+html[data-layout="workspace"] body.is-debug .workspace-panel:hover {
   outline: 2px solid var(--debug-1);
   outline-offset: 1px;
 }
