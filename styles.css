@@ -242,7 +242,8 @@ html[data-theme="light"] {
 
 html,
 body,
-#root {
+#root,
+#legacyRoot {
   height: 100%;
 }
 
@@ -2269,13 +2270,6 @@ td.fav-cell {
   margin-bottom: var(--space-2);
 }
 
-#workspace2Root[hidden] {
-  display: none !important;
-}
-
-html[data-layout="workspace"] #workspace2Root[hidden] {
-  display: none;
-}
 
 html[data-layout="workspace"] .app-shell,
 html[data-layout="workspace"] .app-stack,
@@ -2303,13 +2297,6 @@ html[data-layout="workspace"] #root {
 }
 
 html[data-layout="workspace"] .workspace-root,
-html[data-layout="workspace"] .workspace2-root {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  width: 100%;
-}
 
 html[data-layout="workspace"] .workspace-header {
   border-bottom: 1px solid var(--border-1);
@@ -2486,6 +2473,7 @@ html[data-layout="workspace"] .workspace-panel-body {
   overflow: auto;
   min-height: 0;
 }
+
 
 html[data-layout="workspace"] .workspace-footer {
   border-top: 1px solid var(--border-1);
