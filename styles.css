@@ -116,7 +116,7 @@ To add new components safely, start in the components layer, reuse tokens, and k
   /* Interaction contract */
   --i-bg: var(--surface-1);
   --i-bg-hover: var(--surface-2);
-  --i-bg-active: color-mix(in srgb, #0b1118 10%, var(--surface-2) 90%);
+  --i-bg-active: color-mix(in srgb, var(--accent-primary) 40%, var(--surface-2) 90%);
   --i-border: var(--border-1);
   --i-ring: 0 0 0 2px var(--accent-tertiary-border);
   --i-text: var(--text-1);
@@ -136,9 +136,9 @@ To add new components safely, start in the components layer, reuse tokens, and k
   --mix-surface: var(--surface-2);
   --mix-ink: var(--text-1);
   --i-bg: var(--surface-1);
-  --i-bg-hover: #272b38;
-  --i-bg-active: #323546;
-  --i-border: rgba(255, 255, 255, 0.12);
+  --i-bg-hover: var(--surface-2);
+  --i-bg-active: color-mix(in srgb, var(--accent-primary) 40%, var(--surface-2) 90%);
+  --i-border: var(--border-1);
   --i-ring: 0 0 0 2px var(--accent-tertiary-border);
   --i-text: var(--text-1);
 }
@@ -797,8 +797,8 @@ button, input, select, textarea {
 }
 
 .component-field:focus-visible {
-  border-color: var(--highlight-border);
-  box-shadow: 0 0 0 2px var(--highlight-soft);
+  border-color: var(--accent-tertiary-border);
+  box-shadow: 0 0 0 2px var(--accent-tertiary-soft);
   outline: none;
 }
 

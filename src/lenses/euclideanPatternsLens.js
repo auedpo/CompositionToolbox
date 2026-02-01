@@ -3,6 +3,7 @@
 // Role: lens domain layer module within the broader app graph.
 import { formatNumericTree } from "../core/displayHelpers.js";
 import { makeDraft } from "../core/invariants.js";
+import { createParamSchema, enumField, numberField} from "./paramSchemaTypes.js";
 
 const LENS_ID = "euclideanPatterns";
 
@@ -68,7 +69,6 @@ function normalizeParams(params = {}) {
   return {
     steps,
     pulses,
-    rotation,
     rotationNorm,
     outputKind
   };
@@ -129,23 +129,37 @@ export const euclideanPatternsLens = {
     hasVisualizer: true,
     kind: "source"
   },
-  params: [
-    {
+  defaultParams: {
+  steps: 16,
+  pulses: 7,
+  rotation: 0,
+  outputKind: "binaryMask"
+},
+  paramSchema: createParamSchema([
+    numberField({
+      key: "steps",
+      label: "Steps",
+      min: 1,
+      step: 1
+    }),
+    numberField({
+      key: "pulses",
+      label: "Pulses",
+      min: 0,
+      step: 1
+    }),
+    numberField({
+      key: "rotation",
+      label: "Rotation",
+      min: 0,
+      step: 1
+    }),
+    enumField({
       key: "outputKind",
-      label: "Output kind",
-      kind: "select",
-      default: "binaryMask",
-      options: [
-        { value: "binaryMask", label: "binaryMask" },
-        { value: "indexMask", label: "indexMask" }
-      ]
-    }
-  ],
-  lensInputs: [
-    { key: "steps", label: "Steps (N)", kind: "int", default: 8, min: 1 },
-    { key: "pulses", label: "Pulses (K)", kind: "int", default: 3, min: 0 },
-    { key: "rotation", label: "Rotation (R)", kind: "int", default: 0 }
-  ],
+      label: "Output",
+      options: ["binaryMask", "indexMask"]
+    })
+]),
   evaluate: evaluateEuclideanPatternsLens
 };
 
