@@ -85,6 +85,12 @@ export function createEmptyAuthoritative() {
       schemaVersion: SCHEMA_VERSION,
       dirty: false,
       lastError: undefined
+    },
+    ui: {
+      visualizers: {
+        typeDefaultByLensId: {},
+        instanceOverrideByLensInstanceId: {}
+      }
     }
   };
 }
@@ -98,6 +104,9 @@ export function createEmptyDerived() {
     },
     errors: {
       lastErrorByLensInstanceId: {}
+    },
+    viz: {
+      vizByLensInstanceId: {}
     },
     meta: {
       lastDerivedAt: 0,

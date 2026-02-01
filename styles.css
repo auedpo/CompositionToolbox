@@ -865,6 +865,79 @@ button, input, select, textarea {
   border-radius: 50%;
   background-color: var(--accent-secondary);
 }
+
+.workspace-panel-error {
+  border: 1px solid var(--status-danger-border);
+  background-color: var(--status-danger-soft);
+  color: var(--status-danger);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.visualizer-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.visualizer-controls label {
+  font-size: var(--font-size-xs);
+  color: var(--text-3);
+}
+
+.visualizer-controls select {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-1);
+  padding: 0 var(--space-2);
+  min-width: 140px;
+  height: 36px;
+  background-color: var(--surface-2);
+  color: var(--text-1);
+}
+
+.visualizer-text-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.euclid-viz {
+  width: 100%;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.euclid-viz svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+}
+
+.euclid-viz .ring {
+  stroke: var(--border-2);
+  fill: none;
+}
+
+.euclid-viz .pt {
+  stroke: var(--border-2);
+  fill: var(--surface-1);
+}
+
+.euclid-viz .pt-active {
+  stroke: var(--selection-border);
+  fill: var(--selection);
+}
+
+.euclid-viz .poly {
+  stroke: var(--accent-secondary);
+  fill: color-mix(in srgb, var(--accent-secondary) 12%, transparent);
+}
 }
 
 @layer utilities {

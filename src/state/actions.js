@@ -41,6 +41,20 @@ export function createActions(dispatch, get) {
     setLensInput(lensInstanceId, input) {
       dispatch({ type: ACTION_TYPES.LENS_SET_INPUT, payload: { lensInstanceId, input } });
     },
+    setTypeDefaultVisualizer(lensId, visualizerKey = null) {
+      if (!lensId) return;
+      dispatch({
+        type: ACTION_TYPES.VISUALIZER_SET_TYPE_DEFAULT,
+        payload: { lensId, visualizerKey }
+      });
+    },
+    setInstanceOverrideVisualizer(lensInstanceId, visualizerKey = null) {
+      if (!lensInstanceId) return;
+      dispatch({
+        type: ACTION_TYPES.VISUALIZER_SET_INSTANCE_OVERRIDE,
+        payload: { lensInstanceId, visualizerKey }
+      });
+    },
     setSelection(selectionPatch) {
       dispatch({ type: ACTION_TYPES.SELECTION_SET, payload: selectionPatch });
     },

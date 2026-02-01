@@ -27,6 +27,8 @@ export const ACTION_TYPES = {
   PERSISTENCE_MARK_CLEAN: "PERSISTENCE_MARK_CLEAN",
   PERSISTENCE_SET_ERROR: "PERSISTENCE_SET_ERROR",
   HYDRATE_AUTHORITATIVE: "HYDRATE_AUTHORITATIVE",
+  VISUALIZER_SET_TYPE_DEFAULT: "VISUALIZER_SET_TYPE_DEFAULT",
+  VISUALIZER_SET_INSTANCE_OVERRIDE: "VISUALIZER_SET_INSTANCE_OVERRIDE",
   UNDO: "UNDO",
   REDO: "REDO"
 };
@@ -226,6 +228,10 @@ export function normalizeAuthoritativeState(authoritative) {
   const base = createEmptyAuthoritative();
   const incoming = authoritative || {};
   const lensesSection = ensureObject(incoming.lenses);
+  const uiSection = ensureObject(incoming.ui);
+  const visualizersSection = ensureObject(uiSection.visualizers);
+  const typeDefaultByLensId = ensureObject(visualizersSection.typeDefaultByLensId);
+  const instanceOverrideByLensInstanceId = ensureObject(visualizersSection.instanceOverrideByLensInstanceId);
   const normalizedLensInstances = normalizeLensInstances(lensesSection.lensInstancesById || {});
   const workspace = normalizeWorkspace(incoming.workspace, normalizedLensInstances);
   const selection = normalizeSelection(incoming.selection, workspace.laneOrder, normalizedLensInstances);
@@ -254,6 +260,18 @@ export function normalizeAuthoritativeState(authoritative) {
       ...base.persistence,
       ...persistence,
       schemaVersion: SCHEMA_VERSION
+    },
+    ui: {
+      ...base.ui,
+      visualizers: {
+        ...base.ui.visualizers,
+        typeDefaultByLensId: {
+          ...typeDefaultByLensId
+        },
+        instanceOverrideByLensInstanceId: {
+          ...instanceOverrideByLensInstanceId
+        }
+      }
     }
   };
 }
@@ -276,6 +294,50 @@ function markDirty(state) {
     persistence: {
       ...state.persistence,
       dirty: true
+    }
+  };
+}
+
+function updateTypeDefaultVisualizer(current, payload) {
+  if (!payload) return current;
+  const { lensId, visualizerKey } = payload;
+  if (!lensId) return current;
+  const nextTypeDefaults = { ...current.ui.visualizers.typeDefaultByLensId };
+  if (visualizerKey == null) {
+    delete nextTypeDefaults[lensId];
+  } else {
+    nextTypeDefaults[lensId] = visualizerKey;
+  }
+  return {
+    ...markDirty(current),
+    ui: {
+      ...current.ui,
+      visualizers: {
+        ...current.ui.visualizers,
+        typeDefaultByLensId: nextTypeDefaults
+      }
+    }
+  };
+}
+
+function updateInstanceOverrideVisualizer(current, payload) {
+  if (!payload) return current;
+  const { lensInstanceId, visualizerKey } = payload;
+  if (!lensInstanceId) return current;
+  const nextOverrides = { ...current.ui.visualizers.instanceOverrideByLensInstanceId };
+  if (visualizerKey == null) {
+    delete nextOverrides[lensInstanceId];
+  } else {
+    nextOverrides[lensInstanceId] = visualizerKey;
+  }
+  return {
+    ...markDirty(current),
+    ui: {
+      ...current.ui,
+      visualizers: {
+        ...current.ui.visualizers,
+        instanceOverrideByLensInstanceId: nextOverrides
+      }
     }
   };
 }
@@ -575,6 +637,10 @@ export function reduceAuthoritative(authoritative, action) {
         }
       };
     }
+    case ACTION_TYPES.VISUALIZER_SET_TYPE_DEFAULT:
+      return updateTypeDefaultVisualizer(current, payload);
+    case ACTION_TYPES.VISUALIZER_SET_INSTANCE_OVERRIDE:
+      return updateInstanceOverrideVisualizer(current, payload);
     default:
       return current;
   }

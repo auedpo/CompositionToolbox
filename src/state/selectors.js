@@ -114,3 +114,44 @@ export const selectSelectedLensError = (state) => {
   const errorMap = selectLastErrorByLensInstanceId(state);
   return errorMap ? errorMap[lensInstanceId] || null : null;
 };
+
+export const selectVizByLensInstanceId = (state) => {
+  return state.derived.viz && state.derived.viz.vizByLensInstanceId
+    ? state.derived.viz.vizByLensInstanceId
+    : {};
+};
+
+export const selectVizModelForLensInstance = (state, lensInstanceId) => {
+  if (!lensInstanceId) return null;
+  const vizMap = selectVizByLensInstanceId(state);
+  return vizMap[lensInstanceId] || null;
+};
+
+export const selectSelectedLensVizModel = (state) => {
+  const lensInstanceId = selectSelectedLensInstanceId(state);
+  return selectVizModelForLensInstance(state, lensInstanceId);
+};
+
+export const selectVisualizersState = (state) => {
+  const ui = state.authoritative && state.authoritative.ui ? state.authoritative.ui : {};
+  return ui.visualizers ? ui.visualizers : {
+    typeDefaultByLensId: {},
+    instanceOverrideByLensInstanceId: {}
+  };
+};
+
+export const selectVisualizerTypeDefault = (state, lensId) => {
+  if (!lensId) return null;
+  const visualizers = selectVisualizersState(state);
+  return visualizers.typeDefaultByLensId && visualizers.typeDefaultByLensId[lensId]
+    ? visualizers.typeDefaultByLensId[lensId]
+    : null;
+};
+
+export const selectVisualizerInstanceOverride = (state, lensInstanceId) => {
+  if (!lensInstanceId) return null;
+  const visualizers = selectVisualizersState(state);
+  return visualizers.instanceOverrideByLensInstanceId
+    ? visualizers.instanceOverrideByLensInstanceId[lensInstanceId] || null
+    : null;
+};

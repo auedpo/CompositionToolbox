@@ -10,6 +10,57 @@ import { makeCellKey } from "../state/schema.js";
 const DEBUG_RECOMPUTE = false;
 export const MISSING_PINNED_INPUT_ERROR = "Pinned input reference missing.";
 
+function normalizeVizModel(raw, { lensId, lensInstanceId }) {
+  if (!raw) return null;
+  if (raw.kind && raw.meta && raw.payload) {
+    return {
+      kind: String(raw.kind),
+      version: Number.isFinite(raw.version) ? raw.version : 1,
+      meta: {
+        lensId,
+        lensInstanceId,
+        ...(raw.meta && typeof raw.meta === "object" ? raw.meta : {})
+      },
+      payload: raw.payload
+    };
+  }
+  if (raw.pattern) {
+    const pattern = raw.pattern;
+    const domain = pattern.domain && typeof pattern.domain === "object" ? pattern.domain : {};
+    const stepsValue = domain.steps ?? domain.n ?? domain.N;
+    const normalizedSteps = Number.isFinite(stepsValue) ? stepsValue : undefined;
+    const pulsesValue = Number.isFinite(domain.pulses) ? domain.pulses : domain.pulses;
+    const rotationValue = Number.isFinite(domain.rotation) ? domain.rotation : (domain.rotation ?? 0);
+    const activeKind = typeof pattern.kind === "string" ? pattern.kind : "binaryMask";
+    return {
+      kind: "euclidean",
+      version: 1,
+      meta: {
+        lensId,
+        lensInstanceId,
+        domain: {
+          steps: normalizedSteps,
+          pulses: pulsesValue,
+          rotation: rotationValue
+        }
+      },
+      payload: {
+        steps: normalizedSteps,
+        active: {
+          kind: activeKind,
+          values: pattern.values
+        }
+      }
+    };
+  }
+  return {
+    kind: "unknown",
+    version: 1,
+    meta: { lensId, lensInstanceId },
+    payload: raw
+  };
+}
+
 function debug(...args) {
   if (!DEBUG_RECOMPUTE || !import.meta.env || !import.meta.env.DEV) return;
   console.log(...args);
@@ -97,6 +148,7 @@ export function recomputeDerived(authoritativeState) {
   const draftOrderByLensInstanceId = {};
   const activeDraftIdByLensInstanceId = {};
   const lastErrorByLensInstanceId = {};
+  const vizByLensInstanceId = {};
 
   const authoritative = authoritativeState || {};
   const workspace = authoritative.workspace || {};
@@ -121,6 +173,9 @@ export function recomputeDerived(authoritativeState) {
     drafts: {
       draftsById,
       activeDraftIdByLensInstanceId
+    },
+    viz: {
+      vizByLensInstanceId
     }
   };
 
@@ -129,6 +184,7 @@ export function recomputeDerived(authoritativeState) {
       const cellKey = makeCellKey(laneId, row);
       const lensInstanceId = cells[cellKey];
       if (!lensInstanceId) continue;
+      vizByLensInstanceId[lensInstanceId] = null;
       draftOrderByLensInstanceId[lensInstanceId] = [];
       activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
       lastErrorByLensInstanceId[lensInstanceId] = undefined;
@@ -158,6 +214,11 @@ export function recomputeDerived(authoritativeState) {
         params,
         inputDraft,
         context: { lensInstanceId, laneId, row }
+      });
+
+      vizByLensInstanceId[lensInstanceId] = normalizeVizModel(result && result.vizModel, {
+        lensId,
+        lensInstanceId
       });
 
       let error = result && result.error ? errorMessage(result.error) : null;
@@ -223,6 +284,9 @@ export function recomputeDerived(authoritativeState) {
     },
     errors: {
       lastErrorByLensInstanceId
+    },
+    viz: {
+      vizByLensInstanceId
     },
     meta: {
       lastDerivedAt: 0,

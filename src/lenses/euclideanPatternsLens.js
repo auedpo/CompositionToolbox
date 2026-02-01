@@ -130,11 +130,11 @@ export const euclideanPatternsLens = {
     kind: "source"
   },
   defaultParams: {
-  steps: 16,
-  pulses: 7,
-  rotation: 0,
-  outputKind: "binaryMask"
-},
+    steps: 16,
+    pulses: 7,
+    rotation: 0,
+    outputKind: "binaryMask"
+  },
   paramSchema: createParamSchema([
     numberField({
       key: "steps",

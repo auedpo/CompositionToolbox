@@ -83,6 +83,10 @@ export const lensHost = {
       }
       return { drafts: [] };
     }
-    return { drafts: Array.isArray(result.drafts) ? result.drafts : [] };
+    return {
+      drafts: Array.isArray(result.drafts) ? result.drafts : [],
+      vizModel: result ? result.vizModel : undefined,
+      warnings: Array.isArray(result && result.warnings) ? result.warnings : undefined
+    };
   }
 };
