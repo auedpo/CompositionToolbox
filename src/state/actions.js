@@ -59,6 +59,11 @@ export function createActions(dispatch, get) {
     selectDraft(draftId) {
       dispatch({ type: ACTION_TYPES.SELECTION_SET, payload: { draftId } });
     },
+    setActiveView(view) {
+      const allowed = new Set(["workspace", "inventory", "desk"]);
+      if (!allowed.has(view)) return;
+      dispatch({ type: ACTION_TYPES.SELECTION_SET, payload: { view } });
+    },
     promoteDraftToInventory(draftId, options = {}) {
       const state = typeof get === "function" ? get() : null;
       const draft = state && state.derived && state.derived.drafts

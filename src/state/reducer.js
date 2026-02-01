@@ -31,6 +31,9 @@ export const ACTION_TYPES = {
   REDO: "REDO"
 };
 
+const DEFAULT_VIEW = "workspace";
+const ALLOWED_VIEWS = new Set(["workspace", "inventory", "desk"]);
+
 function ensureObject(value) {
   return value && typeof value === "object" ? value : {};
 }
@@ -456,6 +459,10 @@ function handleSelectionSet(current, payload) {
     ...current.selection,
     ...payload
   };
+  const incomingView = nextSelection.view;
+  const resolvedView = ALLOWED_VIEWS.has(incomingView)
+    ? incomingView
+    : (ALLOWED_VIEWS.has(current.selection.view) ? current.selection.view : DEFAULT_VIEW);
   const lensInstanceId = nextSelection.lensInstanceId;
   const placement = lensInstanceId ? current.workspace.lensPlacementById[lensInstanceId] : undefined;
   const laneCandidate = placement ? placement.laneId : nextSelection.laneId;
@@ -467,6 +474,7 @@ function handleSelectionSet(current, payload) {
     ...current,
     selection: {
       ...nextSelection,
+      view: resolvedView,
       laneId: resolvedLane,
       lensInstanceId: resolvedLensInstanceId,
       draftId: resolvedLensInstanceId ? nextSelection.draftId : undefined

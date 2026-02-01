@@ -75,6 +75,7 @@ export function createEmptyAuthoritative() {
       nodeOrder: []
     },
     selection: {
+      view: "workspace",
       laneId: undefined,
       lensInstanceId: undefined,
       draftId: undefined,
