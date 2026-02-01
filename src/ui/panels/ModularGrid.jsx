@@ -19,6 +19,7 @@ export default function ModularGrid() {
   const rows = useStore(selectGridRows);
   const cells = grid.cells || {};
   const rowIndexes = useMemo(() => Array.from({ length: rows }, (_, index) => index), [rows]);
+  const laneCountStyle = useMemo(() => ({ "--lane-count": laneOrder.length }), [laneOrder.length]);
   const lensInstancesById = useLensInstancesById();
   const { activeDraftIdByLensInstanceId, lastErrorByLensInstanceId } = useDraftSelectors();
   const lensRegistry = useLensRegistry();
@@ -205,7 +206,7 @@ export default function ModularGrid() {
       <div className="workspace-panel-header">Modular Grid</div>
       <div className="workspace-panel-body">
         <div className="modular-grid">
-          <div className="modular-grid-lane-headers">
+          <div className="modular-grid-lane-headers" style={laneCountStyle}>
             {laneOrder.map((laneId) => {
               const lane = lanesById[laneId] || {};
               const isSelectedLane = selection.laneId === laneId;
@@ -224,7 +225,7 @@ export default function ModularGrid() {
               );
             })}
           </div>
-          <div className="modular-grid-lanes">
+          <div className="modular-grid-lanes" style={laneCountStyle}>
             {laneOrder.map((laneId) => (
               <div key={laneId} className="modular-grid-lane">
                 {rowIndexes.map((rowIndex) => {
@@ -255,7 +256,6 @@ export default function ModularGrid() {
                           <div className="modular-grid-lens-name">{label}</div>
                           <div className="modular-grid-lens-meta">
                             <span>{lensInstanceId}</span>
-                            {hasActive ? <span className="modular-grid-lens-dot" /> : null}
                           </div>
                         </button>
                       ) : (

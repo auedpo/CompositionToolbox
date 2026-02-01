@@ -8,7 +8,6 @@ export default function LensPill({ label, isSelected, hasError, hasActiveDraft, 
       onClick={onSelect}
     >
       <span>{label}</span>
-      {hasActiveDraft ? <span className="lens-pill-dot" aria-label="Active draft">?</span> : null}
     </button>
   );
 }
