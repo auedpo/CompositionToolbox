@@ -35,3 +35,6 @@ Thumbs.db
 AGENTS_legacy.md
 src.zip
 .gitignore
+build_patch.py
+old.css
+patch.diff
