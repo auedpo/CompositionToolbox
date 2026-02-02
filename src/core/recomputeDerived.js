@@ -143,6 +143,112 @@ function errorMessage(error) {
   return "Lens evaluation failed.";
 }
 
+function isPackedCarrierDraft(draft) {
+  if (!draft || typeof draft !== "object") return false;
+  const meta = draft.meta;
+  if (!meta || typeof meta !== "object") return false;
+  const carrier = meta.carrier;
+  if (carrier && typeof carrier === "object" && carrier.kind === "packDrafts") {
+    return true;
+  }
+  const provenance = meta.provenance;
+  if (provenance && typeof provenance === "object" && provenance.packaging === "packDrafts") {
+    return true;
+  }
+  return false;
+}
+
+function buildFrameInputDraft({ values, frameIndex, sourceDraftId, fallbackLensInstanceId }) {
+  return makeDraft({
+    lensId: "batchFrame",
+    lensInstanceId: fallbackLensInstanceId,
+    type: "batchFrame",
+    values,
+    meta: {
+      provenance: {
+        sourceDraftId,
+        frameIndex
+      }
+    }
+  });
+}
+
+function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
+  if (!inputDraft || !isPackedCarrierDraft(inputDraft)) {
+    const result = lensHost.apply({ lensId, params, inputDraft, context });
+    return { ...result, isBatched: false };
+  }
+
+  const payload = inputDraft.payload && typeof inputDraft.payload === "object"
+    ? inputDraft.payload
+    : null;
+  if (!payload) {
+    return { drafts: [], isBatched: true };
+  }
+
+  const frames = Array.isArray(payload.values) ? payload.values : null;
+  if (!frames) {
+    return { drafts: [], isBatched: true };
+  }
+
+  const sourceDraftId = typeof inputDraft.draftId === "string" ? inputDraft.draftId : null;
+  const fallbackLensInstanceId = inputDraft.lensInstanceId
+    || (context && context.lensInstanceId)
+    || `${lensId || "lens"}-batchFrame`;
+
+  const aggregated = [];
+  const warnings = [];
+  let vizModel;
+  let aggregatedError = null;
+
+  for (let frameIndex = 0; frameIndex < frames.length; frameIndex += 1) {
+    let frameDraft;
+    try {
+      frameDraft = buildFrameInputDraft({
+        values: frames[frameIndex],
+        frameIndex,
+        sourceDraftId,
+        fallbackLensInstanceId
+      });
+    } catch (draftError) {
+      if (!aggregatedError) aggregatedError = errorMessage(draftError);
+      continue;
+    }
+
+    const frameResult = lensHost.apply({
+      lensId,
+      params,
+      inputDraft: frameDraft,
+      context
+    });
+
+    if (vizModel === undefined && frameResult && Object.prototype.hasOwnProperty.call(frameResult, "vizModel")) {
+      vizModel = frameResult.vizModel;
+    }
+
+    if (frameResult && Array.isArray(frameResult.warnings) && frameResult.warnings.length) {
+      warnings.push(...frameResult.warnings);
+    }
+
+    if (frameResult && frameResult.error) {
+      if (!aggregatedError) aggregatedError = frameResult.error;
+      continue;
+    }
+
+    if (frameResult && Array.isArray(frameResult.drafts) && frameResult.drafts.length) {
+      aggregated.push(...frameResult.drafts);
+    }
+  }
+
+  return {
+    drafts: aggregated,
+    vizModel,
+    warnings: warnings.length ? warnings : undefined,
+    error: aggregatedError,
+    isBatched: true
+  };
+}
+
 export function recomputeDerived(authoritativeState) {
   const draftsById = {};
   const draftOrderByLensInstanceId = {};
@@ -212,12 +318,13 @@ export function recomputeDerived(authoritativeState) {
         : {};
       const paramsHash = buildParamsHash({ params, lensInput });
       const inputRefs = buildInputRefs({ lensInstanceId, authoritative, derivedSoFar });
-      const result = lensHost.apply({
+      const result = applyLensWithBatching({
         lensId,
         params,
         inputDraft,
         context: { lensInstanceId, laneId, row }
       });
+      const isBatched = Boolean(result && result.isBatched);
 
       vizByLensInstanceId[lensInstanceId] = normalizeVizModel(result && result.vizModel, {
         lensId,
@@ -226,33 +333,34 @@ export function recomputeDerived(authoritativeState) {
 
       let error = result && result.error ? errorMessage(result.error) : null;
       const normalized = [];
-      if (!error) {
-        const rawDrafts = Array.isArray(result && result.drafts) ? result.drafts : [];
-        rawDrafts.forEach((raw, index) => {
+      const rawDrafts = Array.isArray(result && result.drafts) ? result.drafts : [];
+      if (!error || isBatched) {
+        for (let rawIndex = 0; rawIndex < rawDrafts.length; rawIndex += 1) {
+          const raw = rawDrafts[rawIndex];
           try {
             const draft = normalizeLensDraft(raw, {
               lensId,
               lensInstanceId,
               paramsHash,
               inputRefs,
-              index
+              index: rawIndex
             });
             normalized.push(draft);
           } catch (err) {
             error = errorMessage(err);
+            normalized.length = 0;
+            break;
           }
-        });
+        }
       }
 
-      if (error) {
-        normalized.length = 0;
-      } else {
+      if (!(error && !isBatched)) {
         normalized.forEach((draft) => {
           draftsById[draft.draftId] = draft;
         });
       }
 
-      const draftIds = error ? [] : normalized.map((draft) => draft.draftId);
+      const draftIds = (error && !isBatched) ? [] : normalized.map((draft) => draft.draftId);
       draftOrderByLensInstanceId[lensInstanceId] = draftIds;
       const outputSelection = instance.outputSelection && typeof instance.outputSelection === "object"
         ? instance.outputSelection
