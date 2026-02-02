@@ -95,6 +95,22 @@ export const selectDraftOrderByLensInstanceId = (state) => state.derived.drafts.
 
 export const selectActiveDraftIdByLensInstanceId = (state) => state.derived.drafts.activeDraftIdByLensInstanceId;
 
+export const selectSelectedDraftIdsByLensInstanceId = (state) => {
+  return state.derived.drafts.selectedDraftIdsByLensInstanceId || {};
+};
+
+export const selectSelectedDraftIdsForLensInstance = (state, lensInstanceId) => {
+  if (!lensInstanceId) return [];
+  const map = selectSelectedDraftIdsByLensInstanceId(state);
+  return map && map[lensInstanceId] ? map[lensInstanceId] : [];
+};
+
+export const selectSelectedDraftsForLensInstance = (state, lensInstanceId) => {
+  const draftsById = selectDraftsById(state);
+  const ids = selectSelectedDraftIdsForLensInstance(state, lensInstanceId);
+  return ids.map((id) => draftsById[id]).filter(Boolean);
+};
+
 export const selectLastErrorByLensInstanceId = (state) => state.derived.errors.lastErrorByLensInstanceId;
 
 export const selectDraftsForLensInstance = (state, lensInstanceId) => {

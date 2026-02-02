@@ -147,6 +147,7 @@ export function recomputeDerived(authoritativeState) {
   const draftsById = {};
   const draftOrderByLensInstanceId = {};
   const activeDraftIdByLensInstanceId = {};
+  const selectedDraftIdsByLensInstanceId = {};
   const lastErrorByLensInstanceId = {};
   const vizByLensInstanceId = {};
 
@@ -172,7 +173,8 @@ export function recomputeDerived(authoritativeState) {
   const derivedSoFar = {
     drafts: {
       draftsById,
-      activeDraftIdByLensInstanceId
+      activeDraftIdByLensInstanceId,
+      selectedDraftIdsByLensInstanceId
     },
     viz: {
       vizByLensInstanceId
@@ -187,6 +189,7 @@ export function recomputeDerived(authoritativeState) {
       vizByLensInstanceId[lensInstanceId] = null;
       draftOrderByLensInstanceId[lensInstanceId] = [];
       activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
+      selectedDraftIdsByLensInstanceId[lensInstanceId] = [];
       lastErrorByLensInstanceId[lensInstanceId] = undefined;
       const instance = lensInstancesById[lensInstanceId];
       if (!instance || typeof instance !== "object") continue;
@@ -251,6 +254,19 @@ export function recomputeDerived(authoritativeState) {
 
       const draftIds = error ? [] : normalized.map((draft) => draft.draftId);
       draftOrderByLensInstanceId[lensInstanceId] = draftIds;
+      const outputSelection = instance.outputSelection && typeof instance.outputSelection === "object"
+        ? instance.outputSelection
+        : { mode: "active", selectedIndices: [] };
+      const indices = Array.isArray(outputSelection.selectedIndices)
+        ? outputSelection.selectedIndices
+        : [];
+      const selectedIds = [];
+      indices.forEach((idx) => {
+        if (!Number.isInteger(idx) || idx < 0) return;
+        const draftId = draftIds[idx];
+        if (draftId) selectedIds.push(draftId);
+      });
+      selectedDraftIdsByLensInstanceId[lensInstanceId] = error ? [] : selectedIds;
       const selectionMap = authoritative.selection && authoritative.selection.activeDraftIdByLensInstanceId
         ? authoritative.selection.activeDraftIdByLensInstanceId
         : {};
@@ -287,7 +303,8 @@ export function recomputeDerived(authoritativeState) {
     drafts: {
       draftsById,
       draftOrderByLensInstanceId,
-      activeDraftIdByLensInstanceId
+      activeDraftIdByLensInstanceId,
+      selectedDraftIdsByLensInstanceId
     },
     errors: {
       lastErrorByLensInstanceId
