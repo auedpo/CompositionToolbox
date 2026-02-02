@@ -8,6 +8,7 @@ import { inputListLens } from "./inputList.js";
 import { passthroughLens } from "./passthroughLens.js";
 import { shiftSweepLens } from "./transformers/shiftSweep.js";
 import { xdxLens } from "./xdxLens.js";
+import { permutationsLens } from "./permutationsLens.js";
 
 const registry = new Map();
 
@@ -35,3 +36,4 @@ registerLens(passthroughLens);
 registerLens(basicMathTransformerLens);
 registerLens(shiftSweepLens);
 registerLens(xdxLens);
+registerLens(permutationsLens);

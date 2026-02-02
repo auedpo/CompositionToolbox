@@ -1,9 +1,26 @@
-import React from "react";
+import React, { useMemo } from "react";
 
 import { FieldRenderer } from "./fieldRenderers.jsx";
 
-export default function SchemaParamEditor({ schema, params, onPatch, onReplace }) {
+function withDynamicWarnings(fields = [], { lensId, params }) {
+  if (lensId !== "permutations" || !Array.isArray(params?.bag)) {
+    return fields;
+  }
+  return fields.map((field) => {
+    if (field && field.key === "maxPermutations" && params.bag.length > 6) {
+      const bagCount = params.bag.length;
+      return {
+        ...field,
+        warning: `Bag contains ${bagCount} items; keep the cap at 720 to avoid factorial blowups or enter 0 for the full factorial.`
+      };
+    }
+    return field;
+  });
+}
+
+export default function SchemaParamEditor({ schema, params, onPatch, onReplace, lensId }) {
   const fields = schema && Array.isArray(schema.fields) ? schema.fields : [];
+  const dynamicFields = useMemo(() => withDynamicWarnings(fields, { lensId, params }), [fields, lensId, params]);
   const applyPatch = (patch) => {
     if (typeof onPatch === "function") {
       onPatch(patch);
@@ -14,12 +31,12 @@ export default function SchemaParamEditor({ schema, params, onPatch, onReplace }
       onReplace({ ...base, ...(patch || {}) });
     }
   };
-  if (!fields.length) {
+  if (!dynamicFields.length) {
     return <div className="hint">No fields configured.</div>;
   }
   return (
     <div>
-      {fields.map((field, index) => (
+      {dynamicFields.map((field, index) => (
         <FieldRenderer
           key={field.key || field.sourceKey || field.targetKey || field.label || `${field.type}-${index}`}
           field={field}

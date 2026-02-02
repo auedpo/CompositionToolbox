@@ -52,6 +52,7 @@ export default function ParamsPanel() {
               <SchemaParamEditor
                 schema={schema}
                 params={lensParams}
+                lensId={lensId}
                 onPatch={patchParams}
                 onReplace={replaceParams}
               />

@@ -618,7 +618,7 @@ button, input, select, textarea {
 
 .modular-grid-status {
   font-size: var(--font-size-sm);
-  color: var(--status-warning);
+  color: var(--status-warning-on);
 }
 
 .modular-grid-lane-headers {
@@ -987,7 +987,8 @@ button, input, select, textarea {
 }
 
 .lane-lens-card-error {
-  color: var(--status-danger);
+  color: var(--status-danger-on);
+  background-color: var(--status-danger-soft);
   font-size: var(--font-size-sm);
 }
 
@@ -997,8 +998,14 @@ button, input, select, textarea {
 }
 
 .hint {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--text-2);
+}
+.hint--warning {
+  color: var(--status-warning-on);
+  padding: var(--space-2);
+  background-color: var(--status-warning-soft);
+  outline: 1px solid var(--status-warning-border);
 }
 
 .component-field {
@@ -1085,7 +1092,7 @@ button, input, select, textarea {
 .workspace-panel-error {
   border: 1px solid var(--status-danger-border);
   background-color: var(--status-danger-soft);
-  color: var(--status-danger);
+  color: var(--status-danger-on);
   padding: var(--space-2);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);

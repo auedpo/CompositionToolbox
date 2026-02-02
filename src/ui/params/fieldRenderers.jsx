@@ -12,6 +12,11 @@ function getParamValue(params, key) {
   return params[key];
 }
 
+function FieldWarning({ warning }) {
+  if (!warning) return null;
+  return <div className="hint hint--warning">{warning}</div>;
+}
+
 function FieldLabel({ label }) {
   if (!label) return null;
   return <div className="hint">{label}</div>;
@@ -44,6 +49,7 @@ function NumberField({ field, params, onPatch }) {
   const value = Number.isFinite(current) ? current : "";
   return (
     <div>
+      <FieldWarning warning={field.warning} />
       <FieldLabel label={field.label || field.key} />
       <input
         type="number"
