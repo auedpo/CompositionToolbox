@@ -58,6 +58,19 @@ export default function ModularGrid() {
     return counts;
   }, [cells, laneOrder, rowIndexes]);
 
+  const laneWarningMap = useMemo(() => {
+    const map = {};
+    laneOrder.forEach((laneId) => {
+      const hasWarning = rowIndexes.some((rowIndex) => {
+        const cellKey = makeCellKey(laneId, rowIndex);
+        const lensInstanceId = cells[cellKey];
+        return Boolean(lensInstanceId && lastErrorByLensInstanceId[lensInstanceId]);
+      });
+      map[laneId] = hasWarning;
+    });
+    return map;
+  }, [cells, laneOrder, rowIndexes, lastErrorByLensInstanceId]);
+
   const handleCellEnter = (cellKey) => {
     if (!dragState) return;
     setHoveredCellKey(cellKey);
@@ -210,11 +223,12 @@ export default function ModularGrid() {
             {laneOrder.map((laneId) => {
               const lane = lanesById[laneId] || {};
               const isSelectedLane = selection.laneId === laneId;
+              const laneHasWarning = laneWarningMap[laneId];
               return (
                 <button
                   key={laneId}
                   type="button"
-                  className={`modular-grid-lane-header${isSelectedLane ? " is-selected" : ""}`}
+                  className={`modular-grid-lane-header${isSelectedLane ? " is-selected" : ""}${laneHasWarning ? " has-danger" : ""}`}
                   onClick={() => selectLane(laneId)}
                 >
                   <div className="modular-grid-lane-title">{lane.name || laneId}</div>

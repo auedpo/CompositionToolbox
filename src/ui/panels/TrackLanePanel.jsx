@@ -11,7 +11,23 @@ import {
 } from "../hooks/useWorkspaceSelectors.js";
 import { selectGridRows, selectGrid } from "../../state/selectors.js";
 import { makeCellKey } from "../../state/schema.js";
-import LensPill from "../components/LensPill.jsx";
+
+function formatDraftTitle(draft) {
+  if (!draft) return "";
+  return draft.summary || draft.type || draft.draftId || "Active draft";
+}
+
+function formatDraftPreview(values) {
+  if (values === undefined) return "";
+  try {
+    const text = Array.isArray(values)
+      ? values.map((value) => String(value)).join(", ")
+      : String(values);
+    return text.length > 160 ? `${text.slice(0, 160)}...` : text;
+  } catch {
+    return "Unserializable payload.";
+  }
+}
 
 export default function TrackLanePanel() {
   const laneOrder = useLaneOrder();
@@ -19,7 +35,11 @@ export default function TrackLanePanel() {
   const lensInstancesById = useLensInstancesById();
   const grid = useStore(selectGrid);
   const rows = useStore(selectGridRows);
-  const { activeDraftIdByLensInstanceId, lastErrorByLensInstanceId } = useDraftSelectors();
+  const {
+    activeDraftIdByLensInstanceId,
+    lastErrorByLensInstanceId,
+    draftsById
+  } = useDraftSelectors();
   const { selection, selectLane, selectLens } = useSelection();
   const lensRegistry = useLensRegistry();
 
@@ -53,54 +73,95 @@ export default function TrackLanePanel() {
     return name || instance.lensId;
   };
 
+  const selectedLaneId = selection.laneId;
+  const selectedLane = selectedLaneId ? lanesById[selectedLaneId] : null;
+  const selectedLaneLensIds = selectedLaneId ? (laneLensMap[selectedLaneId] || []) : [];
+  const laneDisplayName = selectedLane
+    ? (selectedLane.name || selectedLane.laneId)
+    : selectedLaneId || "Lane overview";
+  const lensCountLabel = `${selectedLaneLensIds.length} lens${selectedLaneLensIds.length === 1 ? "" : "es"}`;
+  const selectionPlaceholder = selectedLaneId
+    ? `Lane ${laneDisplayName}`
+    : "Select a lane to inspect its lenses";
+
   return (
-    <section className="workspace-panel workspace-panel-track">
-      <div className="workspace-panel-header">Lane overview</div>
-      <div className="workspace-panel-body">
-        {laneOrder.length === 0 ? (
-          <div className="workspace-placeholder">No lanes yet.</div>
-        ) : (
-          <div className="track-lane-list">
-            {laneOrder.map((laneId) => {
+    <section className="workspace-panel workspace-panel-track lane-overview-panel">
+      <div className="workspace-panel-header lane-overview-header">
+        <div className="lane-overview-header-main">
+          <div className="lane-overview-title">{laneDisplayName}</div>
+          <div className="lane-overview-count">{lensCountLabel}</div>
+        </div>
+        <div className="lane-overview-picker">
+          {laneOrder.length ? (
+            laneOrder.map((laneId) => {
               const lane = lanesById[laneId];
-              const lensIds = laneLensMap[laneId] || [];
+              const label = lane ? (lane.name || lane.laneId) : laneId;
               const isLaneSelected = selection.laneId === laneId;
               return (
-                <div key={laneId} className="track-lane">
-                  <div className="track-lane-header">
-                    <button
-                      type="button"
-                      className={`component-pill${isLaneSelected ? " is-focused" : ""}`}
-                      onClick={() => selectLane(laneId)}
-                    >
-                      {lane ? (lane.name || lane.laneId) : laneId}
-                    </button>
-                    <div className="track-lane-count">{lensIds.length} / {rows}</div>
+                <button
+                  key={laneId}
+                  type="button"
+                  className={`component-pill${isLaneSelected ? " is-focused" : ""}`}
+                  onClick={() => selectLane(laneId)}
+                >
+                  {label}
+                </button>
+              );
+            })
+          ) : (
+            <div className="workspace-placeholder">No lanes yet.</div>
+          )}
+        </div>
+      </div>
+      <div className="workspace-panel-body lane-overview-body">
+        {!selectedLaneId ? (
+          <div className="workspace-placeholder">{selectionPlaceholder}</div>
+        ) : selectedLaneLensIds.length === 0 ? (
+          <div className="workspace-placeholder">No lenses in this lane.</div>
+        ) : (
+          <div className="lane-lens-list">
+            {selectedLaneLensIds.map((lensInstanceId) => {
+              const instance = lensInstancesById[lensInstanceId];
+              const label = instance ? getLabel(instance) : lensInstanceId;
+              const activeDraftId = activeDraftIdByLensInstanceId[lensInstanceId];
+              const activeDraft = activeDraftId ? draftsById[activeDraftId] : null;
+              const draftTitle = formatDraftTitle(activeDraft);
+              const draftPreview = activeDraft ? formatDraftPreview(activeDraft.payload && activeDraft.payload.values) : "";
+              const errorMessage = lastErrorByLensInstanceId[lensInstanceId];
+              const hasError = Boolean(errorMessage);
+              const isSelected = selection.lensInstanceId === lensInstanceId;
+              return (
+                <button
+                  key={lensInstanceId}
+                  type="button"
+                  className={`lane-lens-card${isSelected ? " is-selected" : ""}${hasError ? " is-error" : ""}`}
+                  onClick={() => selectLens(lensInstanceId)}
+                >
+                  <div className="lane-lens-card-header">
+                    <span className="lane-lens-card-name">{label}</span>
+                    <span className="lane-lens-card-status">
+                      {activeDraft ? "Active draft" : "No active draft"}
+                    </span>
                   </div>
-                  {lensIds.length ? (
-                    <div className="track-lane-pills">
-                      {lensIds.map((lensInstanceId) => {
-                        const instance = lensInstancesById[lensInstanceId];
-                        const label = instance ? getLabel(instance) : lensInstanceId;
-                        const hasError = Boolean(lastErrorByLensInstanceId[lensInstanceId]);
-                        const hasActive = Boolean(activeDraftIdByLensInstanceId[lensInstanceId]);
-                        const isSelected = selection.lensInstanceId === lensInstanceId;
-                        return (
-                          <LensPill
-                            key={lensInstanceId}
-                            label={label}
-                            isSelected={isSelected}
-                            hasError={hasError}
-                            hasActiveDraft={hasActive}
-                            onSelect={() => selectLens(lensInstanceId)}
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="workspace-placeholder">No lenses in this lane.</div>
-                  )}
-                </div>
+                  <div className="lane-lens-card-body">
+                    {activeDraft ? (
+                      <>
+                        <div className="lane-lens-card-title">{draftTitle}</div>
+                        <div className="lane-lens-card-meta">
+                          <span className="lane-lens-card-id">{activeDraft.draftId}</span>
+                          {draftPreview ? (
+                            <span className="lane-lens-card-preview">{draftPreview}</span>
+                          ) : null}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="lane-lens-card-empty">No drafts yet for this lens.</div>
+                    )}
+                    {hasError && errorMessage ? (
+                      <div className="lane-lens-card-error">{errorMessage}</div>
+                    ) : null}
+                  </div>
+                </button>
               );
             })}
           </div>

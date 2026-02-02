@@ -222,13 +222,23 @@ function normalizeSelection(selection = {}, laneOrder = [], lensInstancesById = 
     }
     return acc;
   }, { ...baseSelection.activeDraftIdByLensInstanceId });
+  const incomingActiveLensMap = ensureObject(incoming.activeLensByLaneId);
+  const normalizedActiveLens = Object.keys(incomingActiveLensMap).reduce((acc, laneId) => {
+    const lensInstanceId = incomingActiveLensMap[laneId];
+    if (!lensInstanceId) return acc;
+    if (!laneOrder.includes(laneId)) return acc;
+    if (!lensInstancesById[lensInstanceId]) return acc;
+    acc[laneId] = lensInstanceId;
+    return acc;
+  }, { ...baseSelection.activeLensByLaneId });
   return {
     ...baseSelection,
     ...incoming,
     laneId: resolvedLane,
     lensInstanceId: resolvedLensId,
     draftId,
-    activeDraftIdByLensInstanceId: normalizedActive
+    activeDraftIdByLensInstanceId: normalizedActive,
+    activeLensByLaneId: normalizedActiveLens
   };
 }
 
@@ -446,6 +456,13 @@ function handleRemoveLens(current, payload) {
     nextSelection.lensInstanceId = undefined;
     nextSelection.draftId = undefined;
   }
+  const nextActiveLensByLaneId = {
+    ...ensureObject(nextSelection.activeLensByLaneId)
+  };
+  if (placement.laneId && nextActiveLensByLaneId[placement.laneId] === lensInstanceId) {
+    delete nextActiveLensByLaneId[placement.laneId];
+  }
+  nextSelection.activeLensByLaneId = nextActiveLensByLaneId;
   return {
     ...markDirty(current),
     workspace: {
@@ -544,18 +561,38 @@ function handleSelectionSet(current, payload) {
     ? lensInstanceId
     : undefined;
 
-  const activeMap = ensureObject(current.selection.activeDraftIdByLensInstanceId);
-  const targetLensInstanceId = resolvedLensInstanceId;
+  const activeDraftMap = ensureObject(current.selection.activeDraftIdByLensInstanceId);
+  const activeLensMap = ensureObject(current.selection.activeLensByLaneId);
+  let finalLensInstanceId = resolvedLensInstanceId;
+  if (!finalLensInstanceId && resolvedLane) {
+    const storedLensId = activeLensMap[resolvedLane];
+    const storedLensPlacement = storedLensId ? current.workspace.lensPlacementById[storedLensId] : undefined;
+    if (storedLensId && storedLensPlacement && storedLensPlacement.laneId === resolvedLane
+      && current.lenses.lensInstancesById[storedLensId]) {
+      finalLensInstanceId = storedLensId;
+    }
+  }
+
+  const finalLensPlacement = finalLensInstanceId
+    ? current.workspace.lensPlacementById[finalLensInstanceId]
+    : undefined;
+  const finalLaneId = finalLensPlacement && finalLensPlacement.laneId
+    ? finalLensPlacement.laneId
+    : resolvedLane;
   const draftFromPayload = typeof payload.draftId === "string"
     ? payload.draftId
     : undefined;
-  const storedActiveDraft = targetLensInstanceId ? activeMap[targetLensInstanceId] : undefined;
-  const resolvedDraftId = targetLensInstanceId
+  const storedActiveDraft = finalLensInstanceId ? activeDraftMap[finalLensInstanceId] : undefined;
+  const resolvedDraftId = finalLensInstanceId
     ? (draftFromPayload || storedActiveDraft)
     : undefined;
-  const nextActiveMap = { ...activeMap };
-  if (targetLensInstanceId && resolvedDraftId) {
-    nextActiveMap[targetLensInstanceId] = resolvedDraftId;
+  const nextActiveMap = { ...activeDraftMap };
+  if (finalLensInstanceId && resolvedDraftId) {
+    nextActiveMap[finalLensInstanceId] = resolvedDraftId;
+  }
+  const nextActiveLensMap = { ...activeLensMap };
+  if (finalLensInstanceId && finalLaneId) {
+    nextActiveLensMap[finalLaneId] = finalLensInstanceId;
   }
 
   return {
@@ -563,10 +600,11 @@ function handleSelectionSet(current, payload) {
     selection: {
       ...nextSelection,
       view: resolvedView,
-      laneId: resolvedLane,
-      lensInstanceId: resolvedLensInstanceId,
+      laneId: finalLaneId,
+      lensInstanceId: finalLensInstanceId,
       draftId: resolvedDraftId,
-      activeDraftIdByLensInstanceId: nextActiveMap
+      activeDraftIdByLensInstanceId: nextActiveMap,
+      activeLensByLaneId: nextActiveLensMap
     }
   };
 }

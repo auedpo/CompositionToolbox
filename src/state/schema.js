@@ -80,7 +80,8 @@ export function createEmptyAuthoritative() {
       lensInstanceId: undefined,
       draftId: undefined,
       panel: undefined,
-      activeDraftIdByLensInstanceId: {}
+      activeDraftIdByLensInstanceId: {},
+      activeLensByLaneId: {}
     },
     persistence: {
       schemaVersion: SCHEMA_VERSION,

@@ -639,6 +639,16 @@ button, input, select, textarea {
   color: var(--selection-on);
 }
 
+.modular-grid-lane-header.has-danger {
+  background-color: var(--status-danger-soft);
+  color: var(--status-danger-on);
+}
+
+.modular-grid-lane-header.has-danger.is-selected {
+  border-color: var(--status-danger-border);
+  background-color: var(--status-danger-soft);
+}
+
 .modular-grid-lanes {
   min-width: 0;
   display: grid;
@@ -722,7 +732,15 @@ button, input, select, textarea {
 }
 
 .modular-grid-lens.has-error {
-  border-color: var(--status-danger);
+  border-color: var(--status-danger-border);
+  background-color: var(--status-danger-soft);
+  color: var(--status-danger-on);
+  /* box-shadow: 0 0 0 1px color-mix(in srgb, var(--status-danger) 40%, transparent 60%); */
+}
+
+.modular-grid-lens.has-error.is-selected {
+  /* box-shadow: 0 0 0 1px var(--status-danger-border), 0 0 0 2px var(--selection-border);
+  background-color: color-mix(in srgb, var(--status-danger) 16%, var(--selection-soft) 84%); */
 }
 
 .modular-grid-lane-title,
@@ -826,33 +844,138 @@ button, input, select, textarea {
   z-index: 4000;
 }
 
-.track-lane-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.track-lane {
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-md);
-  background-color: var(--surface-2);
-  padding: var(--space-2);
+.lane-overview-header {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-.track-lane-header {
+.lane-overview-header-main {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-end;
   gap: var(--space-2);
 }
 
-.track-lane-pills {
+.lane-overview-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.lane-overview-count {
+  font-size: 0.85rem;
+  color: var(--text-3);
+}
+
+.lane-overview-picker {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-1);
   flex-wrap: wrap;
+}
+
+.lane-overview-picker .component-pill {
+  font-size: 0.85rem;
+}
+
+.lane-overview-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lane-lens-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lane-lens-card {
+  width: 100%;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-2);
+  padding: var(--space-2);
+  color: var(--text-1);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.lane-lens-card:hover:not(:disabled) {
+  border-color: var(--accent-secondary-border);
+}
+
+.lane-lens-card:focus-visible {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-soft);
+}
+
+.lane-lens-card.is-selected {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-1);
+}
+
+.lane-lens-card.is-error {
+  border-color: var(--status-danger-border);
+}
+
+.lane-lens-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.lane-lens-card-name {
+  font-weight: var(--font-weight-semibold);
+}
+
+.lane-lens-card-status {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.lane-lens-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.lane-lens-card-title {
+  font-size: 0.95rem;
+}
+
+.lane-lens-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+.lane-lens-card-id {
+  font-family: "SFMono-Regular", "Fira Code", monospace;
+  color: var(--text-3);
+}
+
+.lane-lens-card-preview {
+  color: var(--text-3);
+}
+
+.lane-lens-card-empty {
+  color: var(--text-2);
+  font-size: 0.85rem;
+}
+
+.lane-lens-card-error {
+  color: var(--status-danger);
+  font-size: 0.8rem;
 }
 
 .meta-line {
