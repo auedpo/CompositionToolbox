@@ -16,16 +16,13 @@ function resolveRefDraftId(ref) {
   return ref.draftId || ref.sourceDraftId || null;
 }
 
-function findUpstreamActiveDraftId({ lensInstanceId, authoritative, derivedSoFar }) {
-  const workspace = authoritative && authoritative.workspace ? authoritative.workspace : {};
+function findUpstreamLensInstanceId({ lensInstanceId, authoritative }) {
+  if (!lensInstanceId || !authoritative) return null;
+  const workspace = authoritative.workspace || {};
   const placement = workspace.lensPlacementById && workspace.lensPlacementById[lensInstanceId];
   if (!placement) return null;
   const grid = workspace.grid || {};
-  const rows = Number.isFinite(grid.rows) ? grid.rows : 0;
   const cells = grid.cells || {};
-  const activeByLens = derivedSoFar && derivedSoFar.drafts
-    ? derivedSoFar.drafts.activeDraftIdByLensInstanceId || {}
-    : {};
   const { laneId, row } = placement;
   if (typeof row !== "number" || row <= 0) return null;
 
@@ -33,8 +30,7 @@ function findUpstreamActiveDraftId({ lensInstanceId, authoritative, derivedSoFar
     const cellKey = makeCellKey(laneId, currentRow);
     const upstreamLensInstanceId = cells[cellKey];
     if (!upstreamLensInstanceId) continue;
-    const activeDraftId = activeByLens ? activeByLens[upstreamLensInstanceId] : undefined;
-    if (activeDraftId) return activeDraftId;
+    return upstreamLensInstanceId;
   }
 
   return null;
@@ -61,8 +57,48 @@ export function buildInputRefs({ lensInstanceId, authoritative, derivedSoFar } =
     return sourceDraftId ? [{ mode: "ref", sourceDraftId }] : [];
   }
 
-  const upstreamDraftId = findUpstreamActiveDraftId({ lensInstanceId, authoritative, derivedSoFar });
-  return upstreamDraftId ? [{ mode: "auto", sourceDraftId: upstreamDraftId }] : [];
+  const upstreamLensInstanceId = findUpstreamLensInstanceId({ lensInstanceId, authoritative });
+  if (!upstreamLensInstanceId) return [];
+
+  const pick = input.pick === "selected" ? "selected" : "active";
+  const packaging = input.packaging === "packDrafts" ? "packDrafts" : "single";
+  const activeByLens = derivedSoFar && derivedSoFar.drafts
+    ? derivedSoFar.drafts.activeDraftIdByLensInstanceId || {}
+    : {};
+  const selectedByLens = derivedSoFar && derivedSoFar.drafts
+    ? derivedSoFar.drafts.selectedDraftIdsByLensInstanceId || {}
+    : {};
+  const selectedIds = Array.isArray(selectedByLens[upstreamLensInstanceId])
+    ? selectedByLens[upstreamLensInstanceId]
+    : [];
+  const activeDraftId = activeByLens[upstreamLensInstanceId];
+
+  let sourceDraftIds = [];
+  if (pick === "selected" && selectedIds.length > 0) {
+    sourceDraftIds = selectedIds.slice();
+  } else if (activeDraftId) {
+    sourceDraftIds = [activeDraftId];
+  }
+
+  if (packaging === "single") {
+    if (!sourceDraftIds[0]) return [];
+    if (pick === "active") {
+      return [{ mode: "auto", sourceDraftId: sourceDraftIds[0] }];
+    }
+    return [{
+      mode: "auto",
+      pick,
+      packaging: "single",
+      sourceDraftId: sourceDraftIds[0]
+    }];
+  }
+
+  return [{
+    mode: "auto",
+    pick,
+    packaging: "packDrafts",
+    sourceDraftIds: sourceDraftIds.slice()
+  }];
 }
 
 export function buildStableDraftId({
