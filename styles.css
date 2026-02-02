@@ -60,15 +60,18 @@ To add new components safely, start in the components layer, reuse tokens, and k
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-spacing-tight: -0.01em;
+  --font-spacing-loose: 0.1em;
+  --font-spacing-wide: 0.5em;
 
   /* Mix channels + strengths */
   --mix-surface: var(--surface-1);
   --mix-ink: var(--text-1);
-  --soft-mix: 18%;
+  --soft-mix: 40%;
   --border-mix: 55%;
 
   /* Accents */
-  --accent-primary: #6a857c;
+  --accent-primary: #85c9b3;
   --accent-primary-soft: color-mix(in srgb, var(--accent-primary) var(--soft-mix), var(--mix-surface));
   --accent-primary-border: color-mix(in srgb, var(--accent-primary) var(--border-mix), var(--mix-ink));
   --accent-primary-on: var(--text-1);
@@ -102,7 +105,7 @@ To add new components safely, start in the components layer, reuse tokens, and k
   --status-warning-border: color-mix(in srgb, var(--status-warning) var(--border-mix), var(--mix-ink));
   --status-warning-on: var(--text-1);
 
-  --status-danger: #d9534f;
+  --status-danger: #df2923;
   --status-danger-soft: color-mix(in srgb, var(--status-danger) var(--soft-mix), var(--mix-surface));
   --status-danger-border: color-mix(in srgb, var(--status-danger) var(--border-mix), var(--mix-ink));
   --status-danger-on: var(--text-1);
@@ -120,6 +123,8 @@ To add new components safely, start in the components layer, reuse tokens, and k
   --i-border: var(--border-1);
   --i-ring: 0 0 0 2px var(--accent-tertiary-border);
   --i-text: var(--text-1);
+
+  --button-size-md: var(--space-6);
 }
 
 :root[data-theme=dark], .theme-dark {
@@ -135,6 +140,7 @@ To add new components safely, start in the components layer, reuse tokens, and k
   --shadow-2: 0 12px 36px rgba(0, 0, 0, 0.75);
   --mix-surface: var(--surface-2);
   --mix-ink: var(--text-1);
+  --soft-mix: 30%;
   --i-bg: var(--surface-1);
   --i-bg-hover: var(--surface-2);
   --i-bg-active: color-mix(in srgb, var(--accent-primary) 40%, var(--surface-2) 90%);
@@ -295,7 +301,7 @@ button, input, select, textarea {
   border-bottom: 1px solid var(--border-1);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.10em;
+  letter-spacing: var(--font-spacing-loose);
   background-color: var(--surface-2);
 }
 
@@ -328,8 +334,8 @@ button, input, select, textarea {
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-size: 0.75rem;
+  letter-spacing: var(--font-spacing-loose);
+  font-size: var(--font-size-xs);
   color: var(--text-3);
 }
 
@@ -340,11 +346,12 @@ button, input, select, textarea {
   gap: var(--space-2);
 }
 
+/* controls styling for all panel top headers in workspace */
 .workspace-header-title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-regular);
   text-transform: uppercase;
-  letter-spacing: 0.5em;
+  letter-spacing: var(--font-spacing-wide);
 }
 
 .workspace-theme-toggle,
@@ -365,7 +372,7 @@ button, input, select, textarea {
 
 .workspace-persistence-status {
   font-size: var(--font-size-sm);
-  letter-spacing: 0.12em;
+  letter-spacing: var(--font-spacing-loose);
   color: var(--text-3);
 }
 
@@ -413,7 +420,7 @@ button, input, select, textarea {
   color: var(--i-text);
   border-radius: var(--radius-sm);
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-  min-height: 36px;
+  min-height: var(--button-size-md);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -485,6 +492,7 @@ button, input, select, textarea {
   flex-direction: column;
   gap: var(--space-1);
 }
+
 
 .drafts-title {
   font-size: var(--font-size-md);
@@ -582,7 +590,7 @@ button, input, select, textarea {
 
 .drafts-danger {
   font-size: var(--font-size-sm);
-  line-height: 1.4;
+  line-height: var(--line-height-normal);
   padding: var(--space-2) var(--space-3);
   background-color: var(--status-danger-soft);
   border: 1px solid var(--status-danger-border);
@@ -609,7 +617,7 @@ button, input, select, textarea {
 }
 
 .modular-grid-status {
-  font-size: 0.7rem;
+  font-size: var(--font-size-sm);
   color: var(--status-warning);
 }
 
@@ -673,11 +681,11 @@ button, input, select, textarea {
   border: 1px dashed transparent;
   background-color: var(--surface-1);
   display: flex;
-  align-items: stretch;
-  justify-content: stretch;
+  /* align-items: stretch;
+  justify-content: stretch; */
   color: var(--text-2);
   font-size: var(--font-size-xs);
-  letter-spacing: 0.15em;
+  letter-spacing: var(--font-spacing-tight);
   text-transform: uppercase;
   overflow: hidden;
   height: 56px;
@@ -735,23 +743,23 @@ button, input, select, textarea {
   border-color: var(--status-danger-border);
   background-color: var(--status-danger-soft);
   color: var(--status-danger-on);
-  /* box-shadow: 0 0 0 1px color-mix(in srgb, var(--status-danger) 40%, transparent 60%); */
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--status-danger) 40%, transparent 60%);
 }
 
 .modular-grid-lens.has-error.is-selected {
-  /* box-shadow: 0 0 0 1px var(--status-danger-border), 0 0 0 2px var(--selection-border);
-  background-color: color-mix(in srgb, var(--status-danger) 16%, var(--selection-soft) 84%); */
+  box-shadow: 0 0 0 1px var(--status-danger-border), 0 0 0 2px var(--selection-border);
+  background-color: color-mix(in srgb, var(--status-danger) 16%, var(--selection-soft) 84%);
 }
 
 .modular-grid-lane-title,
 .modular-grid-lane-count {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .modular-grid-lens-name {
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-regular);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -775,7 +783,7 @@ button, input, select, textarea {
   justify-content: center;
   overflow: hidden;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--font-spacing-tight);
   color: var(--text-3);
   font-size: var(--font-size-xxs);
   background-color: var(--surface-1);
@@ -844,37 +852,41 @@ button, input, select, textarea {
   z-index: 4000;
 }
 
-.lane-overview-header {
+.lane-overview-subheader {
+  border-bottom: 1px solid var(--border-2);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+/* subheader panel */
+.lane-overview-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.lane-overview-header-left {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-.lane-overview-header-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: var(--space-2);
-}
 
 .lane-overview-title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
 }
 
-.lane-overview-count {
-  font-size: 0.85rem;
-  color: var(--text-3);
-}
-
-.lane-overview-picker {
+.lane-overview-actions {
   display: flex;
   gap: var(--space-1);
   flex-wrap: wrap;
 }
 
-.lane-overview-picker .component-pill {
-  font-size: 0.85rem;
+/* lane picker in inspector - likely to remove */
+.lane-overview-actions .component-pill {
+  font-size: var(--font-size-xs);
 }
 
 .lane-overview-body {
@@ -935,8 +947,8 @@ button, input, select, textarea {
 }
 
 .lane-lens-card-status {
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
+  font-size: var(--font-size-xxs);
+  letter-spacing: var(--font-spacing-loose);
   text-transform: uppercase;
   color: var(--text-2);
 }
@@ -947,20 +959,21 @@ button, input, select, textarea {
   gap: var(--space-1);
 }
 
+/* cards in lane inspector for each lens */
 .lane-lens-card-title {
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
 }
 
 .lane-lens-card-meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.8rem;
+  font-size: var(--font-size-sm);
   color: var(--text-2);
 }
 
 .lane-lens-card-id {
-  font-family: "SFMono-Regular", "Fira Code", monospace;
+  font-family: "Figtree", monospace;
   color: var(--text-3);
 }
 
@@ -970,21 +983,21 @@ button, input, select, textarea {
 
 .lane-lens-card-empty {
   color: var(--text-2);
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
 }
 
 .lane-lens-card-error {
   color: var(--status-danger);
-  font-size: 0.8rem;
+  font-size: var(--font-size-sm);
 }
 
 .meta-line {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--text-3);
 }
 
 .hint {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--text-2);
 }
 
@@ -1088,14 +1101,15 @@ button, input, select, textarea {
 .visualizer-controls label {
   font-size: var(--font-size-xs);
   color: var(--text-3);
+  /* padding-right: var(--space-1); */
 }
 
 .visualizer-controls select {
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-1);
   padding: 0 var(--space-2);
-  min-width: 140px;
-  height: 36px;
+  min-width: 10px;
+  height: var(--button-size-md);
   background-color: var(--surface-2);
   color: var(--text-1);
 }
@@ -1139,7 +1153,7 @@ button, input, select, textarea {
 
 .euclid-viz .poly {
   stroke: var(--accent-secondary);
-  fill: color-mix(in srgb, var(--accent-secondary) 12%, transparent);
+  fill: color-mix(in oklch, var(--accent-secondary) 12%, transparent);
 }
 }
 

@@ -86,34 +86,39 @@ export default function TrackLanePanel() {
 
   return (
     <section className="workspace-panel workspace-panel-track lane-overview-panel">
-      <div className="workspace-panel-header lane-overview-header">
-        <div className="lane-overview-header-main">
-          <div className="lane-overview-title">{laneDisplayName}</div>
-          <div className="lane-overview-count">{lensCountLabel}</div>
-        </div>
-        <div className="lane-overview-picker">
-          {laneOrder.length ? (
-            laneOrder.map((laneId) => {
-              const lane = lanesById[laneId];
-              const label = lane ? (lane.name || lane.laneId) : laneId;
-              const isLaneSelected = selection.laneId === laneId;
-              return (
-                <button
-                  key={laneId}
-                  type="button"
-                  className={`component-pill${isLaneSelected ? " is-focused" : ""}`}
-                  onClick={() => selectLane(laneId)}
-                >
-                  {label}
-                </button>
-              );
-            })
-          ) : (
-            <div className="workspace-placeholder">No lanes yet.</div>
-          )}
-        </div>
+      <div className="workspace-panel-header">
+        Lane Inspector
       </div>
       <div className="workspace-panel-body lane-overview-body">
+        <div className="lane-overview-subheader">
+          <div className="lane-overview-header-bar">
+            <div className="lane-overview-header-left">
+              <div className="lane-overview-title">{laneDisplayName}</div>
+              <div className="hint">{lensCountLabel}</div>
+            </div>
+            <div className="lane-overview-actions">
+              {laneOrder.length ? (
+                laneOrder.map((laneId) => {
+                  const lane = lanesById[laneId];
+                  const label = lane ? (lane.name || lane.laneId) : laneId;
+                  const isLaneSelected = selection.laneId === laneId;
+                  return (
+                    <button
+                      key={laneId}
+                      type="button"
+                      className={`component-pill${isLaneSelected ? " is-focused" : ""}`}
+                      onClick={() => selectLane(laneId)}
+                    >
+                      {label}
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="workspace-placeholder">No lanes yet.</div>
+              )}
+            </div>
+          </div>
+        </div>
         {!selectedLaneId ? (
           <div className="workspace-placeholder">{selectionPlaceholder}</div>
         ) : selectedLaneLensIds.length === 0 ? (
