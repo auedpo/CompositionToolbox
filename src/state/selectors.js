@@ -40,6 +40,16 @@ export const selectSelectedLensInstanceId = (state) => state.authoritative.selec
 
 export const selectLensInstancesById = (state) => state.authoritative.lenses.lensInstancesById;
 
+export const selectLensOutputSelection = (state, lensInstanceId) => {
+  if (!lensInstanceId) return { mode: "active", selectedIndices: [] };
+  const instances = selectLensInstancesById(state);
+  const inst = instances[lensInstanceId];
+  const sel = inst && inst.outputSelection ? inst.outputSelection : null;
+  return sel && typeof sel === "object"
+    ? sel
+    : { mode: "active", selectedIndices: [] };
+};
+
 export const selectLensInstanceIdsForLane = (state, laneId) => {
   if (!laneId) return [];
   const rows = selectGridRows(state);

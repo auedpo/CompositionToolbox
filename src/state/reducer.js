@@ -21,6 +21,7 @@ export const ACTION_TYPES = {
   LENS_SET_PARAM: "LENS_SET_PARAM",
   LENS_REPLACE_PARAMS: "LENS_REPLACE_PARAMS",
   LENS_SET_INPUT: "LENS_SET_INPUT",
+  LENS_SET_OUTPUT_SELECTION: "LENS_SET_OUTPUT_SELECTION",
   SELECTION_SET: "SELECTION_SET",
   INVENTORY_ADD_FROM_DRAFT: "INVENTORY_ADD_FROM_DRAFT",
   DESK_PLACE_DRAFT: "DESK_PLACE_DRAFT",
@@ -55,6 +56,31 @@ function normalizeLensInput(input) {
   return next;
 }
 
+function normalizeLensOutputSelection(value) {
+  const base = { mode: "active", selectedIndices: [] };
+  if (!value || typeof value !== "object") return base;
+  const normalized = { ...base, ...value };
+  if (normalized.mode !== "active" && normalized.mode !== "selected") {
+    normalized.mode = "active";
+  }
+  const incomingIndices = Array.isArray(value.selectedIndices)
+    ? value.selectedIndices
+    : [];
+  const seen = new Set();
+  const filtered = [];
+  incomingIndices.forEach((item) => {
+    const asNumber = Number(item);
+    if (!Number.isInteger(asNumber) || asNumber < 0) return;
+    if (seen.has(asNumber)) return;
+    seen.add(asNumber);
+    filtered.push(asNumber);
+  });
+  return {
+    mode: normalized.mode,
+    selectedIndices: filtered
+  };
+}
+
 function cloneParamsForLens(lensId) {
   const lens = getLens(lensId);
   if (lens && lens.defaultParams && typeof lens.defaultParams === "object") {
@@ -76,7 +102,8 @@ function normalizeLensInstances(instances = {}) {
     normalized[lensInstanceId] = {
       ...instance,
       lensInstanceId,
-      input: normalizeLensInput(instance.input)
+      input: normalizeLensInput(instance.input),
+      outputSelection: normalizeLensOutputSelection(instance.outputSelection)
     };
   });
   return normalized;
@@ -302,6 +329,7 @@ function createLensInstance(lensId) {
     lensId,
     params,
     input: { mode: "auto", pinned: false },
+    outputSelection: { mode: "active", selectedIndices: [] },
     ui: {}
   };
 }
@@ -539,6 +567,28 @@ function handleSetLensInput(current, payload) {
   };
 }
 
+function handleSetLensOutputSelection(current, payload) {
+  if (!payload) return current;
+  const { lensInstanceId, outputSelection } = payload;
+  if (!lensInstanceId) return current;
+  const instance = current.lenses.lensInstancesById[lensInstanceId];
+  if (!instance) return current;
+  const nextSelection = normalizeLensOutputSelection(outputSelection);
+  return {
+    ...markDirty(current),
+    lenses: {
+      ...current.lenses,
+      lensInstancesById: {
+        ...current.lenses.lensInstancesById,
+        [lensInstanceId]: {
+          ...instance,
+          outputSelection: nextSelection
+        }
+      }
+    }
+  };
+}
+
 function handleSelectionSet(current, payload) {
   if (!payload) return current;
   const laneOrder = current.workspace.laneOrder;
@@ -629,6 +679,8 @@ export function reduceAuthoritative(authoritative, action) {
       return updateLensParams(current, payload, true);
     case ACTION_TYPES.LENS_SET_INPUT:
       return handleSetLensInput(current, payload);
+    case ACTION_TYPES.LENS_SET_OUTPUT_SELECTION:
+      return handleSetLensOutputSelection(current, payload);
     case ACTION_TYPES.SELECTION_SET:
       return handleSelectionSet(current, payload);
     case ACTION_TYPES.INVENTORY_ADD_FROM_DRAFT: {

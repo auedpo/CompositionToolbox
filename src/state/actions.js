@@ -41,6 +41,13 @@ export function createActions(dispatch, get) {
     setLensInput(lensInstanceId, input) {
       dispatch({ type: ACTION_TYPES.LENS_SET_INPUT, payload: { lensInstanceId, input } });
     },
+    setLensOutputSelection(lensInstanceId, outputSelection) {
+      if (!lensInstanceId) return;
+      dispatch({
+        type: ACTION_TYPES.LENS_SET_OUTPUT_SELECTION,
+        payload: { lensInstanceId, outputSelection }
+      });
+    },
     setTypeDefaultVisualizer(lensId, visualizerKey = null) {
       if (!lensId) return;
       dispatch({
