@@ -2,6 +2,8 @@
 // Interacts with: imports: ../state/schema.js.
 // Role: core domain layer module within the broader app graph.
 import { makeCellKey } from "../state/schema.js";
+import { makeDraft } from "./invariants.js";
+import { normalizeCarrierMeta, validateCarrierCoherence } from "./draftCarriers.js";
 
 function normalizePick(input) {
   return input === "selected" ? "selected" : "active";
@@ -85,23 +87,37 @@ export function resolveInput(lensInstanceId, authoritative, derivedSoFar) {
     .map((draft) => draft.payload && draft.payload.values)
     .filter((values) => values !== undefined);
 
-  return {
-    draftId: `virtual_pack_${lensInstanceId}_${upstreamLensInstanceId || "none"}`,
-    lensId: "packDrafts",
-    lensInstanceId: upstreamLensInstanceId || null,
-    type: "packedInput",
-    subtype: undefined,
-    summary: "Packed drafts",
-    payload: { kind: "numericTree", values: packedValues },
-    meta: {
-      provenance: {
-        kind: "virtual",
-        mode: "auto",
-        pick,
-        packaging: "packDrafts",
-        sourceDraftIds: upstreamDrafts.map((draft) => draft.draftId),
-        sourceLensIds: upstreamDrafts.map((draft) => draft.lensId)
-      }
-    }
+  const carrierMetaTemplate = normalizeCarrierMeta({ kind: "packDrafts", v: 1 });
+  const carrierMeta = carrierMetaTemplate
+    ? { ...carrierMetaTemplate }
+    : { kind: "packDrafts", v: 1 };
+  const carrierDraftId = `virtual_pack_${lensInstanceId}_${upstreamLensInstanceId || "none"}`;
+  const provenance = {
+    kind: "virtual",
+    mode: "auto",
+    pick,
+    packaging: "packDrafts",
+    sourceDraftIds: upstreamDrafts.map((draft) => draft.draftId),
+    sourceLensIds: upstreamDrafts.map((draft) => draft.lensId)
   };
+  const packedDraft = makeDraft({
+    draftId: carrierDraftId,
+    lensId: "packDrafts",
+    lensInstanceId: upstreamLensInstanceId,
+    type: "packedInput",
+    summary: "Packed drafts",
+    values: packedValues,
+    meta: {
+      carrier: carrierMeta,
+      provenance
+    }
+  });
+  const coherence = validateCarrierCoherence(packedDraft);
+  if (!coherence.ok && coherence.warning) {
+    if (!packedDraft.meta || typeof packedDraft.meta !== "object") {
+      packedDraft.meta = {};
+    }
+    packedDraft.meta.warning = coherence.warning;
+  }
+  return packedDraft;
 }

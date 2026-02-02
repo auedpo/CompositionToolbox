@@ -30,16 +30,18 @@ export default function LensInspector() {
   const inputDraftPreviewText = useMemo(() => {
     if (inputDraft === undefined) return "Reference missing.";
     if (inputDraft === null) return "No input available.";
-    const trimmedMeta = inputDraft.meta && inputDraft.meta.provenance
-      ? { provenance: inputDraft.meta.provenance }
-      : undefined;
-    const sourceLensIds = trimmedMeta?.provenance?.sourceLensIds;
-    const lensIdDisplay = sourceLensIds && sourceLensIds.length
-      ? sourceLensIds.join(", ")
-      : inputDraft.lensId;
+    const meta = inputDraft.meta && typeof inputDraft.meta === "object"
+      ? inputDraft.meta
+      : null;
+    let trimmedMeta;
+    if (meta && (meta.provenance || meta.carrier)) {
+      trimmedMeta = {};
+      if (meta.provenance) trimmedMeta.provenance = meta.provenance;
+      if (meta.carrier) trimmedMeta.carrier = meta.carrier;
+    }
     const display = {
       draftId: inputDraft.draftId,
-      lensId: lensIdDisplay,
+      lensId: inputDraft.lensId,
       payload: inputDraft.payload || null
     };
     if (trimmedMeta) {
