@@ -42,10 +42,21 @@ function ensureObject(value) {
 }
 
 function normalizeLensInput(input) {
-  const base = { mode: "auto", pinned: false };
+  const base = {
+    mode: "auto",
+    pinned: false,
+    pick: "active",
+    packaging: "single"
+  };
   const next = { ...base, ...(input || {}) };
   if (next.mode !== "auto" && next.mode !== "ref") {
     next.mode = "auto";
+  }
+  if (next.pick !== "active" && next.pick !== "selected") {
+    next.pick = "active";
+  }
+  if (next.packaging !== "single" && next.packaging !== "packDrafts") {
+    next.packaging = "single";
   }
   if (typeof next.pinned !== "boolean") {
     next.pinned = Boolean(next.pinned);

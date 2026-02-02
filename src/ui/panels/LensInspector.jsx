@@ -29,7 +29,9 @@ export default function LensInspector() {
   const displayLabel = instance
     ? (lensDef && lensDef.meta ? lensDef.meta.name : null) || instance.lensId || instance.lensInstanceId
     : "";
-  const input = instance && instance.input ? instance.input : { mode: "auto", pinned: false };
+  const input = instance && instance.input
+    ? instance.input
+    : { mode: "auto", pinned: false, pick: "active", packaging: "single" };
 
   const placement = selectedLensInstanceId
     ? lensPlacementById[selectedLensInstanceId]
@@ -53,6 +55,8 @@ export default function LensInspector() {
     return ids;
   }, [grid, laneId, laneRow]);
 
+  const pick = input && input.pick === "selected" ? "selected" : "active";
+  const packaging = input && input.packaging === "packDrafts" ? "packDrafts" : "single";
   const pinnedDraftId = input && input.mode === "ref"
     ? (typeof input.ref === "string" ? input.ref : (input.ref && input.ref.draftId))
     : null;
@@ -62,16 +66,27 @@ export default function LensInspector() {
       .find((lensInstanceId) => activeDraftIdByLensInstanceId[lensInstanceId] === pinnedDraftId)
     : "";
 
+  const patchInput = (patch) => {
+    if (!selectedLensInstanceId) return;
+    actions.setLensInput(selectedLensInstanceId, { ...input, ...patch });
+  };
+
   const handleModeChange = (event) => {
     if (!selectedLensInstanceId) return;
     const mode = event.target.value;
     if (mode === "auto") {
-      actions.setLensInput(selectedLensInstanceId, { mode: "auto", pinned: false });
+      actions.setLensInput(selectedLensInstanceId, {
+        ...input,
+        mode: "auto",
+        pinned: false,
+        ref: undefined
+      });
       return;
     }
     const fallbackLens = upstreamLensInstanceIds.at(-1);
     const draftId = fallbackLens ? activeDraftIdByLensInstanceId[fallbackLens] : undefined;
     actions.setLensInput(selectedLensInstanceId, {
+      ...input,
       mode: "ref",
       pinned: true,
       ref: draftId ? { draftId } : undefined
@@ -83,6 +98,7 @@ export default function LensInspector() {
     const nextLensInstanceId = event.target.value;
     const draftId = nextLensInstanceId ? activeDraftIdByLensInstanceId[nextLensInstanceId] : undefined;
     actions.setLensInput(selectedLensInstanceId, {
+      ...input,
       mode: "ref",
       pinned: true,
       ref: draftId ? { draftId } : undefined
@@ -133,6 +149,32 @@ export default function LensInspector() {
                 >
                   <option value="auto">Auto (previous lens)</option>
                   <option value="ref">Pinned</option>
+                </select>
+              </label>
+            </div>
+            <div>
+              <label>
+                <span className="hint">Pick upstream</span>
+                <select
+                  className="component-field"
+                  value={pick}
+                  onChange={(event) => patchInput({ pick: event.target.value })}
+                >
+                  <option value="active">Active draft</option>
+                  <option value="selected">Selected drafts</option>
+                </select>
+              </label>
+            </div>
+            <div>
+              <label>
+                <span className="hint">Packaging</span>
+                <select
+                  className="component-field"
+                  value={packaging}
+                  onChange={(event) => patchInput({ packaging: event.target.value })}
+                >
+                  <option value="single">Single draft</option>
+                  <option value="packDrafts">Pack multiple drafts</option>
                 </select>
               </label>
             </div>

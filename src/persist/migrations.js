@@ -1,6 +1,6 @@
 import { createEmptyAuthoritative } from "../state/schema.js";
 
-const MIGRATION_TARGET_VERSION = 4;
+const MIGRATION_TARGET_VERSION = 5;
 
 function ensureObject(value) {
   return value && typeof value === "object" ? value : {};
@@ -121,11 +121,24 @@ function migrateV3ToV4(snapshot) {
   };
 }
 
+function migrateV4ToV5(snapshot) {
+  const persistence = ensureObject(snapshot.persistence);
+  return {
+    ...snapshot,
+    persistence: {
+      ...persistence,
+      schemaVersion: 5
+    },
+    schemaVersion: 5
+  };
+}
+
 const MIGRATIONS = {
   0: migrateV0ToV1,
   1: migrateV1ToV2,
   2: migrateV2ToV3,
-  3: migrateV3ToV4
+  3: migrateV3ToV4,
+  4: migrateV4ToV5
 };
 
 export function migrateSnapshotToCurrent(snapshot, targetVersion = MIGRATION_TARGET_VERSION) {
