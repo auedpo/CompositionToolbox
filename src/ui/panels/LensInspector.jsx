@@ -8,6 +8,7 @@ import { useSelection } from "../hooks/useSelection.js";
 import {
   selectGrid,
   selectGridRows,
+  selectInputDraftForLensInstance,
   selectLensPlacementById
 } from "../../state/selectors.js";
 import AdvancedJsonEditor from "../params/AdvancedJsonEditor.jsx";
@@ -23,6 +24,29 @@ export default function LensInspector() {
   const { activeDraftIdByLensInstanceId } = useDraftSelectors();
   const actions = useStore((state) => state.actions);
   const { selectLens } = useSelection();
+  const inputDraft = useStore((state) =>
+    selectInputDraftForLensInstance(state, selectedLensInstanceId)
+  );
+  const inputDraftPreviewText = useMemo(() => {
+    if (inputDraft === undefined) return "Reference missing.";
+    if (inputDraft === null) return "No input available.";
+    const trimmedMeta = inputDraft.meta && inputDraft.meta.provenance
+      ? { provenance: inputDraft.meta.provenance }
+      : undefined;
+    const sourceLensIds = trimmedMeta?.provenance?.sourceLensIds;
+    const lensIdDisplay = sourceLensIds && sourceLensIds.length
+      ? sourceLensIds.join(", ")
+      : inputDraft.lensId;
+    const display = {
+      draftId: inputDraft.draftId,
+      lensId: lensIdDisplay,
+      payload: inputDraft.payload || null
+    };
+    if (trimmedMeta) {
+      display.meta = trimmedMeta;
+    }
+    return JSON.stringify(display, null, 2);
+  }, [inputDraft]);
 
   const instance = selectedLensInstanceId ? lensInstancesById[selectedLensInstanceId] : null;
   const lensDef = useMemo(() => (instance ? getLens(instance.lensId) : null), [instance]);
@@ -124,7 +148,7 @@ export default function LensInspector() {
           >
             Remove lens
           </button>
-        </div>
+    </div>
         {!selectedLensInstanceId || !instance ? (
           <div className="workspace-placeholder">No lens selected</div>
         ) : (
@@ -177,6 +201,10 @@ export default function LensInspector() {
                   <option value="packDrafts">Pack multiple drafts</option>
                 </select>
               </label>
+            </div>
+            <div className="input-preview-panel">
+              <div className="input-preview-panel-header">Resolved input</div>
+              <pre className="input-preview-panel-body">{inputDraftPreviewText}</pre>
             </div>
             {input && input.mode === "ref" ? (
               <div>

@@ -99,7 +99,8 @@ export function resolveInput(lensInstanceId, authoritative, derivedSoFar) {
         mode: "auto",
         pick,
         packaging: "packDrafts",
-        sourceDraftIds: upstreamDrafts.map((draft) => draft.draftId)
+        sourceDraftIds: upstreamDrafts.map((draft) => draft.draftId),
+        sourceLensIds: upstreamDrafts.map((draft) => draft.lensId)
       }
     }
   };

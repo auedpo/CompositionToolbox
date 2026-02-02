@@ -1,4 +1,5 @@
 import { makeCellKey } from "./schema.js";
+import { resolveInput } from "../core/resolveInput.js";
 
 export const selectAuthoritative = (state) => state.authoritative;
 
@@ -180,4 +181,9 @@ export const selectVisualizerInstanceOverride = (state, lensInstanceId) => {
   return visualizers.instanceOverrideByLensInstanceId
     ? visualizers.instanceOverrideByLensInstanceId[lensInstanceId] || null
     : null;
+};
+
+export const selectInputDraftForLensInstance = (state, lensInstanceId) => {
+  if (!lensInstanceId) return undefined;
+  return resolveInput(lensInstanceId, state.authoritative, state.derived);
 };
