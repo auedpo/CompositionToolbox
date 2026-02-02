@@ -251,7 +251,14 @@ export function recomputeDerived(authoritativeState) {
 
       const draftIds = error ? [] : normalized.map((draft) => draft.draftId);
       draftOrderByLensInstanceId[lensInstanceId] = draftIds;
-      activeDraftIdByLensInstanceId[lensInstanceId] = draftIds.length ? draftIds[0] : undefined;
+      const selectionMap = authoritative.selection && authoritative.selection.activeDraftIdByLensInstanceId
+        ? authoritative.selection.activeDraftIdByLensInstanceId
+        : {};
+      const preferredIdle = selectionMap[lensInstanceId];
+      const nextActiveId = preferredIdle && draftIds.includes(preferredIdle)
+        ? preferredIdle
+        : (draftIds.length ? draftIds[0] : undefined);
+      activeDraftIdByLensInstanceId[lensInstanceId] = nextActiveId;
       if (error) {
         lastErrorByLensInstanceId[lensInstanceId] = error;
         activeDraftIdByLensInstanceId[lensInstanceId] = undefined;

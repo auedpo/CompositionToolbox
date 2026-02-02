@@ -7,6 +7,7 @@ import { euclideanPatternsLens } from "./euclideanPatternsLens.js";
 import { inputListLens } from "./inputList.js";
 import { passthroughLens } from "./passthroughLens.js";
 import { shiftSweepLens } from "./transformers/shiftSweep.js";
+import { xdxLens } from "./xdxLens.js";
 
 const registry = new Map();
 
@@ -33,3 +34,4 @@ registerLens(inputListLens);
 registerLens(passthroughLens);
 registerLens(basicMathTransformerLens);
 registerLens(shiftSweepLens);
+registerLens(xdxLens);

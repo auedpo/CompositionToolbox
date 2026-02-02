@@ -425,7 +425,7 @@ export function evaluateIntervalPlacementLens(input = {}) {
     return {
       ok: false,
       drafts: [],
-      notices: [{ level: "warn", message }]
+      errors: [message]
     };
   }
   const intervals = Array.isArray(resolved.values)
@@ -436,6 +436,15 @@ export function evaluateIntervalPlacementLens(input = {}) {
       ok: false,
       drafts: [],
       errors: ["Enter at least one interval."]
+    };
+  }
+  if (intervals.length > 5) {
+    return {
+      ok: false,
+      drafts: [],
+      errors: [
+        "More than five intervals generates an enormous number of permutations; trim the list before computing."
+      ]
     };
   }
   const params = { ...defaultParams, ...(input.params || {}) };

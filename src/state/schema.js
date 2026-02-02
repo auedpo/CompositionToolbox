@@ -79,7 +79,8 @@ export function createEmptyAuthoritative() {
       laneId: undefined,
       lensInstanceId: undefined,
       draftId: undefined,
-      panel: undefined
+      panel: undefined,
+      activeDraftIdByLensInstanceId: {}
     },
     persistence: {
       schemaVersion: SCHEMA_VERSION,
