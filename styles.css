@@ -539,6 +539,12 @@ button, input, select, textarea {
   gap: var(--space-2);
   flex-wrap: wrap;
 }
+.drafts-selection-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
 
 .draft-item {
   display: flex;
@@ -550,6 +556,19 @@ button, input, select, textarea {
   border: 1px solid var(--border-2);
   background-color: var(--surface-2);
   cursor: pointer;
+}
+.draft-item-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+.draft-item-checkbox input {
+  width: var(--space-4);
+  height: var(--space-4);
+  margin: 0;
 }
 
 .draft-item.active {

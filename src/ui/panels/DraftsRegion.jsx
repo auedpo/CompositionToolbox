@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 
 import { useStore } from "../../state/store.js";
 import { useDraftSelectors } from "../hooks/useDraftSelectors.js";
@@ -25,7 +25,8 @@ export default function DraftsPanel() {
     activeDraftIdByLensInstanceId,
     lastErrorByLensInstanceId,
     selectedLensInstanceId,
-    selectedDraftId
+    selectedDraftId,
+    lensOutputSelection
   } = useDraftSelectors();
   const [showAll, setShowAll] = useState(false);
 
@@ -43,11 +44,60 @@ export default function DraftsPanel() {
   const focusedDraft = focusedDraftId ? draftsById[focusedDraftId] : null;
   const scrollRef = useRef(null);
 
-  const visibleDrafts = useMemo(() => {
-    if (!showAll) {
-      return focusedDraft ? [focusedDraft] : [];
+  const selectedIndices = useMemo(() => {
+    if (lensOutputSelection && Array.isArray(lensOutputSelection.selectedIndices)) {
+      return lensOutputSelection.selectedIndices;
     }
-    return draftIds.map((draftId) => draftsById[draftId]).filter(Boolean);
+    return [];
+  }, [lensOutputSelection]);
+  const selectedSet = useMemo(() => new Set(selectedIndices), [selectedIndices]);
+  const draftCount = draftIds.length;
+
+  const handleSelectionToggle = useCallback(
+    (index) => {
+      if (!selectedLensInstanceId || typeof index !== "number") return;
+      const nextIndices = [...selectedIndices];
+      const existingIndex = nextIndices.indexOf(index);
+      if (existingIndex >= 0) {
+        nextIndices.splice(existingIndex, 1);
+      } else {
+        nextIndices.push(index);
+      }
+      actions.setLensOutputSelection(selectedLensInstanceId, {
+        mode: "selected",
+        selectedIndices: nextIndices
+      });
+    },
+    [actions, selectedIndices, selectedLensInstanceId]
+  );
+
+  const handleSelectAll = useCallback(() => {
+    if (!selectedLensInstanceId || draftCount === 0) return;
+    const allIndices = Array.from({ length: draftCount }, (_, idx) => idx);
+    actions.setLensOutputSelection(selectedLensInstanceId, {
+      mode: "selected",
+      selectedIndices: allIndices
+    });
+  }, [actions, draftCount, selectedLensInstanceId]);
+
+  const handleSelectNone = useCallback(() => {
+    if (!selectedLensInstanceId) return;
+    actions.setLensOutputSelection(selectedLensInstanceId, {
+      mode: "selected",
+      selectedIndices: []
+    });
+  }, [actions, selectedLensInstanceId]);
+
+  const visibleDraftEntries = useMemo(() => {
+    if (!showAll) {
+      return focusedDraft ? [{ draft: focusedDraft, index: 0 }] : [];
+    }
+    return draftIds
+      .map((draftId, orderIndex) => {
+        const draft = draftsById[draftId];
+        return draft ? { draft, index: orderIndex } : null;
+      })
+      .filter(Boolean);
   }, [draftIds, draftsById, focusedDraft, showAll]);
 
   const handlePromoteInventory = () => {
@@ -107,14 +157,39 @@ export default function DraftsPanel() {
                 </button>
               </div>
             </div>
+            {showAll && selectedLensInstanceId ? (
+              <div className="drafts-selection-actions">
+                <button
+                  type="button"
+                  className="component-button"
+                  disabled={!draftCount}
+                  onClick={handleSelectAll}
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  className="component-button"
+                  disabled={!selectedIndices.length}
+                  onClick={handleSelectNone}
+                >
+                  Select none
+                </button>
+              </div>
+            ) : null}
             <div className="drafts-scroll" ref={scrollRef}>
               {lensError ? (
                 <div className="drafts-danger">{lensError}</div>
               ) : null}
-              {visibleDrafts.length ? (
+              {visibleDraftEntries.length ? (
                 <div className="drafts-items">
-                  {visibleDrafts.map((draft, index) => {
+                  {visibleDraftEntries.map(({ draft, index }) => {
                     const isSelected = draft.draftId === focusedDraftId;
+                    const checkboxChecked = selectedSet.has(index);
+                    const handleCheckboxChange = (event) => {
+                      event.stopPropagation();
+                      handleSelectionToggle(index);
+                    };
                     return (
                       <div
                         key={draft.draftId}
@@ -130,6 +205,22 @@ export default function DraftsPanel() {
                           }
                         }}
                       >
+                        {showAll ? (
+                          <div
+                            className="draft-item-checkbox"
+                            onClick={(event) => event.stopPropagation()}
+                            onKeyDown={(event) => event.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              aria-label={`Select Draft ${index + 1}`}
+                              checked={checkboxChecked}
+                              onChange={handleCheckboxChange}
+                              onClick={(event) => event.stopPropagation()}
+                              onKeyDown={(event) => event.stopPropagation()}
+                            />
+                          </div>
+                        ) : null}
                         <div className="draft-item-left">
                           <div className="draft-label">
                             <span>Draft {index + 1}</span>

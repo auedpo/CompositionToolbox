@@ -4,6 +4,7 @@ import {
   selectDraftOrderByLensInstanceId,
   selectDraftsById,
   selectLastErrorByLensInstanceId,
+  selectLensOutputSelection,
   selectSelectedLensInstanceId
 } from "../../state/selectors.js";
 
@@ -14,6 +15,9 @@ export function useDraftSelectors() {
   const lastErrorByLensInstanceId = useStore(selectLastErrorByLensInstanceId);
   const selectedLensInstanceId = useStore(selectSelectedLensInstanceId);
   const selectedDraftId = useStore((state) => state.authoritative.selection.draftId);
+  const lensOutputSelection = useStore((state) =>
+    selectLensOutputSelection(state, selectedLensInstanceId)
+  );
 
   return {
     draftsById,
@@ -21,6 +25,7 @@ export function useDraftSelectors() {
     activeDraftIdByLensInstanceId,
     lastErrorByLensInstanceId,
     selectedLensInstanceId,
-    selectedDraftId
+    selectedDraftId,
+    lensOutputSelection
   };
 }
