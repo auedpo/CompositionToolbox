@@ -35,13 +35,13 @@ function makeContext(draft) {
 {
   const result = evaluateXdxLens({
     params: {
-      mode: "x->dx",
+      mode: "x->dx (points to intervals)",
       values: [6000, 6700, 6900]
     },
     context: makeContext(null)
   });
   assert.ok(result.ok, result.errors);
-  assert.strictEqual(result.vizModel.mode, "x->dx");
+  assert.strictEqual(result.vizModel.mode, "x->dx (points to intervals)");
   assert.deepStrictEqual(result.vizModel.inputValues, [6000, 6700, 6900]);
   assert.deepStrictEqual(result.drafts[0].payload.values, [700, 200]);
 }
@@ -50,13 +50,13 @@ function makeContext(draft) {
   const input = buildDraft([700, 200]);
   const result = evaluateXdxLens({
     params: {
-      mode: "dx->x",
+      mode: "dx->x (intervals to points)",
       start: 6000
     },
     context: makeContext(input)
   });
   assert.ok(result.ok, result.errors);
-  assert.strictEqual(result.vizModel.mode, "dx->x");
+  assert.strictEqual(result.vizModel.mode, "dx->x (intervals to points)");
   assert.strictEqual(result.vizModel.start, 6000);
   assert.deepStrictEqual(result.vizModel.inputValues, [700, 200]);
   assert.deepStrictEqual(result.drafts[0].payload.values, [6000, 6700, 6900]);

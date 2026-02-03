@@ -8,6 +8,56 @@ import { resolveInput } from "./resolveInput.js";
 import { makeCellKey } from "../state/schema.js";
 
 const DEBUG_RECOMPUTE = false;
+let batchSequenceCounter = 0;
+
+function createBatchId() {
+  batchSequenceCounter += 1;
+  return `batch-${batchSequenceCounter}`;
+}
+
+function extractPackedCarrierSourceDraftIds(draft) {
+  if (!draft || typeof draft !== "object") return null;
+  const meta = draft.meta;
+  if (!meta || typeof meta !== "object") return null;
+  const provenance = meta.provenance;
+  if (!provenance || typeof provenance !== "object") return null;
+  const sourceDraftIds = provenance.sourceDraftIds;
+  return Array.isArray(sourceDraftIds) ? sourceDraftIds : null;
+}
+
+function attachBatchMetaToDraft(rawDraft, batchMeta) {
+  if (!batchMeta || typeof batchMeta !== "object") {
+    return rawDraft;
+  }
+
+  if (Array.isArray(rawDraft)) {
+    const nextMeta = rawDraft.meta && typeof rawDraft.meta === "object"
+      ? { ...rawDraft.meta }
+      : {};
+    nextMeta.batch = batchMeta;
+    const nextDraft = rawDraft.slice ? rawDraft.slice() : [];
+    nextDraft.meta = nextMeta;
+    return nextDraft;
+  }
+
+  if (rawDraft && typeof rawDraft === "object") {
+    const nextMeta = rawDraft.meta && typeof rawDraft.meta === "object"
+      ? { ...rawDraft.meta }
+      : {};
+    nextMeta.batch = batchMeta;
+    return { ...rawDraft, meta: nextMeta };
+  }
+
+  return {
+    payload: {
+      kind: "numericTree",
+      values: rawDraft
+    },
+    meta: {
+      batch: batchMeta
+    }
+  };
+}
 export const MISSING_PINNED_INPUT_ERROR = "Pinned input reference missing.";
 
 function normalizeVizModel(raw, { lensId, lensInstanceId }) {
@@ -85,6 +135,9 @@ function normalizeLensDraft(raw, {
   let subtype = undefined;
   let summary = undefined;
   let rawMeta = null;
+  if (raw && typeof raw === "object" && raw.meta && typeof raw.meta === "object") {
+    rawMeta = raw.meta;
+  }
 
   if (Array.isArray(raw) || typeof raw === "number") {
     values = raw;
@@ -97,7 +150,6 @@ function normalizeLensDraft(raw, {
     if (typeof raw.type === "string" && raw.type) type = raw.type;
     if (typeof raw.subtype === "string" && raw.subtype) subtype = raw.subtype;
     if (typeof raw.summary === "string") summary = raw.summary;
-    if (raw.meta && typeof raw.meta === "object") rawMeta = raw.meta;
   } else {
     throw new DraftInvariantError("Lens output must be a draft or numeric tree.");
   }
@@ -191,6 +243,9 @@ function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
     return { drafts: [], isBatched: true };
   }
 
+  const batchId = createBatchId();
+  const frameSourceDraftIds = extractPackedCarrierSourceDraftIds(inputDraft);
+
   const sourceDraftId = typeof inputDraft.draftId === "string" ? inputDraft.draftId : null;
   const fallbackLensInstanceId = inputDraft.lensInstanceId
     || (context && context.lensInstanceId)
@@ -202,6 +257,10 @@ function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
   let aggregatedError = null;
 
   for (let frameIndex = 0; frameIndex < frames.length; frameIndex += 1) {
+    const frameSourceDraftId = frameSourceDraftIds && frameSourceDraftIds[frameIndex]
+      ? frameSourceDraftIds[frameIndex]
+      : null;
+
     let frameDraft;
     try {
       frameDraft = buildFrameInputDraft({
@@ -236,7 +295,14 @@ function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
     }
 
     if (frameResult && Array.isArray(frameResult.drafts) && frameResult.drafts.length) {
-      aggregated.push(...frameResult.drafts);
+      const decorated = frameResult.drafts.map((draft, variantIndex) => attachBatchMetaToDraft(draft, {
+        kind: "mapFrames",
+        batchId,
+        frameIndex,
+        frameSourceDraftId,
+        variantIndex
+      }));
+      aggregated.push(...decorated);
     }
   }
 
@@ -250,6 +316,7 @@ function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
 }
 
 export function recomputeDerived(authoritativeState) {
+  batchSequenceCounter = 0;
   const draftsById = {};
   const draftOrderByLensInstanceId = {};
   const activeDraftIdByLensInstanceId = {};

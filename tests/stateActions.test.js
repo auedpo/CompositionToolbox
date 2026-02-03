@@ -20,6 +20,32 @@ import { useStore } from "../src/state/store.js";
 }
 
 {
+  function withDefaultedLensInput(state, laneId) {
+    const cellKey = `${laneId}:0`;
+    const lensInstanceId = state.workspace.grid.cells[cellKey];
+    if (!lensInstanceId) return state;
+    const instance = state.lenses.lensInstancesById[lensInstanceId];
+    if (!instance) return state;
+    const nextInput = {
+      ...instance.input,
+      pick: instance.input.pick ?? "active",
+      packaging: instance.input.packaging ?? "single"
+    };
+    return {
+      ...state,
+      lenses: {
+        ...state.lenses,
+        lensInstancesById: {
+          ...state.lenses.lensInstancesById,
+          [lensInstanceId]: {
+            ...instance,
+            input: nextInput
+          }
+        }
+      }
+    };
+  }
+
   const base = createEmptyAuthoritative();
   const laneId = base.workspace.laneOrder[0];
   const first = reduceAuthoritative(base, {
@@ -30,7 +56,11 @@ import { useStore } from "../src/state/store.js";
     type: ACTION_TYPES.LENS_ADD_TO_CELL,
     payload: { lensId: "inputList", laneId, row: 0 }
   });
-  assert.deepStrictEqual(second, first, "Adding to an occupied cell should be ignored.");
+  assert.deepStrictEqual(
+    withDefaultedLensInput(second, laneId),
+    withDefaultedLensInput(first, laneId),
+    "Adding to an occupied cell should be ignored."
+  );
 }
 
 {

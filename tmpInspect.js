@@ -1,0 +1,10 @@
+import { createEmptyAuthoritative } from './src/state/schema.js';
+import { reduceAuthoritative, ACTION_TYPES } from './src/state/reducer.js';
+const base = createEmptyAuthoritative();
+const laneId = base.workspace.laneOrder[0];
+const first = reduceAuthoritative(base, { type: ACTION_TYPES.LENS_ADD_TO_CELL, payload: { lensId: 'inputList', laneId, row: 0 } });
+const lensInstanceIdFirst = first.workspace.grid.cells[`${laneId}:0`];
+console.log('first input', first.lenses.lensInstancesById[lensInstanceIdFirst].input);
+const second = reduceAuthoritative(first, { type: ACTION_TYPES.LENS_ADD_TO_CELL, payload: { lensId: 'inputList', laneId, row: 0 } });
+const lensInstanceIdSecond = second.workspace.grid.cells[`${laneId}:0`];
+console.log('second input', second.lenses.lensInstancesById[lensInstanceIdSecond].input);
