@@ -133,6 +133,7 @@ export default function DraftsPanel() {
   );
 
   const frameAnchorRefs = useRef(new Map());
+  const frameHeaderRefs = useRef(new Map());
 
   const setFrameAnchor = useCallback(
     (frameIndex) => (element) => {
@@ -145,6 +146,26 @@ export default function DraftsPanel() {
     },
     []
   );
+
+  const setFrameHeaderRef = useCallback(
+    (frameIndex) => (element) => {
+      const headers = frameHeaderRefs.current;
+      if (element) {
+        headers.set(frameIndex, element);
+      } else {
+        headers.delete(frameIndex);
+      }
+    },
+    []
+  );
+
+  const highlightFrameHeader = useCallback((frameIndex) => {
+    const header = frameHeaderRefs.current.get(frameIndex);
+    if (!header) return;
+    header.classList.remove("frame-highlight");
+    void header.offsetWidth;
+    header.classList.add("frame-highlight");
+  }, []);
 
   const scrollToFrame = useCallback(
     (frameIndex) => {
@@ -165,6 +186,7 @@ export default function DraftsPanel() {
 
   useEffect(() => {
     frameAnchorRefs.current.clear();
+    frameHeaderRefs.current.clear();
   }, [activeBatchId, frameIndices.length]);
 
   useEffect(() => {
@@ -305,12 +327,11 @@ export default function DraftsPanel() {
     (frameIndex) => {
       setSelectedFrameIndex(frameIndex);
       if (showAllFrames) {
-        window.requestAnimationFrame(() => {
-          scrollToFrame(frameIndex);
-        });
+        scrollToFrame(frameIndex);
+        highlightFrameHeader(frameIndex);
       }
     },
-    [scrollToFrame, showAllFrames]
+    [highlightFrameHeader, scrollToFrame, showAllFrames]
   );
 
   const renderDraftRow = useCallback(
@@ -530,7 +551,11 @@ export default function DraftsPanel() {
                             className="drafts-frame-anchor"
                             aria-hidden="true"
                           />
-                          <div className="drafts-batch-frame-heading">
+                          <div
+                            ref={setFrameHeaderRef(group.frameIndex)}
+                            className="drafts-frame-header"
+                            data-frame-index={group.frameIndex}
+                          >
                             Frame {group.frameIndex} ({group.entries.length})
                           </div>
                           {group.entries.length ? (
