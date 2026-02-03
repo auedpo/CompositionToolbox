@@ -1,6 +1,8 @@
 import { useStore } from "../../state/store.js";
 import {
   selectActiveDraftIdByLensInstanceId,
+  selectBatchSummaryByBatchId,
+  selectDraftIdsByBatchFrame,
   selectDraftOrderByLensInstanceId,
   selectDraftsById,
   selectLastErrorByLensInstanceId,
@@ -20,6 +22,8 @@ export function useDraftSelectors() {
   const lensOutputSelection = useStore((state) =>
     selectLensOutputSelection(state, selectedLensInstanceId)
   );
+  const draftIdsByBatchFrame = useStore(selectDraftIdsByBatchFrame);
+  const batchSummaryByBatchId = useStore(selectBatchSummaryByBatchId);
 
   return {
     draftsById,
@@ -29,6 +33,8 @@ export function useDraftSelectors() {
     selectedLensInstanceId,
     selectedDraftId,
     lensOutputSelection,
-    runtimeWarningsByLensInstanceId
+    runtimeWarningsByLensInstanceId,
+    draftIdsByBatchFrame,
+    batchSummaryByBatchId
   };
 }

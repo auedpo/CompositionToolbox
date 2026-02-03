@@ -25,6 +25,13 @@ function formatWarningDetails(details) {
     .join(", ");
 }
 
+const TRUNCATION_WARNING_KINDS = new Set([
+  "truncatedFrames",
+  "truncatedBatchOutputs",
+  "truncatedFrameOutputs",
+  "truncatedRecomputeOutputs"
+]);
+
 export default function DraftsPanel() {
   const actions = useStore((state) => state.actions);
   const { selectDraft } = useSelection();
@@ -36,9 +43,13 @@ export default function DraftsPanel() {
     selectedLensInstanceId,
     selectedDraftId,
     lensOutputSelection,
-    runtimeWarningsByLensInstanceId
+    runtimeWarningsByLensInstanceId,
+    draftIdsByBatchFrame,
+    batchSummaryByBatchId
   } = useDraftSelectors();
   const [showAll, setShowAll] = useState(true);
+  const [showAllFrames, setShowAllFrames] = useState(false);
+  const [selectedFrameIndex, setSelectedFrameIndex] = useState(0);
 
   const draftIds = selectedLensInstanceId
     ? (draftOrderByLensInstanceId[selectedLensInstanceId] || [])
@@ -52,10 +63,153 @@ export default function DraftsPanel() {
 
   const focusedDraftId = selectedDraftId || activeDraftId || null;
   const focusedDraft = focusedDraftId ? draftsById[focusedDraftId] : null;
-  const scrollRef = useRef(null);
+  const listScrollRef = useRef(null);
   const runtimeWarnings = selectedLensInstanceId
     ? (runtimeWarningsByLensInstanceId[selectedLensInstanceId] || [])
     : [];
+
+  const draftIndexById = useMemo(() => {
+    const map = {};
+    draftIds.forEach((draftId, orderIndex) => {
+      if (typeof draftId === "string") {
+        map[draftId] = orderIndex;
+      }
+    });
+    return map;
+  }, [draftIds]);
+
+  const batchInfo = useMemo(() => {
+    let activeBatchId = null;
+    let hasMultipleBatches = false;
+    for (const draftId of draftIds) {
+      const draft = draftsById[draftId];
+      if (!draft) continue;
+      const batchId = draft.meta && draft.meta.batch && draft.meta.batch.batchId;
+      if (!batchId) continue;
+      if (!activeBatchId) {
+        activeBatchId = batchId;
+      } else if (batchId !== activeBatchId) {
+        hasMultipleBatches = true;
+        break;
+      }
+    }
+    return { activeBatchId, hasMultipleBatches };
+  }, [draftIds, draftsById]);
+
+  const { activeBatchId, hasMultipleBatches } = batchInfo;
+
+  const framesMap = useMemo(() => {
+    if (!activeBatchId) return {};
+    return draftIdsByBatchFrame[activeBatchId] || {};
+  }, [activeBatchId, draftIdsByBatchFrame]);
+
+  const frameIndices = useMemo(() => {
+    const keys = Object.keys(framesMap || {});
+    return keys
+      .map((key) => Number(key))
+      .filter((value) => Number.isFinite(value))
+      .sort((a, b) => a - b);
+  }, [framesMap]);
+
+  const batchSummary = activeBatchId
+    ? (batchSummaryByBatchId[activeBatchId] || null)
+    : null;
+
+  const frameCount = Number.isFinite(batchSummary && batchSummary.frames)
+    ? batchSummary.frames
+    : frameIndices.length;
+  const outputCount = Number.isFinite(batchSummary && batchSummary.outputs)
+    ? batchSummary.outputs
+    : frameIndices.reduce(
+        (sum, frameIndex) => sum + ((framesMap[frameIndex] && framesMap[frameIndex].length) || 0),
+        0
+      );
+
+  const hasRuntimeTruncationWarning = runtimeWarnings.some(
+    (warning) => warning && TRUNCATION_WARNING_KINDS.has(warning.kind)
+  );
+  const showTruncationBadge = Boolean(
+    (batchSummary && batchSummary.truncated) || hasRuntimeTruncationWarning
+  );
+
+  const frameAnchorRefs = useRef(new Map());
+
+  const setFrameAnchor = useCallback(
+    (frameIndex) => (element) => {
+      const anchors = frameAnchorRefs.current;
+      if (element) {
+        anchors.set(frameIndex, element);
+      } else {
+        anchors.delete(frameIndex);
+      }
+    },
+    []
+  );
+
+  const scrollToFrame = useCallback(
+    (frameIndex) => {
+      const scroller = listScrollRef.current;
+      const anchor = frameAnchorRefs.current.get(frameIndex);
+      if (!scroller || !anchor) return;
+      const scrollerRect = scroller.getBoundingClientRect();
+      const anchorRect = anchor.getBoundingClientRect();
+      const delta = anchorRect.top - scrollerRect.top;
+      const TOP_PAD = 8;
+      scroller.scrollTo({
+        top: Math.max(0, scroller.scrollTop + delta - TOP_PAD),
+        behavior: "auto"
+      });
+    },
+    []
+  );
+
+  useEffect(() => {
+    frameAnchorRefs.current.clear();
+  }, [activeBatchId, frameIndices.length]);
+
+  useEffect(() => {
+    if (showAllFrames) {
+      window.requestAnimationFrame(() => {
+        scrollToFrame(selectedFrameIndex);
+      });
+    }
+  }, [scrollToFrame, selectedFrameIndex, showAllFrames]);
+
+  const batchFrameGroups = useMemo(() => {
+    return frameIndices.map((frameIndex) => {
+      const ids = Array.isArray(framesMap[frameIndex]) ? framesMap[frameIndex] : [];
+      const entries = ids
+        .map((draftId) => {
+          const draft = draftsById[draftId];
+          const orderIndex = draftIndexById[draftId];
+          return draft && typeof orderIndex === "number"
+            ? { draft, index: orderIndex }
+            : null;
+        })
+        .filter(Boolean);
+      return { frameIndex, entries };
+    });
+  }, [frameIndices, framesMap, draftsById, draftIndexById]);
+
+  const selectedFrameEntries = useMemo(() => {
+    const ids = Array.isArray(framesMap[selectedFrameIndex])
+      ? framesMap[selectedFrameIndex]
+      : [];
+    return ids
+      .map((draftId) => {
+        const draft = draftsById[draftId];
+        const orderIndex = draftIndexById[draftId];
+        return draft && typeof orderIndex === "number"
+          ? { draft, index: orderIndex }
+          : null;
+      })
+      .filter(Boolean);
+  }, [framesMap, draftsById, draftIndexById, selectedFrameIndex]);
+
+  const batchHasOutputs = outputCount > 0;
+  const isBatchMode = Boolean(activeBatchId && showAll);
+  const showSelectionControls = showAll && (!isBatchMode || showAllFrames);
+  const canShowSelectionActions = showSelectionControls && Boolean(selectedLensInstanceId);
 
   const selectedIndices = useMemo(() => {
     if (lensOutputSelection && Array.isArray(lensOutputSelection.selectedIndices)) {
@@ -101,7 +255,7 @@ export default function DraftsPanel() {
     });
   }, [actions, selectedLensInstanceId]);
 
-  const visibleDraftEntries = useMemo(() => {
+  const nonBatchVisibleEntries = useMemo(() => {
     if (!showAll) {
       return focusedDraft ? [{ draft: focusedDraft, index: 0 }] : [];
     }
@@ -124,10 +278,100 @@ export default function DraftsPanel() {
   };
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = 0;
+    if (listScrollRef.current) {
+      listScrollRef.current.scrollTop = 0;
     }
   }, [showAll, selectedLensInstanceId]);
+
+  useEffect(() => {
+    setShowAllFrames(false);
+  }, [activeBatchId]);
+
+  useEffect(() => {
+    if (!activeBatchId) {
+      setSelectedFrameIndex(0);
+      return;
+    }
+    if (!frameIndices.length) {
+      setSelectedFrameIndex(0);
+      return;
+    }
+    setSelectedFrameIndex((prev) => (
+      frameIndices.includes(prev) ? prev : frameIndices[0]
+    ));
+  }, [activeBatchId, frameIndices]);
+
+  const handleFrameTabClick = useCallback(
+    (frameIndex) => {
+      setSelectedFrameIndex(frameIndex);
+      if (showAllFrames) {
+        window.requestAnimationFrame(() => {
+          scrollToFrame(frameIndex);
+        });
+      }
+    },
+    [scrollToFrame, showAllFrames]
+  );
+
+  const renderDraftRow = useCallback(
+    ({ draft, index }) => {
+      const isSelected = draft.draftId === focusedDraftId;
+      const checkboxChecked = selectedSet.has(index);
+      const handleCheckboxChange = (event) => {
+        event.stopPropagation();
+        handleSelectionToggle(index);
+      };
+      return (
+        <div
+          key={draft.draftId}
+          className={`draft-item${isSelected ? " active" : ""}`}
+          role="button"
+          tabIndex={0}
+          aria-pressed={isSelected}
+          onClick={() => selectDraft(draft.draftId)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              selectDraft(draft.draftId);
+            }
+          }}
+        >
+          {showSelectionControls ? (
+            <div
+              className="draft-item-checkbox"
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
+            >
+              <input
+                type="checkbox"
+                aria-label={`Select Draft ${index + 1}`}
+                checked={checkboxChecked}
+                onChange={handleCheckboxChange}
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={(event) => event.stopPropagation()}
+              />
+            </div>
+          ) : null}
+          <div className="draft-item-left">
+            <div className="draft-label">
+              <span>Draft {index + 1}</span>
+              <span className="hint">{draft.type}</span>
+            </div>
+            <div className="draft-desc">
+              {draft.summary || draft.draftId}
+            </div>
+            <div className="hint">{draft.draftId}</div>
+          </div>
+          <div className="draft-item-right">
+            <div className="draft-preview">
+              {formatPreview(draft.payload && draft.payload.values)}
+            </div>
+          </div>
+        </div>
+      );
+    },
+    [focusedDraftId, handleSelectionToggle, selectDraft, selectedSet, showSelectionControls]
+  );
 
   return (
     <section className="workspace-panel workspace-panel-drafts">
@@ -170,7 +414,62 @@ export default function DraftsPanel() {
                 </button>
               </div>
             </div>
-            {showAll && selectedLensInstanceId ? (
+            {isBatchMode ? (
+              <div className="drafts-batch-section">
+                <div className="drafts-batch-header">
+                  <div>
+                    <div className="drafts-batch-title">Batch</div>
+                    <div className="drafts-batch-subtitle">
+                      <span>Frames: {frameCount}</span>
+                      <span>Outputs: {outputCount}</span>
+                      {showTruncationBadge ? (
+                        <span className="drafts-batch-truncated">Truncated</span>
+                      ) : null}
+                    </div>
+                    <div className="hint drafts-batch-id">Batch {activeBatchId}</div>
+                  </div>
+                  <div className="drafts-batch-actions">
+                    <button
+                      type="button"
+                      className="component-button"
+                      disabled={!frameIndices.length}
+                      onClick={() => setShowAllFrames((prev) => !prev)}
+                    >
+                      {showAllFrames ? "Show one frame" : "Show all frames"}
+                    </button>
+                  </div>
+                </div>
+                <div className="drafts-batch-tabs">
+                  {frameIndices.length ? (
+                    frameIndices.map((frameIndex) => {
+                      const entries = Array.isArray(framesMap[frameIndex])
+                        ? framesMap[frameIndex]
+                        : [];
+                      return (
+                        <button
+                          key={`frame-${frameIndex}`}
+                          type="button"
+                          className={`drafts-batch-tab${frameIndex === selectedFrameIndex ? " selected" : ""}`}
+                          onClick={() => handleFrameTabClick(frameIndex)}
+                        >
+                          Frame {frameIndex} ({entries.length})
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="drafts-batch-tab drafts-batch-tab-empty">
+                      No frames yet.
+                    </div>
+                  )}
+                </div>
+                {hasMultipleBatches ? (
+                  <div className="drafts-batch-warning">
+                    Multiple batches detected; showing {activeBatchId}.
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            {canShowSelectionActions ? (
               <div className="drafts-selection-actions">
                 <button
                   type="button"
@@ -190,7 +489,7 @@ export default function DraftsPanel() {
                 </button>
               </div>
             ) : null}
-            <div className="drafts-scroll" ref={scrollRef}>
+            <div className="drafts-scroll" ref={listScrollRef}>
               {runtimeWarnings.length ? (
                 <div className="drafts-warning">
                   {runtimeWarnings.map((warning, idx) => {
@@ -215,67 +514,55 @@ export default function DraftsPanel() {
               {lensError ? (
                 <div className="drafts-danger">{lensError}</div>
               ) : null}
-              {visibleDraftEntries.length ? (
-                <div className="drafts-items">
-                  {visibleDraftEntries.map(({ draft, index }) => {
-                    const isSelected = draft.draftId === focusedDraftId;
-                    const checkboxChecked = selectedSet.has(index);
-                    const handleCheckboxChange = (event) => {
-                      event.stopPropagation();
-                      handleSelectionToggle(index);
-                    };
-                    return (
-                      <div
-                        key={draft.draftId}
-                        className={`draft-item${isSelected ? " active" : ""}`}
-                        role="button"
-                        tabIndex={0}
-                        aria-pressed={isSelected}
-                        onClick={() => selectDraft(draft.draftId)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            selectDraft(draft.draftId);
-                          }
-                        }}
-                      >
-                        {showAll ? (
+              {isBatchMode ? (
+                lensError ? null : (
+                  <div className="drafts-items">
+                    {!batchHasOutputs ? (
+                      <div className="drafts-empty">Batch has no outputs.</div>
+                    ) : showAllFrames ? (
+                      batchFrameGroups.map((group) => (
+                        <div
+                          key={`frame-group-${group.frameIndex}`}
+                          className="drafts-batch-frame-group"
+                        >
                           <div
-                            className="draft-item-checkbox"
-                            onClick={(event) => event.stopPropagation()}
-                            onKeyDown={(event) => event.stopPropagation()}
-                          >
-                            <input
-                              type="checkbox"
-                              aria-label={`Select Draft ${index + 1}`}
-                              checked={checkboxChecked}
-                              onChange={handleCheckboxChange}
-                              onClick={(event) => event.stopPropagation()}
-                              onKeyDown={(event) => event.stopPropagation()}
-                            />
+                            ref={setFrameAnchor(group.frameIndex)}
+                            className="drafts-frame-anchor"
+                            aria-hidden="true"
+                          />
+                          <div className="drafts-batch-frame-heading">
+                            Frame {group.frameIndex} ({group.entries.length})
                           </div>
-                        ) : null}
-                        <div className="draft-item-left">
-                          <div className="draft-label">
-                            <span>Draft {index + 1}</span>
-                            <span className="hint">{draft.type}</span>
-                          </div>
-                          <div className="draft-desc">
-                            {draft.summary || draft.draftId}
-                          </div>
-                          <div className="hint">{draft.draftId}</div>
+                          {group.entries.length ? (
+                            group.entries.map(renderDraftRow)
+                          ) : (
+                            <div className="drafts-batch-frame-empty">
+                              No outputs for this frame.
+                            </div>
+                          )}
                         </div>
-                        <div className="draft-item-right">
-                          <div className="draft-preview">
-                            {formatPreview(draft.payload && draft.payload.values)}
-                          </div>
+                      ))
+                    ) : (
+                      selectedFrameEntries.length ? (
+                        selectedFrameEntries.map(renderDraftRow)
+                      ) : (
+                        <div className="drafts-empty">
+                          {frameIndices.length
+                            ? `No drafts in frame ${selectedFrameIndex}.`
+                            : "Batch has no outputs."}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      )
+                    )}
+                  </div>
+                )
               ) : (
-                lensError ? null : <div className="drafts-empty">No drafts yet.</div>
+                nonBatchVisibleEntries.length ? (
+                  <div className="drafts-items">
+                    {nonBatchVisibleEntries.map(renderDraftRow)}
+                  </div>
+                ) : (
+                  lensError ? null : <div className="drafts-empty">No drafts yet.</div>
+                )
               )}
             </div>
           </>

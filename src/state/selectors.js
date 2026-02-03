@@ -100,6 +100,26 @@ export const selectSelectedDraftIdsByLensInstanceId = (state) => {
   return state.derived.drafts.selectedDraftIdsByLensInstanceId || {};
 };
 
+export const selectBatchIndex = (state) => {
+  const derived = selectDerived(state);
+  if (!derived || !derived.drafts) return null;
+  return derived.drafts.batchIndex || {
+    draftIdsByBatchId: {},
+    draftIdsByBatchFrame: {},
+    batchSummaryByBatchId: {}
+  };
+};
+
+export const selectDraftIdsByBatchFrame = (state) => {
+  const batchIndex = selectBatchIndex(state);
+  return (batchIndex && batchIndex.draftIdsByBatchFrame) || {};
+};
+
+export const selectBatchSummaryByBatchId = (state) => {
+  const batchIndex = selectBatchIndex(state);
+  return (batchIndex && batchIndex.batchSummaryByBatchId) || {};
+};
+
 export const selectSelectedDraftIdsForLensInstance = (state, lensInstanceId) => {
   if (!lensInstanceId) return [];
   const map = selectSelectedDraftIdsByLensInstanceId(state);
