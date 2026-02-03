@@ -1,9 +1,15 @@
 // Purpose: schema.js provides exports: createEmptyAuthoritative, createEmptyDerived, createInitialState, SCHEMA_VERSION.
 // Interacts with: no imports.
 // Role: state layer module within the broader app graph.
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 export const DEFAULT_LANE_COUNT = 4;
 export const DEFAULT_ROW_COUNT = 10;
+
+export const DEFAULT_BATCHING_LIMITS = {
+  perFrameDraftCap: 128,
+  maxDraftsPerLensBatch: 500,
+  maxDraftsPerRecompute: 2000
+};
 
 function makeDefaultLaneId(index) {
   return `lane-${index + 1}`;
@@ -60,6 +66,16 @@ function createEmptyWorkspace() {
   };
 }
 
+function createDefaultConfig() {
+  return {
+    batching: {
+      perFrameDraftCap: DEFAULT_BATCHING_LIMITS.perFrameDraftCap,
+      maxDraftsPerLensBatch: DEFAULT_BATCHING_LIMITS.maxDraftsPerLensBatch,
+      maxDraftsPerRecompute: DEFAULT_BATCHING_LIMITS.maxDraftsPerRecompute
+    }
+  };
+}
+
 export function createEmptyAuthoritative() {
   return {
     workspace: createEmptyWorkspace(),
@@ -93,7 +109,8 @@ export function createEmptyAuthoritative() {
         typeDefaultByLensId: {},
         instanceOverrideByLensInstanceId: {}
       }
-    }
+    },
+    config: createDefaultConfig()
   };
 }
 

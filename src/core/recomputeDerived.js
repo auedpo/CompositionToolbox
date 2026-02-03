@@ -435,6 +435,7 @@ function applyLensWithBatching({ lensId, params, inputDraft, context, caps = DEF
 
 export function recomputeDerived(authoritativeState) {
   batchSequenceCounter = 0;
+  const authoritative = authoritativeState || {};
   const draftsById = {};
   const draftOrderByLensInstanceId = {};
   const activeDraftIdByLensInstanceId = {};
@@ -442,10 +443,15 @@ export function recomputeDerived(authoritativeState) {
   const lastErrorByLensInstanceId = {};
   const vizByLensInstanceId = {};
   const runtimeWarningsByLensInstanceId = {};
-  const globalDraftCap = Number.isFinite(DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute)
-    && DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute >= 0
-    ? DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute
-    : Infinity;
+  const configBatching = authoritative.config && authoritative.config.batching
+    ? authoritative.config.batching
+    : null;
+  const configuredGlobalDraftCap = configBatching && Number.isFinite(configBatching.maxDraftsPerRecompute)
+    ? Number(configBatching.maxDraftsPerRecompute)
+    : DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute;
+  const globalDraftCap = Number.isFinite(configuredGlobalDraftCap) && configuredGlobalDraftCap >= 0
+    ? configuredGlobalDraftCap
+    : DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute;
   let totalDraftsAddedThisRecompute = 0;
   const deterministicLensInstanceIds = [];
   const deterministicLensInstanceIdSet = new Set();
@@ -495,7 +501,17 @@ export function recomputeDerived(authoritativeState) {
     return drafts;
   }
 
-  const authoritative = authoritativeState || {};
+  const perFrameDraftCap = configBatching && Number.isFinite(configBatching.perFrameDraftCap)
+    ? configBatching.perFrameDraftCap
+    : DEFAULT_BATCH_CAPS.maxDraftsEmittedPerFrame;
+  const maxDraftsPerLensBatch = configBatching && Number.isFinite(configBatching.maxDraftsPerLensBatch)
+    ? configBatching.maxDraftsPerLensBatch
+    : DEFAULT_BATCH_CAPS.maxTotalDraftsPerBatch;
+  const batchingCaps = {
+    ...DEFAULT_BATCH_CAPS,
+    maxDraftsEmittedPerFrame: perFrameDraftCap,
+    maxTotalDraftsPerBatch: maxDraftsPerLensBatch
+  };
   const workspace = authoritative.workspace || {};
   const laneOrder = Array.isArray(workspace.laneOrder) ? workspace.laneOrder : [];
   const grid = workspace.grid || {};
@@ -565,7 +581,8 @@ export function recomputeDerived(authoritativeState) {
         lensId,
         params,
         inputDraft,
-        context: { lensInstanceId, laneId, row }
+        context: { lensInstanceId, laneId, row },
+        caps: batchingCaps
       });
       const isBatched = Boolean(result && result.isBatched);
 

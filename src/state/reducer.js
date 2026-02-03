@@ -9,7 +9,8 @@ import {
   parseCellKey,
   DEFAULT_ROW_COUNT,
   DEFAULT_LANE_COUNT,
-  SCHEMA_VERSION
+  SCHEMA_VERSION,
+  DEFAULT_BATCHING_LIMITS
 } from "./schema.js";
 import { makeLensInstanceId } from "./ids.js";
 
@@ -30,6 +31,7 @@ export const ACTION_TYPES = {
   HYDRATE_AUTHORITATIVE: "HYDRATE_AUTHORITATIVE",
   VISUALIZER_SET_TYPE_DEFAULT: "VISUALIZER_SET_TYPE_DEFAULT",
   VISUALIZER_SET_INSTANCE_OVERRIDE: "VISUALIZER_SET_INSTANCE_OVERRIDE",
+  CONFIG_SET_BATCHING_LIMITS: "CONFIG_SET_BATCHING_LIMITS",
   UNDO: "UNDO",
   REDO: "REDO"
 };
@@ -39,6 +41,34 @@ const ALLOWED_VIEWS = new Set(["workspace", "inventory", "desk"]);
 
 function ensureObject(value) {
   return value && typeof value === "object" ? value : {};
+}
+
+function clampValue(value, min, max, fallback) {
+  if (!Number.isFinite(value)) return fallback;
+  const next = Math.floor(value);
+  if (next < min) return min;
+  if (next > max) return max;
+  return next;
+}
+
+function normalizeBatchingConfig(incoming) {
+  const base = DEFAULT_BATCHING_LIMITS;
+  const source = ensureObject(incoming);
+  const perFrameRaw = Number.isFinite(Number(source.perFrameDraftCap))
+    ? Number(source.perFrameDraftCap)
+    : base.perFrameDraftCap;
+  const maxBatchRaw = Number.isFinite(Number(source.maxDraftsPerLensBatch))
+    ? Number(source.maxDraftsPerLensBatch)
+    : base.maxDraftsPerLensBatch;
+  const recomputeRaw = Number.isFinite(Number(source.maxDraftsPerRecompute))
+    ? Number(source.maxDraftsPerRecompute)
+    : base.maxDraftsPerRecompute;
+  return {
+    perFrameDraftCap: clampValue(perFrameRaw, 1, 2048, base.perFrameDraftCap),
+    maxDraftsPerLensBatch: clampValue(maxBatchRaw, 1, 20000, base.maxDraftsPerLensBatch)
+    ,
+    maxDraftsPerRecompute: clampValue(recomputeRaw, 1, 100000, base.maxDraftsPerRecompute)
+  };
 }
 
 function normalizeLensInput(input) {
@@ -285,7 +315,9 @@ export function normalizeAuthoritativeState(authoritative) {
   const incoming = authoritative || {};
   const lensesSection = ensureObject(incoming.lenses);
   const uiSection = ensureObject(incoming.ui);
+  const configSection = ensureObject(incoming.config);
   const visualizersSection = ensureObject(uiSection.visualizers);
+  const normalizedBatching = normalizeBatchingConfig(configSection.batching);
   const typeDefaultByLensId = ensureObject(visualizersSection.typeDefaultByLensId);
   const instanceOverrideByLensInstanceId = ensureObject(visualizersSection.instanceOverrideByLensInstanceId);
   const normalizedLensInstances = normalizeLensInstances(lensesSection.lensInstancesById || {});
@@ -328,6 +360,11 @@ export function normalizeAuthoritativeState(authoritative) {
           ...instanceOverrideByLensInstanceId
         }
       }
+    },
+    config: {
+      ...base.config,
+      ...configSection,
+      batching: normalizedBatching
     }
   };
 }
@@ -600,6 +637,17 @@ function handleSetLensOutputSelection(current, payload) {
   };
 }
 
+function handleSetBatchingLimits(current, payload) {
+  const nextBatching = normalizeBatchingConfig(payload);
+  return {
+    ...markDirty(current),
+    config: {
+      ...current.config,
+      batching: nextBatching
+    }
+  };
+}
+
 function handleSelectionSet(current, payload) {
   if (!payload) return current;
   const laneOrder = current.workspace.laneOrder;
@@ -769,6 +817,8 @@ export function reduceAuthoritative(authoritative, action) {
       return updateTypeDefaultVisualizer(current, payload);
     case ACTION_TYPES.VISUALIZER_SET_INSTANCE_OVERRIDE:
       return updateInstanceOverrideVisualizer(current, payload);
+    case ACTION_TYPES.CONFIG_SET_BATCHING_LIMITS:
+      return handleSetBatchingLimits(current, payload);
     default:
       return current;
   }

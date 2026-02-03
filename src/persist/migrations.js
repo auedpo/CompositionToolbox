@@ -1,6 +1,6 @@
 import { createEmptyAuthoritative } from "../state/schema.js";
 
-const MIGRATION_TARGET_VERSION = 5;
+const MIGRATION_TARGET_VERSION = 6;
 
 function ensureObject(value) {
   return value && typeof value === "object" ? value : {};
@@ -22,7 +22,9 @@ function normalizeSnapshotCore(snapshot) {
     inventory: mergeSection(base.inventory, snapshot.inventory),
     desk: mergeSection(base.desk, snapshot.desk),
     selection: mergeSection(base.selection, snapshot.selection),
-    persistence: mergeSection(base.persistence, snapshot.persistence)
+    persistence: mergeSection(base.persistence, snapshot.persistence),
+    ui: mergeSection(base.ui, snapshot.ui),
+    config: mergeSection(base.config, snapshot.config)
   };
 }
 
@@ -133,12 +135,26 @@ function migrateV4ToV5(snapshot) {
   };
 }
 
+function migrateV5ToV6(snapshot) {
+  const normalized = normalizeSnapshotCore(snapshot);
+  return {
+    ...snapshot,
+    ...normalized,
+    persistence: {
+      ...normalized.persistence,
+      schemaVersion: 6
+    },
+    schemaVersion: 6
+  };
+}
+
 const MIGRATIONS = {
   0: migrateV0ToV1,
   1: migrateV1ToV2,
   2: migrateV2ToV3,
   3: migrateV3ToV4,
-  4: migrateV4ToV5
+  4: migrateV4ToV5,
+  5: migrateV5ToV6
 };
 
 export function migrateSnapshotToCurrent(snapshot, targetVersion = MIGRATION_TARGET_VERSION) {

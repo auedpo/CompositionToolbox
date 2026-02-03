@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 
 import Workspace from "./Workspace.jsx";
 import InventoryView from "./InventoryView.jsx";
 import DeskView from "./DeskView.jsx";
 import PersistenceControls from "../components/PersistenceControls.jsx";
 import ThemeToggle from "../components/ThemeToggle.jsx";
+import GlobalConfigModal from "../panels/GlobalConfigModal.jsx";
 import { useStore } from "../../state/store.js";
 
 const VIEW_OPTIONS = [
@@ -20,6 +21,7 @@ const getViewTitle = (view) => {
 
 export default function AppShell() {
   const view = useStore((state) => state.authoritative.selection?.view || "workspace");
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const actions = useStore((state) => state.actions);
   const viewTitle = getViewTitle(view);
   const mainContent = view === "inventory" ? (
@@ -39,12 +41,19 @@ export default function AppShell() {
         <div className="workspace-header-right">
           <PersistenceControls />
           <ThemeToggle />
-          <button type="button" className="ghost workspace-config-btn" disabled>
-            Config Menu &gt;
+          <button
+            type="button"
+            className="ghost workspace-config-btn"
+            onClick={() => setIsConfigOpen(true)}
+          >
+            Config
           </button>
         </div>
       </header>
       <main className="workspace-body">{mainContent}</main>
+      {isConfigOpen && (
+        <GlobalConfigModal onClose={() => setIsConfigOpen(false)} />
+      )}
       <footer className="workspace-footer">
         <div className="workspace-view-switch">
           {VIEW_OPTIONS.map((option) => {

@@ -1374,10 +1374,135 @@ button, input, select, textarea {
   fill: var(--selection);
 }
 
-.euclid-viz .poly {
-  stroke: var(--accent-secondary);
-  fill: color-mix(in oklch, var(--accent-secondary) 12%, transparent);
-}
+  .euclid-viz .poly {
+    stroke: var(--accent-secondary);
+    fill: color-mix(in oklch, var(--accent-secondary) 12%, transparent);
+  }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    z-index: 200;
+  }
+
+  .modal-dialog {
+    width: min(600px, 100%);
+    max-height: 90vh;
+    background-color: var(--surface-1);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--border-1);
+    background-color: var(--surface-0);
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-1);
+  }
+
+  .modal-close-btn {
+    border-radius: var(--radius-md);
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+  }
+
+  .modal-body {
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    overflow-y: auto;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .modal-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .config-section {
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    background-color: var(--surface-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .config-section-header {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-2);
+    letter-spacing: var(--font-spacing-tight);
+  }
+
+  .config-section-placeholder {
+    border-style: dashed;
+    border-color: var(--border-1);
+    color: var(--text-3);
+  }
+
+  .config-section-placeholder-text {
+    margin: 0;
+    font-size: var(--font-size-xs);
+  }
+
+  .config-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .config-field-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .config-field-input {
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
+    background-color: var(--surface-1);
+    color: var(--text-1);
+    font-size: var(--font-size-md);
+  }
+
+  .config-field-input:focus-visible {
+    outline: 2px solid var(--accent-tertiary-border);
+    outline-offset: 2px;
+  }
+
+  .config-field-error {
+    font-size: var(--font-size-xxs);
+    color: var(--status-danger);
+  }
 }
 
 @layer utilities {

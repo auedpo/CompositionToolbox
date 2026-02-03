@@ -22,6 +22,8 @@ export function exportAuthoritativeSnapshot(state) {
     inventory: authoritative.inventory,
     desk: authoritative.desk,
     selection: authoritative.selection,
+    ui: authoritative.ui,
+    config: authoritative.config,
     persistence: {
       ...authoritative.persistence,
       schemaVersion: CURRENT_SCHEMA_VERSION
@@ -43,6 +45,8 @@ export function importAuthoritativeSnapshot(snapshot) {
     ...ensureObject(migrated.persistence),
     schemaVersion: CURRENT_SCHEMA_VERSION
   };
+  const ui = { ...base.ui, ...(ensureObject(migrated.ui)) };
+  const config = { ...base.config, ...(ensureObject(migrated.config)) };
   return normalizeAuthoritativeState({
     ...base,
     workspace,
@@ -50,6 +54,8 @@ export function importAuthoritativeSnapshot(snapshot) {
     inventory,
     desk,
     selection,
-    persistence
+    persistence,
+    ui,
+    config
   });
 }

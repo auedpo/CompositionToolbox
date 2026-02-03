@@ -116,6 +116,12 @@ export function createActions(dispatch, get) {
         payload: { error }
       });
     },
+    setBatchingLimits(limits) {
+      dispatch({
+        type: ACTION_TYPES.CONFIG_SET_BATCHING_LIMITS,
+        payload: limits
+      });
+    },
     hydrateAuthoritative(authoritative) {
       dispatch({
         type: ACTION_TYPES.HYDRATE_AUTHORITATIVE,
