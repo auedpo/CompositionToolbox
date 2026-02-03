@@ -2,6 +2,7 @@
 // Interacts with: imports: ./draftProvenance.js, ./invariants.js, ./lensHost.js, ./resolveInput.js.
 // Role: core domain layer module within the broader app graph.
 import { DraftInvariantError, makeDraft } from "./invariants.js";
+import { DEFAULT_BATCH_CAPS } from "./batchingCaps.js";
 import { buildInputRefs, buildParamsHash, buildStableDraftId } from "./draftProvenance.js";
 import { lensHost } from "./lensHost.js";
 import { resolveInput } from "./resolveInput.js";
@@ -13,6 +14,14 @@ let batchSequenceCounter = 0;
 function createBatchId() {
   batchSequenceCounter += 1;
   return `batch-${batchSequenceCounter}`;
+}
+
+let resolveInputOverride = null;
+export function setResolveInputOverride(fn) {
+  resolveInputOverride = typeof fn === "function" ? fn : null;
+}
+export function resetResolveInputOverride() {
+  resolveInputOverride = null;
 }
 
 function extractPackedCarrierSourceDraftIds(draft) {
@@ -225,38 +234,112 @@ function buildFrameInputDraft({ values, frameIndex, sourceDraftId, fallbackLensI
   });
 }
 
-function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
+function applyLensWithBatching({ lensId, params, inputDraft, context, caps = DEFAULT_BATCH_CAPS } = {}) {
   if (!inputDraft || !isPackedCarrierDraft(inputDraft)) {
     const result = lensHost.apply({ lensId, params, inputDraft, context });
     return { ...result, isBatched: false };
   }
 
+  const runtimeWarnings = [];
+  const addRuntimeWarning = (warning) => {
+    if (warning && typeof warning === "object") {
+      runtimeWarnings.push(warning);
+    }
+  };
+  const addFrameWarnings = (warnings) => {
+    if (!Array.isArray(warnings) || !warnings.length) return;
+    warnings.forEach((warning) => addRuntimeWarning(warning));
+  };
+
   const payload = inputDraft.payload && typeof inputDraft.payload === "object"
     ? inputDraft.payload
     : null;
+  const batchId = createBatchId();
   if (!payload) {
-    return { drafts: [], isBatched: true };
+    addRuntimeWarning({
+      kind: "malformedCarrier",
+      message: "Packed carrier payload is missing.",
+      batchId,
+      details: { reason: "missingPayload" }
+    });
+    return {
+      drafts: [],
+      isBatched: true,
+      warnings: runtimeWarnings.length ? runtimeWarnings : undefined
+    };
   }
 
   const frames = Array.isArray(payload.values) ? payload.values : null;
   if (!frames) {
-    return { drafts: [], isBatched: true };
+    addRuntimeWarning({
+      kind: "malformedCarrier",
+      message: "Packed carrier payload.values must be an array.",
+      batchId,
+      details: {
+        valuesType: payload.values === undefined ? "undefined" : typeof payload.values
+      }
+    });
+    return {
+      drafts: [],
+      isBatched: true,
+      warnings: runtimeWarnings.length ? runtimeWarnings : undefined
+    };
   }
 
-  const batchId = createBatchId();
-  const frameSourceDraftIds = extractPackedCarrierSourceDraftIds(inputDraft);
+  const frameLimit = Number.isFinite(caps.maxFramesEvaluated) && caps.maxFramesEvaluated >= 0
+    ? caps.maxFramesEvaluated
+    : Infinity;
+  const framesToEvaluate = frameLimit < frames.length
+    ? frames.slice(0, Math.max(0, frameLimit))
+    : frames;
+  if (frames.length > framesToEvaluate.length) {
+    addRuntimeWarning({
+      kind: "truncatedFrames",
+      message: `Batch truncated to ${framesToEvaluate.length} frames (cap ${caps.maxFramesEvaluated}).`,
+      batchId,
+      details: {
+        requestedFrames: frames.length,
+        evaluatedFrames: framesToEvaluate.length,
+        cap: caps.maxFramesEvaluated
+      }
+    });
+  }
 
+  const maxBatchDraftCap = Number.isFinite(caps.maxTotalDraftsPerBatch) && caps.maxTotalDraftsPerBatch >= 0
+    ? caps.maxTotalDraftsPerBatch
+    : Infinity;
+  const maxFrameDraftCap = Number.isFinite(caps.maxDraftsEmittedPerFrame) && caps.maxDraftsEmittedPerFrame >= 0
+    ? caps.maxDraftsEmittedPerFrame
+    : Infinity;
+
+  const frameSourceDraftIds = extractPackedCarrierSourceDraftIds(inputDraft);
   const sourceDraftId = typeof inputDraft.draftId === "string" ? inputDraft.draftId : null;
   const fallbackLensInstanceId = inputDraft.lensInstanceId
     || (context && context.lensInstanceId)
     || `${lensId || "lens"}-batchFrame`;
 
   const aggregated = [];
-  const warnings = [];
   let vizModel;
   let aggregatedError = null;
+  let batchDraftCount = 0;
 
-  for (let frameIndex = 0; frameIndex < frames.length; frameIndex += 1) {
+  for (let frameIndex = 0; frameIndex < framesToEvaluate.length; frameIndex += 1) {
+    const remainingForBatch = maxBatchDraftCap - batchDraftCount;
+    if (remainingForBatch <= 0) {
+      addRuntimeWarning({
+        kind: "truncatedBatchOutputs",
+        message: `Batch stopped after ${batchDraftCount} drafts (cap ${maxBatchDraftCap}).`,
+        batchId,
+        details: {
+          cap: maxBatchDraftCap,
+          emitted: batchDraftCount,
+          frameIndex,
+          framesRemaining: framesToEvaluate.length - frameIndex
+        }
+      });
+      break;
+    }
+
     const frameSourceDraftId = frameSourceDraftIds && frameSourceDraftIds[frameIndex]
       ? frameSourceDraftIds[frameIndex]
       : null;
@@ -264,7 +347,7 @@ function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
     let frameDraft;
     try {
       frameDraft = buildFrameInputDraft({
-        values: frames[frameIndex],
+        values: framesToEvaluate[frameIndex],
         frameIndex,
         sourceDraftId,
         fallbackLensInstanceId
@@ -286,7 +369,7 @@ function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
     }
 
     if (frameResult && Array.isArray(frameResult.warnings) && frameResult.warnings.length) {
-      warnings.push(...frameResult.warnings);
+      addFrameWarnings(frameResult.warnings);
     }
 
     if (frameResult && frameResult.error) {
@@ -294,8 +377,42 @@ function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
       continue;
     }
 
-    if (frameResult && Array.isArray(frameResult.drafts) && frameResult.drafts.length) {
-      const decorated = frameResult.drafts.map((draft, variantIndex) => attachBatchMetaToDraft(draft, {
+    let frameDrafts = Array.isArray(frameResult && frameResult.drafts) ? frameResult.drafts : [];
+    if (maxFrameDraftCap < frameDrafts.length) {
+      const requested = frameDrafts.length;
+      frameDrafts = frameDrafts.slice(0, maxFrameDraftCap);
+      addRuntimeWarning({
+        kind: "truncatedFrameOutputs",
+        message: `Frame ${frameIndex} limited to ${frameDrafts.length} variants (cap ${maxFrameDraftCap}).`,
+        batchId,
+        details: {
+          frameIndex,
+          cap: maxFrameDraftCap,
+          requested,
+          emitted: frameDrafts.length
+        }
+      });
+    }
+
+    const batchRoom = Number.isFinite(remainingForBatch) ? remainingForBatch : Infinity;
+    if (frameDrafts.length > batchRoom) {
+      const requested = frameDrafts.length;
+      frameDrafts = batchRoom > 0 ? frameDrafts.slice(0, batchRoom) : [];
+      addRuntimeWarning({
+        kind: "truncatedBatchOutputs",
+        message: `Batch cap ${maxBatchDraftCap} limited frame ${frameIndex} outputs to ${frameDrafts.length}.`,
+        batchId,
+        details: {
+          frameIndex,
+          cap: maxBatchDraftCap,
+          requested,
+          emitted: frameDrafts.length
+        }
+      });
+    }
+
+    if (frameDrafts.length) {
+      const decorated = frameDrafts.map((draft, variantIndex) => attachBatchMetaToDraft(draft, {
         kind: "mapFrames",
         batchId,
         frameIndex,
@@ -303,13 +420,14 @@ function applyLensWithBatching({ lensId, params, inputDraft, context } = {}) {
         variantIndex
       }));
       aggregated.push(...decorated);
+      batchDraftCount += decorated.length;
     }
   }
 
   return {
     drafts: aggregated,
     vizModel,
-    warnings: warnings.length ? warnings : undefined,
+    warnings: runtimeWarnings.length ? runtimeWarnings : undefined,
     error: aggregatedError,
     isBatched: true
   };
@@ -323,6 +441,57 @@ export function recomputeDerived(authoritativeState) {
   const selectedDraftIdsByLensInstanceId = {};
   const lastErrorByLensInstanceId = {};
   const vizByLensInstanceId = {};
+  const runtimeWarningsByLensInstanceId = {};
+  const globalDraftCap = Number.isFinite(DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute)
+    && DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute >= 0
+    ? DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute
+    : Infinity;
+  let totalDraftsAddedThisRecompute = 0;
+
+  function pushRuntimeWarning(lensInstanceId, warning) {
+    if (!lensInstanceId || !warning || typeof warning !== "object") return;
+    if (!runtimeWarningsByLensInstanceId[lensInstanceId]) {
+      runtimeWarningsByLensInstanceId[lensInstanceId] = [];
+    }
+    runtimeWarningsByLensInstanceId[lensInstanceId].push(warning);
+  }
+
+  function applyGlobalDraftCap(lensInstanceId, drafts) {
+    if (!Array.isArray(drafts) || !drafts.length) return drafts;
+    if (!Number.isFinite(globalDraftCap)) {
+      totalDraftsAddedThisRecompute += drafts.length;
+      return drafts;
+    }
+    const remainingGlobal = globalDraftCap - totalDraftsAddedThisRecompute;
+    if (remainingGlobal <= 0) {
+      pushRuntimeWarning(lensInstanceId, {
+        kind: "truncatedRecomputeOutputs",
+        message: `Recompute cap ${globalDraftCap} already reached; additional drafts dropped.`,
+        details: {
+          cap: globalDraftCap,
+          requested: drafts.length,
+          emitted: 0
+        }
+      });
+      return [];
+    }
+    if (drafts.length > remainingGlobal) {
+      const truncated = drafts.slice(0, remainingGlobal);
+      pushRuntimeWarning(lensInstanceId, {
+        kind: "truncatedRecomputeOutputs",
+        message: `Recompute cap ${globalDraftCap} limits lens output to ${remainingGlobal} drafts.`,
+        details: {
+          cap: globalDraftCap,
+          requested: drafts.length,
+          emitted: remainingGlobal
+        }
+      });
+      totalDraftsAddedThisRecompute = globalDraftCap;
+      return truncated;
+    }
+    totalDraftsAddedThisRecompute += drafts.length;
+    return drafts;
+  }
 
   const authoritative = authoritativeState || {};
   const workspace = authoritative.workspace || {};
@@ -377,7 +546,8 @@ export function recomputeDerived(authoritativeState) {
         }
       }
 
-      const inputDraft = resolveInput(lensInstanceId, authoritative, derivedSoFar);
+      const resolver = resolveInputOverride || resolveInput;
+      const inputDraft = resolver(lensInstanceId, authoritative, derivedSoFar);
       const lensId = instance.lensId;
       const params = instance.params && typeof instance.params === "object" ? instance.params : {};
       const lensInput = instance.lensInput && typeof instance.lensInput === "object"
@@ -392,6 +562,10 @@ export function recomputeDerived(authoritativeState) {
         context: { lensInstanceId, laneId, row }
       });
       const isBatched = Boolean(result && result.isBatched);
+
+      if (result && Array.isArray(result.warnings) && result.warnings.length) {
+        result.warnings.forEach((warning) => pushRuntimeWarning(lensInstanceId, warning));
+      }
 
       vizByLensInstanceId[lensInstanceId] = normalizeVizModel(result && result.vizModel, {
         lensId,
@@ -421,13 +595,15 @@ export function recomputeDerived(authoritativeState) {
         }
       }
 
+      let registeredDrafts = [];
       if (!(error && !isBatched)) {
-        normalized.forEach((draft) => {
+        registeredDrafts = applyGlobalDraftCap(lensInstanceId, normalized);
+        registeredDrafts.forEach((draft) => {
           draftsById[draft.draftId] = draft;
         });
       }
 
-      const draftIds = (error && !isBatched) ? [] : normalized.map((draft) => draft.draftId);
+      const draftIds = (error && !isBatched) ? [] : registeredDrafts.map((draft) => draft.draftId);
       draftOrderByLensInstanceId[lensInstanceId] = draftIds;
       const outputSelection = instance.outputSelection && typeof instance.outputSelection === "object"
         ? instance.outputSelection
@@ -487,6 +663,7 @@ export function recomputeDerived(authoritativeState) {
     viz: {
       vizByLensInstanceId
     },
+    runtimeWarningsByLensInstanceId,
     meta: {
       lastDerivedAt: 0,
       lastActionType: undefined

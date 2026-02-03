@@ -16,6 +16,15 @@ function formatPreview(values) {
   }
 }
 
+function formatWarningDetails(details) {
+  if (!details || typeof details !== "object") return null;
+  const entries = Object.entries(details);
+  if (!entries.length) return null;
+  return entries
+    .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+    .join(", ");
+}
+
 export default function DraftsPanel() {
   const actions = useStore((state) => state.actions);
   const { selectDraft } = useSelection();
@@ -26,9 +35,10 @@ export default function DraftsPanel() {
     lastErrorByLensInstanceId,
     selectedLensInstanceId,
     selectedDraftId,
-    lensOutputSelection
+    lensOutputSelection,
+    runtimeWarningsByLensInstanceId
   } = useDraftSelectors();
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
   const draftIds = selectedLensInstanceId
     ? (draftOrderByLensInstanceId[selectedLensInstanceId] || [])
@@ -43,6 +53,9 @@ export default function DraftsPanel() {
   const focusedDraftId = selectedDraftId || activeDraftId || null;
   const focusedDraft = focusedDraftId ? draftsById[focusedDraftId] : null;
   const scrollRef = useRef(null);
+  const runtimeWarnings = selectedLensInstanceId
+    ? (runtimeWarningsByLensInstanceId[selectedLensInstanceId] || [])
+    : [];
 
   const selectedIndices = useMemo(() => {
     if (lensOutputSelection && Array.isArray(lensOutputSelection.selectedIndices)) {
@@ -178,6 +191,27 @@ export default function DraftsPanel() {
               </div>
             ) : null}
             <div className="drafts-scroll" ref={scrollRef}>
+              {runtimeWarnings.length ? (
+                <div className="drafts-warning">
+                  {runtimeWarnings.map((warning, idx) => {
+                    const detailText = formatWarningDetails(warning.details);
+                    return (
+                      <div key={`${warning.kind}-${idx}`} className="drafts-warning-item">
+                        <div className="drafts-warning-kind">{warning.kind}</div>
+                        <div className="drafts-warning-message">{warning.message}</div>
+                        <div className="drafts-warning-meta">
+                          {warning.batchId ? (
+                            <span className="drafts-warning-meta-item">Batch {warning.batchId}</span>
+                          ) : null}
+                          {detailText ? (
+                            <span className="drafts-warning-details">{detailText}</span>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
               {lensError ? (
                 <div className="drafts-danger">{lensError}</div>
               ) : null}

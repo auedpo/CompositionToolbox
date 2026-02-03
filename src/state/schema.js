@@ -110,6 +110,7 @@ export function createEmptyDerived() {
     viz: {
       vizByLensInstanceId: {}
     },
+    runtimeWarningsByLensInstanceId: {},
     meta: {
       lastDerivedAt: 0,
       lastActionType: undefined

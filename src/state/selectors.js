@@ -135,6 +135,12 @@ export const selectSelectedLensDrafts = (state) => {
   return selectDraftsForLensInstance(state, lensInstanceId);
 };
 
+export const selectRuntimeWarningsByLensInstanceId = (state) => {
+  return state.derived && state.derived.runtimeWarningsByLensInstanceId
+    ? state.derived.runtimeWarningsByLensInstanceId
+    : {};
+};
+
 export const selectSelectedLensError = (state) => {
   const lensInstanceId = selectSelectedLensInstanceId(state);
   if (!lensInstanceId) return null;
