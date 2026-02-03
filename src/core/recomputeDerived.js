@@ -447,6 +447,8 @@ export function recomputeDerived(authoritativeState) {
     ? DEFAULT_BATCH_CAPS.maxTotalDraftsPerRecompute
     : Infinity;
   let totalDraftsAddedThisRecompute = 0;
+  const deterministicLensInstanceIds = [];
+  const deterministicLensInstanceIdSet = new Set();
 
   function pushRuntimeWarning(lensInstanceId, warning) {
     if (!lensInstanceId || !warning || typeof warning !== "object") return;
@@ -528,6 +530,10 @@ export function recomputeDerived(authoritativeState) {
       const cellKey = makeCellKey(laneId, row);
       const lensInstanceId = cells[cellKey];
       if (!lensInstanceId) continue;
+      if (!deterministicLensInstanceIdSet.has(lensInstanceId)) {
+        deterministicLensInstanceIdSet.add(lensInstanceId);
+        deterministicLensInstanceIds.push(lensInstanceId);
+      }
       vizByLensInstanceId[lensInstanceId] = null;
       draftOrderByLensInstanceId[lensInstanceId] = [];
       activeDraftIdByLensInstanceId[lensInstanceId] = undefined;
@@ -650,12 +656,109 @@ export function recomputeDerived(authoritativeState) {
     }
   );
 
+  const lensIterationOrder = deterministicLensInstanceIds.length
+    ? deterministicLensInstanceIds
+    : Object.keys(draftOrderByLensInstanceId).sort();
+  const draftIdsByBatchId = {};
+  const draftIdsByBatchFrame = {};
+  const batchSummaryByBatchId = {};
+  const batchAcc = {};
+  const truncatedWarningKinds = new Set([
+    "truncatedFrames",
+    "truncatedBatchOutputs",
+    "truncatedFrameOutputs"
+  ]);
+
+  for (let idx = 0; idx < lensIterationOrder.length; idx += 1) {
+    const lensInstanceId = lensIterationOrder[idx];
+    const orderedIds = Array.isArray(draftOrderByLensInstanceId[lensInstanceId])
+      ? draftOrderByLensInstanceId[lensInstanceId]
+      : [];
+    for (let draftIdx = 0; draftIdx < orderedIds.length; draftIdx += 1) {
+      const draftId = orderedIds[draftIdx];
+      const draft = draftsById[draftId];
+      if (!draft) continue;
+      const batch = draft.meta && typeof draft.meta === "object" ? draft.meta.batch : null;
+      if (!batch || batch.kind !== "mapFrames" || !batch.batchId) continue;
+      const batchId = batch.batchId;
+      const frameIndex = Number.isInteger(batch.frameIndex) ? batch.frameIndex : 0;
+
+      if (!draftIdsByBatchId[batchId]) {
+        draftIdsByBatchId[batchId] = [];
+      }
+      draftIdsByBatchId[batchId].push(draftId);
+
+      if (!draftIdsByBatchFrame[batchId]) {
+        draftIdsByBatchFrame[batchId] = {};
+      }
+      if (!draftIdsByBatchFrame[batchId][frameIndex]) {
+        draftIdsByBatchFrame[batchId][frameIndex] = [];
+      }
+      draftIdsByBatchFrame[batchId][frameIndex].push(draftId);
+
+      let acc = batchAcc[batchId];
+      if (!acc) {
+        acc = {
+          lensInstanceId,
+          lensId: draft.lensId || null,
+          outputsPerFrame: {},
+          maxFrameIndex: -1,
+          outputs: 0
+        };
+        batchAcc[batchId] = acc;
+      }
+
+      acc.outputs += 1;
+      acc.outputsPerFrame[frameIndex] = (acc.outputsPerFrame[frameIndex] || 0) + 1;
+      if (frameIndex > acc.maxFrameIndex) {
+        acc.maxFrameIndex = frameIndex;
+      }
+    }
+  }
+
+  const lensWarningsLookup = {};
+  Object.keys(runtimeWarningsByLensInstanceId).forEach((lensInstanceId) => {
+    const warnings = runtimeWarningsByLensInstanceId[lensInstanceId];
+    if (Array.isArray(warnings) && warnings.length) {
+      lensWarningsLookup[lensInstanceId] = warnings;
+    }
+  });
+
+  Object.keys(batchAcc).forEach((batchId) => {
+    const acc = batchAcc[batchId];
+    const frames = acc.maxFrameIndex >= 0 ? acc.maxFrameIndex + 1 : 0;
+    const outputsPerFrame = [];
+    for (let frameIndex = 0; frameIndex < frames; frameIndex += 1) {
+      outputsPerFrame[frameIndex] = acc.outputsPerFrame[frameIndex] || 0;
+    }
+    const summary = {
+      frames,
+      outputs: acc.outputs,
+      outputsPerFrame,
+      lensInstanceId: acc.lensInstanceId,
+      lensId: acc.lensId
+    };
+    const warnings = lensWarningsLookup[acc.lensInstanceId] || [];
+    const batchWarnings = warnings.filter((warning) => warning && warning.batchId === batchId);
+    if (batchWarnings.length) {
+      summary.warnings = batchWarnings;
+      const truncated = batchWarnings.some((warning) => warning && truncatedWarningKinds.has(warning.kind));
+      if (truncated) summary.truncated = true;
+    }
+    batchSummaryByBatchId[batchId] = summary;
+  });
+
   return {
     drafts: {
       draftsById,
       draftOrderByLensInstanceId,
       activeDraftIdByLensInstanceId,
-      selectedDraftIdsByLensInstanceId
+      selectedDraftIdsByLensInstanceId,
+      batchIndex: {
+        draftIdsByBatchId,
+        draftIdsByBatchFrame,
+        batchSummaryByBatchId
+      }
     },
     errors: {
       lastErrorByLensInstanceId

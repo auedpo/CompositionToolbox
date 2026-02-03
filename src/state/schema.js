@@ -102,7 +102,12 @@ export function createEmptyDerived() {
     drafts: {
       draftsById: {},
       draftOrderByLensInstanceId: {},
-      activeDraftIdByLensInstanceId: {}
+      activeDraftIdByLensInstanceId: {},
+      batchIndex: {
+        draftIdsByBatchId: {},
+        draftIdsByBatchFrame: {},
+        batchSummaryByBatchId: {}
+      }
     },
     errors: {
       lastErrorByLensInstanceId: {}
